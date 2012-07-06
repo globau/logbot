@@ -1,0 +1,4 @@
+logbot
+======
+
+IRC logging bot
