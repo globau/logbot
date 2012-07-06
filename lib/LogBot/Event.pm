@@ -76,7 +76,7 @@ sub to_string {
         when(EVENT_QUIT)   { $template = '%s *** %s has quit IRC [%s]' }
         when(EVENT_ACTION) { $template = '%s * %s %s' }
     }
-    return sprintf($template, $self->_relative_date_string, $self->{nick}, $self->{text} || '', $self->{channel});
+    return sprintf($template, simple_date_string($self->datetime), $self->{nick}, $self->{text} || '', $self->{channel});
 }
 
 sub log_string {
@@ -91,22 +91,6 @@ sub log_string {
         when(EVENT_ACTION) { $template = '%s * %s %s' }
     }
     return sprintf($template, $self->datetime, $self->{nick}, $self->{text} || '', $self->{channel});
-}
-
-sub _relative_date_string {
-    my ($self) = @_;
-
-    # TODO build this up from values rather than munging the time string
-    # use DateTime
-    # move to utils
-    my $date = scalar localtime($self->{time});
-    $date =~ s/^\S+ //;
-    $date =~ s/:\d\d (\d{4})$//;
-    my ($year) = $1;
-    if (int((now()->epoch - $self->{time}) / 86400) > 7) {
-        $date =~ s/ \d+:\d\d$/ $year/;
-    }
-    return $date;
 }
 
 1;

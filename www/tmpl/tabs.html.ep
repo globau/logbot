@@ -24,10 +24,10 @@
             <input type="hidden" name="h" value="<%= $vars->{h} %>">
         % }
 
-        <input name="s" id="start_date" size="10" type="date" value="<%= $vars->{s} %>">
+        <input name="s" id="start_date" size="10" type="text" value="<%= $vars->{s} %>">
         <a href="javascript:void(0)" class="cal" id="start_date_cal">&hellip;</a>
         -
-        <input name="e" id="end_date" size="10" type="date" value="<%= $vars->{e} %>">
+        <input name="e" id="end_date" size="10" type="text" value="<%= $vars->{e} %>">
         <a href="javascript:void(0)" class="cal" id="end_date_cal">&hellip;</a>
 
         % if ($vars->{channel}->{log_events}) {
@@ -58,10 +58,10 @@
 
         between
 
-        <input name="ss" id="search_start_date" size="10" type="date" value="<%= $vars->{ss} %>">
+        <input name="ss" id="search_start_date" size="10" type="text" value="<%= $vars->{ss} %>">
         <a href="javascript:void(0)" class="cal" id="search_start_date_cal">&hellip;</a>
         -
-        <input name="se" id="search_end_date" size="10" type="date" value="<%= $vars->{se} %>">
+        <input name="se" id="search_end_date" size="10" type="text" value="<%= $vars->{se} %>">
         <a href="javascript:void(0)" class="cal" id="search_end_date_cal">&hellip;</a>
 
         <input type="submit" value="Search">

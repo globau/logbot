@@ -19,8 +19,13 @@ use LogBot::Constants;
 use LogBot::Template;
 use LogBot::Util;
 
-# XXX this should scan @INC, so the path only has to be set once, by 'use lib'
-LogBot::Config->init('/home/logbot/logbot/logbot.conf');
+my $conf_filename = 'logbot.conf';
+foreach my $path (@INC) {
+    next unless -e "$path/../$conf_filename";
+    $conf_filename = "$path/../$conf_filename";
+    last;
+}
+LogBot::Config->init($conf_filename);
 
 our $config = LogBot::Config->instance;
 our $cgi = LogBot::CGI->instance;
@@ -604,7 +609,7 @@ sub show_events {
 #
 
 sub linkify {
-    # XXX move to util
+    # XXX move to util?
     my ($value, $rs_href) = @_;
     $rs_href ||= sub { $_[0] };
 
@@ -623,7 +628,7 @@ sub linkify {
 }
 
 sub hilite {
-    # XXX move to util
+    # XXX move to util?
     my ($value, $hilite) = @_;
 
     $value =~ s/</\000/g;
@@ -649,18 +654,6 @@ sub hilite {
     $value =~ s#\003#<span class="hilite">#g;
     $value =~ s#\004#</span>#g;
 
-    return $value;
-}
-
-
-sub shorten {
-    # XXX move to util
-    my ($value) = @_;
-    return $value if length($value) < 70;
-    while (length($value) >= 70) {
-        substr($value, length($value) / 2 - 1, 3) = '';
-    }
-    substr($value, length($value) / 2, 3) = '...';
     return $value;
 }
 

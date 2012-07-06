@@ -120,8 +120,7 @@ rsync("logbot.conf", "$backup_path");
 sub rsync {
     my ($source, $destination, $extra) = @_;
     $extra ||= '';
-    print "rsync $source --> $destination\n";
-    system "/usr/bin/rsync -av --delete $extra $source $destination";
+    system "/usr/bin/rsync -a --delete $extra $source $destination";
     die unless -e $destination;
 }
 
