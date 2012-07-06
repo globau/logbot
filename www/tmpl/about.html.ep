@@ -1,0 +1,59 @@
+% if ($vars->{error}) {
+    <div id="error"><%= $vars->{error} %></div>
+% }
+
+<div id="about_logbot">
+    These logs are collected by:
+
+    <ul>
+    <% foreach my $network ($vars->{config}->networks) { %>
+        <li><b><%= $network->{nick} %></b> on <%= $network->{network} %> (<%= $network->{server} %>)</li>
+    <% } %>
+    </ul>
+
+    The logs are updated in real time.<br>
+    All dates and times are in UTC.<br>
+    <br>
+    Direct bugs and suggestions to byron@glob.com.au.
+</div>
+
+% use URI::Escape;
+% use DateTime;
+<div id="about_channels">
+    % foreach my $network ($vars->{config}->networks) {
+        % next unless $network->public_channels;
+        <div class="network"><%= $network->{network} %></div>
+        % foreach my $channel ($network->channels) {
+            % next unless $channel->{public};
+            % my $base = '?c=' . uri_escape($network->{network} . $channel->{name});
+            <div class="channel">
+                <a href="<%= $base %>"><%= $channel->{name} %></a>
+                <span class="dates">
+                    &#x25B6;
+                    % my $date = DateTime->now()->truncate(to => 'day');
+                    % foreach my $i (1..7) {
+                        % my $date_str = $date->format_cldr('d MMM y');
+                        % my $date_url = uri_escape($date_str);
+                        <a href="<%= $base %>&amp;s=<%= $date_url %>&amp;e=<%= $date_url %>"><%= $date_str %></a>
+                        &nbsp;
+                    %   $date->add(days => -1);
+                    % }
+                </span>
+            </div>
+        % }
+    % }
+</div>
+
+<div id="about_alt">
+    More IRC logs at:
+    <div>
+        <a href="http://krijnhoetmer.nl/irc-logs/">krijnhoetmer.nl</a>
+    </div>
+    <div>
+        <a href="http://irclog.gr/">irclog.gr</a>
+    </div>
+</div>
+
+<script>
+    init_about();
+</script>

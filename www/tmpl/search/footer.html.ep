@@ -1,0 +1,19 @@
+<tr>
+    <td>&nbsp;</td>
+    <td colspan="2" width="100%">&nbsp;</td>
+</tr>
+</table>
+
+% if ($vars->{event_count}) {
+    <div class="event_count">
+        % if ($vars->{event_count} == $vars->{config}->{web}->{search_limit}) {
+            Most recent <%= $vars->{event_count} %> results shown.
+        % } else {
+            <%= $vars->{event_count} %> event<%= $vars->{event_count} == 1 ? '' : 's' %>
+        % }
+    </div>
+% } else {
+    <div class="no_events">
+        No matches
+    </dib>
+% }

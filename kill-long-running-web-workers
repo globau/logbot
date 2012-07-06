@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Date::Parse;
+use File::Slurp;
+
+foreach my $line (`/bin/ps xo pid,lstart,cmd`) {
+    chomp($line);
+    next unless $line =~ /^(\d+) (.+? 20\d\d) perl index.cgi/;
+    my ($pid, $start_time_string) = ($1, $2);
+
+    my $start_time = str2time($2) || next;
+    my $time = (time);
+    my $age = $time - $start_time;
+
+    if ($age > 300) {
+        print "killed $pid, age $age seconds\n\n";
+
+        my $env = read_file("/proc/$pid/environ");
+        $env =~ s/\000/\n/g;
+        $env =~ s/\n+/\n/g;
+        print join("\n", sort split(/\n/, $env)), "\n";
+        print "\n---\n\n";
+
+        kill(15, $pid);
+    }
+}
+

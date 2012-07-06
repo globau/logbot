@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+    % my $title_suffix = $vars->{channel} ? " - " . $vars->{channel}->{name} : '';
+    <title>LogBot<%= $title_suffix %></title>
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <script src="/js/jquery-1.7.1.min.js"></script>
+    <script src="/js/jquery.animate-colors-min.js"></script>
+
+    <link rel="stylesheet" href="/css/calendar.css">
+    <script src="/js/calendar.js"></script>
+    <script src="/js/calendar-en.js"></script>
+    <script src="/js/calendar-setup.js"></script>
+
+    <link rel="stylesheet" href="/css/chosen.css">
+    <script src="/js/chosen.jquery.min.js"></script>
+
+    <script src="js/jquery.flot.min.js"></script>
+
+    <link rel="stylesheet" href="/css/default.css">
+    <script src="/js/logbot.js"></script>
+</head>
+<body>
+<div id="top"></div>
+
+<div id="nav_glob">
+    <a href="http://glob.com.au/">
+        glob
+        <img src="/img/glob-logo-16.png" width="16" height="16" align="absmiddle">
+    </a>
+</div>
+
+% if ($vars->{c}) {
+    <div id="nav_about">
+        <a href="/">logbot</a>
+    </div>
+% }
+
+<div id="channel">
+    <form action="/">
+        <select name="c" id="channel_select" onchange="channel_changed()"
+                data-placeholder="Select a Channel">
+            <option></option>
+            % foreach my $network ($vars->{config}->networks) {
+                % next unless $network->public_channels;
+                <optgroup label="<%= $network->{network} %>">
+                    % foreach my $channel ($network->channels) {
+                        % next unless $channel->{public};
+                        <option
+                            value="<%= $network->{network} . $channel->{name} %>"
+                            % if ($vars->{c}) {
+                                <%= 'selected' if $vars->{c} eq $network->{network} . $channel->{name} %>
+                            % }
+                        ><%= $channel->{name} %></option>
+                    % }
+                </optgroup>
+            % }
+        </select>
+        <noscript>
+            <input type="submit" value="Update">
+        </noscript>
+    </form>
+</div>
+
+<script>
+    init_channels();
+</script>

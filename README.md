@@ -2,3 +2,4 @@ logbot
 ======
 
 IRC logging bot
+

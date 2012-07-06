@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+BEGIN {
+    use File::Basename;
+    use lib dirname(__FILE__) . '/lib';
+}
+
+# because we log times as UTC, force all our timezone dates to UTC
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use LogBot::Daemon;
+LogBot::Daemon->start();
+
+__END__
+
+=head1 NAME
+
+logbot
+
+=head1 SYNOPSIS
+
+  logbot [OPTIONS] COMMAND
+
+    OPTIONS:
+      -f       Run in the foreground (don't detach)
+      -c       Specify config file (default logbot.conf)
+      -d       Run in debugging mode (foreground, load settings from debug.conf)
+
+    COMMANDS:
+      start    Starts a new daemon if there isn't one already running
+      stop     Stops a running daemon
+      restart  Stops a running daemon if one is running, and then starts a new one
+

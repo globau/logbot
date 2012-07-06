@@ -1,0 +1,15 @@
+todo:
+    ! support reloading config without restarting
+    - add help to commands
+    - invite
+        - needs to update the conf file
+    - log more stuff
+        - kick
+        - topic
+
+    - www
+        - auth
+            - use browserid
+            - access to private channels
+            - per-user display timezone setting
+

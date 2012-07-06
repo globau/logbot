@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use feature qw(say);
+use autodie;
+
+BEGIN {
+    use File::Basename;
+    use lib dirname(__FILE__) . '/lib';
+}
+
+# because we log times as UTC, force all our timezone dates to UTC
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use DateTime;
+use File::Basename;
+use FileHandle;
+use File::Path qw(make_path remove_tree);
+use LogBot;
+
+# init
+
+LogBot::Config->init(dirname(__FILE__) . '/logbot.conf');
+my $config = LogBot::Config->instance;
+
+# generate text logs of events
+
+foreach my $network ($config->networks) {
+    say $network->{network};
+    foreach my $channel ($network->channels) {
+        say "  " . $channel->{name};
+
+        my @rows;
+
+        my $dbh = $channel->{database}->{dbh};
+        my $sth = $dbh->prepare("SELECT rowid,time,nick,event,data FROM logs ORDER BY time");
+        $sth->execute;
+        my ($_rowid, $_time, $_nick, $_event, $_data) = ('', '', '', '', '');
+        while (my($rowid, $time, $nick, $event, $data) = $sth->fetchrow_array()) {
+            $data ||= '';
+            if (
+                $nick eq $_nick
+                && $event eq $_event
+                && $data eq $_data
+                && $time - $_time < 0.5
+            ) {
+                my $diff = sprintf("%.2f", $time - $_time);
+                say "$rowid/$_rowid <$nick> $diff $data";
+                push @rows, $rowid;
+            }
+            ($_rowid, $_time, $_nick, $_event, $_data) = ($rowid, $time, $nick, $event, $data);
+        }
+
+        printf "\n%s rows to delete from %s\n\n", scalar(@rows), $channel->{name};
+        if (@rows) {
+            my $rows = join(',', @rows);
+            my $sql = "DELETE FROM logs WHERE rowid IN ($rows)";
+            die "disabled";
+            #$dbh->do($sql);
+        }
+    }
+}
+

@@ -1,0 +1,280 @@
+/* global */
+
+body {
+    background: #ffffff url(/img/bg.png) repeat-x;
+    background-color: #ffffff;
+    margin: 0.5em;
+    color: #000000;
+}
+
+body, input, select {
+    font-family: "Segoe UI", Helvetica, sans-serif;
+    font-size: small;
+}
+
+form {
+    display: inline;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none;
+}
+
+#error {
+    background: #eedddd;
+    border-radius: 3px;
+    margin: 1em;
+    padding: 0.5em;
+}
+
+/* about */
+
+#about_logbot {
+    margin-top: 1em;
+    margin-left: 2em;
+}
+
+#irc_link {
+    font-weight: bold;
+    color: #000000;
+}
+
+.about_header {
+    font-weight: bold;
+    color: #000000;
+    margin-top: 1em;
+}
+
+#about_channels {
+    margin-top: 2em;
+    margin-left: 2em;
+}
+
+#about_channels .network {
+    margin-top: 1em;
+    font-weight: bold;
+    color: #444444;
+}
+
+#about_channels .channel {
+    margin-left: 1em;
+    color: #888888;
+}
+
+#about_channels a {
+    color: #888888;
+}
+
+#about_channels .dates {
+    left: 9em;
+    margin-left: 1em;
+    display: none;
+}
+
+#about_alt {
+    margin-top: 1em;
+    margin-left: 2em;
+    color: #444444;
+}
+
+#about_alt a {
+    margin-left: 1em;
+    color: #888888;
+}
+
+#hours_plot {
+    width: 800px;
+    height: 150px;
+    margin-left: 1em;
+}
+
+#hours_now {
+    border-left: 2px solid #888;
+    padding-left: 1px;
+    font-size: smaller;
+}
+
+/* nav - global */
+
+#nav_about {
+    float: right;
+    margin-right: 1em;
+    color: #888888;
+}
+
+#nav_about a {
+    color: #888888;
+}
+
+#nav_glob {
+    float: right;
+    color: #669999;
+    margin-right: 1em;
+}
+
+#nav_glob a {
+    color: #669999;
+}
+
+#nav_glob img {
+    border: 0;
+}
+
+#channel {
+    margin-bottom: 5px;
+}
+
+#channel_select {
+    width: 50%;
+}
+
+#tabs {
+    display: inline;
+    padding: 0 1em;
+}
+
+.tab_title {
+    display: inline;
+    padding: 0 1em;
+    cursor: pointer;
+}
+
+.tab_selected {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-bottom: 1px solid #ffffff;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.tab {
+    clear: both;
+    padding: 0.5em;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 3px;
+}
+
+/* nav - browse, search */
+
+#start_date, #end_date, #query, #search_start_date, #search_end_date {
+    border: 1px solid #cccccc;
+    padding: 1px;
+}
+
+.cal {
+    border: 1px solid #cccccc;
+    border-radius: 2px;
+    padding: 0 2px;
+    color: #000000;
+    cursor: default;
+}
+
+#nav_bottom {
+    float: right;
+    color: #888888;
+    font-size: medium;
+}
+
+/* events - global */
+
+#events {
+    width: 100%;
+    font-family: "Andale Mono", Consolas, "Lucida Console", "Bitstream Vera Sans Mono", "Courier New", monospace;
+    margin-top: 1px;
+}
+
+#events td {
+    padding: 2px;
+}
+
+/* events - date */
+
+.date {
+    color #000000;
+    background-color: #eeeeee;
+}
+
+.date_prev, .date_next {
+    display: inline-block;
+    margin-left: 2px;
+    min-width: 16px;
+}
+
+.date_next {
+    border-right: 1px solid #aaaaaa;
+    padding-right: 0.5em;
+}
+
+.date_nav {
+    display: block;
+    text-align: center;
+    color: #000000;
+}
+
+.date_nav:hover {
+    color: #0000ee;
+}
+
+.date_string {
+    display: inline;
+    padding-left: 0.5em;
+}
+
+.date_string a {
+    color: #000000;
+}
+
+/* events - items */
+
+.hilite {
+    background: #ffff9c;
+}
+
+.event_time {
+    padding-right: 0.5em !important;
+    vertical-align: top;
+}
+
+.event_time a {
+    color: #888888;
+    white-space: nowrap;
+}
+
+.event_nick {
+    color: #884444;
+    white-space: nowrap;
+    padding-right: 0.5em !important;
+    vertical-align: top;
+}
+
+.event_action {
+    color: #884444;
+}
+
+.event_join, .event_part {
+    color: #888888;
+}
+
+.event_text {
+    width: 100%;
+}
+
+.no_events, .last_event, .event_count {
+    color: #888888;
+    font-family: "Segoe UI", Helvetica, sans-serif;
+    font-style: italic;
+}
+
+.loading {
+    color: #888888;
+}
+

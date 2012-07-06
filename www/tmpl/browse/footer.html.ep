@@ -1,0 +1,14 @@
+<tr>
+    <td>&nbsp;</td>
+    <td colspan="2" width="100%">&nbsp;</td>
+</tr>
+</table>
+
+% if ($vars->{last_event}) {
+    % use Time::Duration;
+    % use LogBot::Util;
+    % my $ago = ago(now()->epoch() - $vars->{last_event}->datetime->epoch());
+    <div class="last_event">
+        Last message: <%= $ago %>
+    </div>
+% }

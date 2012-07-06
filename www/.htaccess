@@ -1,0 +1,15 @@
+Options -Indexes ExecCGI FollowSymLinks
+
+RewriteEngine On
+
+# always use the correct hostname
+RewriteCond %{HTTP_HOST} !^logbot.glob.com.au
+RewriteRule (.*) http://logbot.glob.com.au$1 [R=301,L]
+
+# redirect from the old /irc/ path
+RewriteRule ^irc(.*) http://logbot.glob.com.au$1 [R=301,L]
+
+# allow logbot.glob.com.au/$network/$channel
+# eg. logbot.glob.com.au/mozilla/ateam
+#RewriteRule ^(.+)/(.+) http://logbot.glob.com.au/?c=$1#$2
+

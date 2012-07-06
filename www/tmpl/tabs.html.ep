@@ -1,0 +1,129 @@
+% my $is_search = exists $vars->{a} && $vars->{a} eq 'search';
+
+<div id="tabs">
+    <div id="browse_tab_title" class="tab_title
+        % unless ($is_search)  {
+            tab_selected
+        %}
+        " onclick="switch_tab('browse_tab')">Browse</div>
+    <div id="search_tab_title" class="tab_title
+        % if ($is_search)  {
+            tab_selected
+        %}
+        " onclick="switch_tab('search_tab')">Search</div>
+    <div id="about_tab_title" class="tab_title"
+         onclick="switch_tab('about_tab')">About</div>
+</div>
+
+% my $class;
+% $class = exists $vars->{a} && $vars->{a} eq 'search' ? 'tab hidden' : 'tab';
+<div id="browse_tab" class="<%= $class %>">
+    <form action="/">
+        <input type="hidden" name="c" value="<%= $vars->{c} %>">
+        % if (exists $vars->{h}) {
+            <input type="hidden" name="h" value="<%= $vars->{h} %>">
+        % }
+
+        <input name="s" id="start_date" size="10" type="date" value="<%= $vars->{s} %>">
+        <a href="javascript:void(0)" class="cal" id="start_date_cal">&hellip;</a>
+        -
+        <input name="e" id="end_date" size="10" type="date" value="<%= $vars->{e} %>">
+        <a href="javascript:void(0)" class="cal" id="end_date_cal">&hellip;</a>
+
+        % if ($vars->{channel}->{log_events}) {
+            <input type="checkbox" name="j" id="show_join" value="1" <%= 'checked' if $vars->{j} %>>
+            <label for="show_join">Show Join/Part</label>
+        % }
+
+        % if (@{$vars->{network}->{bots}}) {
+            <input type="checkbox" name="b" id="show_bots" value="1" <%= 'checked' if $vars->{b} %>>
+            <label for="show_bots">Hide Bots</label>
+        % }
+
+        <input type="submit" value="Update">
+
+        % if ($vars->{run}) {
+            <a href="#end" id="nav_bottom" title="Bottom of page">&dArr;</a>
+        % }
+    </form>
+</div>
+
+% $class = exists $vars->{a} && $vars->{a} eq 'search' ? 'tab' : 'tab hidden';
+<div id="search_tab" class="<%= $class %>">
+    <form action="/">
+        <input type="hidden" name="a" value="search">
+        <input type="hidden" name="c" value="<%= $vars->{c} %>">
+
+        <input name="q" id="query" size="40" value="<%= $vars->{q} %>" placeholder="Search for...">
+
+        between
+
+        <input name="ss" id="search_start_date" size="10" type="date" value="<%= $vars->{ss} %>">
+        <a href="javascript:void(0)" class="cal" id="search_start_date_cal">&hellip;</a>
+        -
+        <input name="se" id="search_end_date" size="10" type="date" value="<%= $vars->{se} %>">
+        <a href="javascript:void(0)" class="cal" id="search_end_date_cal">&hellip;</a>
+
+        <input type="submit" value="Search">
+    </form>
+</div>
+
+% my $now = DateTime->now;
+<div id="about_tab" class="tab hidden">
+    <table cellspacing="0">
+    <tr>
+        <td colspan="3">
+            % my $channel = $vars->{channel}->{name};
+            % $channel =~ s/^#//;
+            % my $server = $vars->{network}->{server};
+            <a href="irc://<%= $server %>/<%== $channel %>"
+               id="irc_link">irc://<%= $server %>/<%= $channel %></a>
+        </td>
+    </tr>
+    <tr>
+        <td valign="top">
+            <div id="last_updated">
+                Last updated <span class="loading">loading..</span>
+            </div>
+
+            It is currently 
+            <%= $now->strftime(' %d %b %Y %H:%M:%S') %>
+            <br>
+
+            All times are in UTC.
+        </td>
+        <td>
+            &nbsp;&nbsp;&nbsp;
+        </td>
+        <td valign="top">
+            <div>
+                Database size: <span id="database_size">
+                    <span class="loading">loading..</span>
+                </span>
+            </div>
+            <div>
+                Event count: <span id="event_count">
+                    <span class="loading">loading..</span>
+                </span>
+            </div>
+            <br>
+        </td>
+    </tr>
+    </table>
+    <div class="about_header">Channel activity by hour:</div>
+    <div id="hours_plot"></div>
+</div>
+
+<script>
+    add_tab('browse_tab');
+    add_tab('search_tab');
+    add_tab('about_tab');
+    init_tabs('<%= $vars->{c} %>');
+    var current_hh = <%= $now->strftime('%H') %>;
+    var current_mm = <%= $now->strftime('%M') %>;
+</script>
+
+% if ($vars->{error}) {
+    <div id="error"><%= $vars->{error} %></div>
+% }
+

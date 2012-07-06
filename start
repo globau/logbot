@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use feature 'say';
+
+use FindBin qw($Bin);
+use File::Slurp;
+
+my $pid = 0;
+my $quiet = grep { $_ eq '-q' } @ARGV;
+
+if (-e "$Bin/data/logbot.pid") {
+    $pid = read_file("$Bin/data/logbot.pid");
+    chomp($pid);
+    $pid = 0 if $pid =~ /\D/;
+}
+
+if ($pid && -d "/proc/$pid") {
+    say "logbot is running (pid $pid)" unless $quiet;
+    exit;
+}
+
+say "logbot is not running, starting";
+system "$Bin/logbot start";
+

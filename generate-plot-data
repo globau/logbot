@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use feature qw(say);
+use autodie;
+
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+
+use DateTime;
+use File::Path qw(make_path);
+use File::Slurp;
+use JSON;
+use LogBot;
+use LogBot::Constants;
+
+my $QUIET = grep { $_ eq '-q' } @ARGV;
+
+LogBot::Config->init($Bin . '/logbot.conf');
+my $config = LogBot::Config->instance;
+my $data_path = $config->{data_path} . '/plot/hours';
+make_path($data_path) unless -d $data_path;
+
+my $sql = sprintf("
+        SELECT CAST(time %% (24 * 3600) AS INT), COUNT(*)
+          FROM logs
+         WHERE event in (%s, %s)
+      GROUP BY CAST(time %% (24 * 3600) AS INT)",
+    EVENT_PUBLIC, EVENT_ACTION
+);
+foreach my $network ($config->networks) {
+    foreach my $channel ($network->channels) {
+        next unless $channel->{public};
+
+        my $channel_name = $channel->{name};
+        $channel_name =~ s/^#//;
+        my $filename = "$data_path/" . $network->{network} . "-$channel_name.json";
+        $QUIET || say $filename;
+
+        my $dbh = $channel->{database}->{dbh};
+        my %values;
+        foreach my $row (@{ $dbh->selectall_arrayref($sql) }) {
+            my ($ss, $value) = @$row;
+            my $hh = sprintf("%.1f", $ss / (60 * 60));
+            $hh = "0.0" if $hh == 24;
+            $values{$hh} += $value;
+        }
+        my @data;
+        for (my $hh = 0; $hh < 24; $hh += 0.1) {
+            $hh = sprintf("%.1f", $hh);
+            push @data, [ $hh, $values{$hh} || 0 ];
+        }
+
+        my $json = {
+            data => \@data,
+            lines => {
+                show => JSON::true,
+                fill => JSON::true,
+            },
+        };
+        # $QUIET || say encode_json($json);
+        write_file($filename, encode_json($json));
+    }
+}
