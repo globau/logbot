@@ -110,6 +110,7 @@ foreach my $file (glob('*')) {
 }
 
 rsync('lib', $source_path);
+rsync('3rd-party-licenses', $source_path);
 mkdir("$source_path/www") unless -d "$source_path/www";
 my $www_path = -l 'www' ? readlink('www') : 'www/';
 rsync($www_path, "$source_path/www", "--exclude 'google*.html'");
