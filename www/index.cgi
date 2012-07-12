@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use lib '/home/logbot/logbot/lib';
+use lib '/home/logbot/logbot.dev/lib';
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
@@ -15,6 +15,7 @@ use File::Slurp;
 use HTTP::BrowserDetect;
 use LogBot;
 use LogBot::CGI;
+use LogBot::ConfigFile;
 use LogBot::Constants;
 use LogBot::Template;
 use LogBot::Util;
@@ -25,13 +26,13 @@ foreach my $path (@INC) {
     $conf_filename = "$path/../$conf_filename";
     last;
 }
-LogBot::Config->init($conf_filename);
+LogBot::ConfigFile->init($conf_filename);
 
-our $config = LogBot::Config->instance;
+our $config_file = LogBot::ConfigFile->instance;
 our $cgi = LogBot::CGI->instance;
 our $vars = {
     cgi => $cgi,
-    config => $config,
+    config => $config_file,
 };
 $cgi->{vars} = $vars;
 
@@ -95,7 +96,7 @@ if ($vars->{action} eq 'json') {
         my $channel_name = $channel->{name};
         $channel_name =~ s/^#//;
         print read_file(
-            $config->{data_path} . '/plot/hours/' . $channel->{network} . "-$channel_name.json"
+            $config_file->{data_path} . '/plot/hours/' . $channel->{network} . "-$channel_name.json"
         );
 
     }
@@ -184,7 +185,7 @@ if ($vars->{action} eq 'about') {
             $args{hilite}        = $vars->{q};
             $args{messages_only} = 1;
             $args{empty_dates}   = 0;
-            $args{limit}         = $config->{web}->{search_limit};
+            $args{limit}         = $config_file->{web}->{search_limit};
             if ($vars->{q} =~ s/<([^>]+)>//) {
                 $args{nick} = $1;
             }
@@ -213,20 +214,20 @@ sub parse_parameters {
     my ($network_name, $channel_name);
     $channel_name = $cgi->param('c');
     if (!defined $channel_name || $channel_name eq '') {
-        $network_name = $config->{web}->{default_network};
-        $channel_name = $config->{web}->{default_channel};
+        $network_name = $config_file->{web}->{default_network};
+        $channel_name = $config_file->{web}->{default_channel};
     } elsif ($channel_name =~ /^([^#]+)(#.+)$/) {
         ($network_name, $channel_name) = ($1, $2);
     } else {
-        $network_name = $config->{web}->{default_network};
+        $network_name = $config_file->{web}->{default_network};
         $channel_name = '#' . $channel_name unless $channel_name =~ /^#/;
     }
 
     # validate network
 
-    my $network = $config->network($network_name);
+    my $network = $config_file->network($network_name);
     if (!$network) {
-        $network = $config->network($config->{web}->{default_network});
+        $network = $config_file->network($config_file->{web}->{default_network});
     }
     $vars->{network} = $network;
 

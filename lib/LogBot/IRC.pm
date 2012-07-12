@@ -7,7 +7,7 @@ use Class::Sniff;
 use IRC::Utils ':ALL';
 use LogBot;
 use LogBot::Constants;
-use LogBot::Config;
+use LogBot::ConfigFile;
 use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotAddressed;
@@ -18,9 +18,9 @@ use Scalar::Util 'blessed';
 sub start {
     my ($class) = @_;
 
-    my $config = LogBot::Config->instance();
+    my $config_file = LogBot::ConfigFile->instance();
 
-    foreach my $network ($config->networks) {
+    foreach my $network ($config_file->networks) {
         next unless grep { $_->{join} } $network->channels;
         printf "Connecting to %s (%s:%s)\n", $network->{network}, $network->{server}, $network->{port};
 
@@ -29,7 +29,7 @@ sub start {
             ircname     => $network->{name},
             server      => $network->{server},
             port        => $network->{port},
-            debug       => $config->{bot}->{debug_irc},
+            debug       => $config_file->{bot}->{debug_irc},
         ) or die "failed: $!\n";
 
         if ($network->{password}) {
@@ -59,7 +59,7 @@ sub start {
             package_states => [ $class => \@poe_methods ],
             object_states => [ $bot => \@bot_methods ],
             heap => { irc => $irc, bot => $bot, network => $network },
-            options => { trace => $config->{bot}->{debug_poe}, default => 0 },
+            options => { trace => $config_file->{bot}->{debug_poe}, default => 0 },
         );
     }
 

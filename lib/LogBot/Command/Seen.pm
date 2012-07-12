@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use DateTime;
-use LogBot::Config;
 use LogBot::Util;
 use Time::Duration;
 use Time::Local;

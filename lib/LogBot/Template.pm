@@ -3,7 +3,6 @@ package LogBot::Template;
 use strict;
 
 use LogBot;
-use LogBot::Config;
 use Mojo::Template;
 use File::Slurp;
 

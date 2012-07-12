@@ -9,7 +9,7 @@ use LogBot::Command::Ping;
 use LogBot::Command::Bug;
 use LogBot::Command::Search;
 use LogBot::Command::Seen;
-use LogBot::Config;
+use LogBot::ConfigFile;
 use LogBot::Constants;
 use LogBot::Event;
 use LogBot::Util;

@@ -3,7 +3,6 @@ package LogBot::Channel;
 use strict;
 use warnings;
 
-use LogBot::Config;
 use LogBot::Constants;
 use LogBot::Database;
 use LogBot::Util;

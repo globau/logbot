@@ -6,7 +6,7 @@ use warnings;
 use Cwd qw(abs_path);
 use Daemon::Generic;
 use File::Basename;
-use LogBot::Config;
+use LogBot::ConfigFile;
 use LogBot::IRC;
 use Pod::Usage;
 
@@ -26,10 +26,10 @@ sub gd_preconfig {
         open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     }
     if ($_running) {
-        LogBot::Config->instance->reload();
+        LogBot::ConfigFile->instance->reload();
     }
     return (
-        pidfile => LogBot::Config->instance->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
+        pidfile => LogBot::ConfigFile->instance->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
     );
 }
 
@@ -51,7 +51,7 @@ sub gd_getopt {
         }
     }
 
-    LogBot::Config->init($config_filename);
+    LogBot::ConfigFile->init($config_filename);
 }
 
 sub gd_usage {
@@ -61,7 +61,7 @@ sub gd_usage {
 
 sub gd_redirect_output {
     my ($self) = @_;
-    $_log_filename = LogBot::Config->instance->{data_path} . '/logbot.log';
+    $_log_filename = LogBot::ConfigFile->instance->{data_path} . '/logbot.log';
     open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     close(STDOUT);
     open(STDOUT, ">&STDERR") or die "redirect STDOUT -> STDERR: $!";

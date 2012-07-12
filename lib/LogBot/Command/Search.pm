@@ -3,7 +3,6 @@ package LogBot::Command::Search;
 use strict;
 use warnings;
 
-use LogBot::Config;
 use LogBot::Constants;
 use LogBot::Util;
 use IRC::Utils ':ALL';

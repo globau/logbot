@@ -1,4 +1,4 @@
-package LogBot::Config;
+package LogBot::ConfigFile;
 
 use strict;
 use warnings;

@@ -19,9 +19,9 @@ use LogBot::Constants;
 
 my $QUIET = grep { $_ eq '-q' } @ARGV;
 
-LogBot::Config->init($Bin . '/logbot.conf');
-my $config = LogBot::Config->instance;
-my $data_path = $config->{data_path} . '/plot/hours';
+LogBot::ConfigFile->init($Bin . '/logbot.conf');
+my $config_file = LogBot::ConfigFile->instance;
+my $data_path = $config_file->{data_path} . '/plot/hours';
 make_path($data_path) unless -d $data_path;
 
 my $sql = sprintf("
@@ -31,7 +31,7 @@ my $sql = sprintf("
       GROUP BY CAST(time %% (24 * 3600) AS INT)",
     EVENT_PUBLIC, EVENT_ACTION
 );
-foreach my $network ($config->networks) {
+foreach my $network ($config_file->networks) {
     foreach my $channel ($network->channels) {
         next unless $channel->{public};
 

@@ -13,7 +13,7 @@ use fields qw(
 );
 
 use IRC::Utils ':ALL';
-use LogBot::Config;
+use LogBot::ConfigFile;
 use LogBot::Util;
 
 sub new {
@@ -44,8 +44,8 @@ sub public_channels {
 
 sub config {
     my ($self) = @_;
-    my $config = LogBot::Config->instance;
-    foreach my $network_config ($config->networks) {
+    my $config_file = LogBot::ConfigFile->instance;
+    foreach my $network_config ($config_file->networks) {
         next unless $network_config->{network} eq $self->{network};
         return $network_config;
     }

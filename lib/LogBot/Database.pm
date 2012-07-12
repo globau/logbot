@@ -252,7 +252,7 @@ sub _filename {
     my ($self, $channel) = @_;
     $channel =~ s/^#//;
     $channel =~ s/[^a-z1-9_-]/_/g;
-    my $path = LogBot::Config->instance->{data_path} . '/db/' . $self->{network};
+    my $path = LogBot::ConfigFile->instance->{data_path} . '/db/' . $self->{network};
     mkdir($path) unless -d $path;
     return "$path/$channel.db";
 }

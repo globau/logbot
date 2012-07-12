@@ -21,13 +21,13 @@ use LogBot;
 
 # init
 
-LogBot::Config->init(dirname(__FILE__) . '/logbot.conf');
-my $config = LogBot::Config->instance;
+LogBot::ConfigFile->init(dirname(__FILE__) . '/logbot.conf');
+my $config_file = LogBot::ConfigFile->instance;
 my $backup_path = dirname(__FILE__) . '/backup';
 
 # generate text logs of events
 
-foreach my $network ($config->networks) {
+foreach my $network ($config_file->networks) {
     my $network_path = "$backup_path/logs/" . $network->{network};
 
     foreach my $channel ($network->channels) {
