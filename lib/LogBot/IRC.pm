@@ -5,7 +5,7 @@ use warnings;
 
 use Class::Sniff;
 use IRC::Utils ':ALL';
-use LogBot;
+use LogBot::Bot;
 use LogBot::Constants;
 use LogBot::ConfigFile;
 use POE;
@@ -46,7 +46,7 @@ sub start {
             POE::Component::IRC::Plugin::BotAddressed->new()
         );
 
-        my $bot = LogBot->new($irc, $network);
+        my $bot = LogBot::Bot->new($irc, $network);
 
         my @poe_methods = Class::Sniff->new({ class => $class })->methods;
         @poe_methods = grep { /^irc_/ } @poe_methods;
@@ -100,9 +100,6 @@ sub irc_join {
     my $nick = parse_user($_[ARG0]);
     my $channel = $_[ARG1];
 
-    if (lc_irc($nick) eq lc_irc($irc->nick_name)) {
-        $bot->bot_joined($channel);
-    }
     $bot->joined($channel, $nick);
 }
 

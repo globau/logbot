@@ -1,4 +1,4 @@
-package LogBot;
+package LogBot::Bot;
 
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ use fields qw(
 #
 
 sub new {
-    my LogBot $self = shift;
+    my LogBot::Bot $self = shift;
     $self = fields::new($self) unless ref $self;
 
     $self->{_irc} = shift;
@@ -38,10 +38,6 @@ sub new {
     push @{$self->{_commands}}, LogBot::Command::Search->new($self);
 
     return $self;
-}
-
-sub bot_joined {
-    my ($self, $channel) = @_;
 }
 
 #
