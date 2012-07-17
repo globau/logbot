@@ -1,0 +1,13 @@
+<a href="#c<%= $event->{id} %>" id="c<%= $event->{id} %>" onclick="setTimeout(hash_hilite,10)"><% # %>
+<%= sprintf('%02d:%02d', $event->datetime->hour, $event->datetime->minute) %><% # %>
+</a> <% # %>
+% if ($event->{type} == EVENT_PUBLIC) {
+&lt;<%= $event->{nick} %>&gt; <% # %>
+<%= b($event->{text}) %>
+% } elsif ($event->{type} == EVENT_ACTION) {
+* <%= $event->{nick} %> <%= b($event->{text}) %>
+% } elsif ($event->{type} == EVENT_JOIN) {
+*** <%= $event->{nick} %> has joined
+% } elsif ($event->{type} == EVENT_PART) {
+*** <%= $event->{nick} %> has left
+% }

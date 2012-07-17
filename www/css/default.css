@@ -199,8 +199,17 @@ a:hover {
 /* events - date */
 
 .date {
-    color #000000;
+    color: #000000;
     background-color: #eeeeee;
+}
+
+.date_raw {
+    color: #000000;
+    background-color: #eeeeee;
+}
+
+.date_raw a {
+    color: #000000;
 }
 
 .date_prev, .date_next {
