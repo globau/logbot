@@ -23,6 +23,9 @@
         % if (exists $vars->{h}) {
             <input type="hidden" name="h" value="<%= $vars->{h} %>">
         % }
+        % if ($vars->{raw}) {
+            <input type="hidden" name="raw" value="1">
+        % }
 
         <input name="s" id="start_date" size="10" type="text" value="<%= $vars->{s} %>">
         <a href="javascript:void(0)" class="cal" id="start_date_cal">&hellip;</a>

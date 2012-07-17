@@ -1,3 +1,5 @@
 backup/
 data/
+imports/
 www/google*.html
+*.conf

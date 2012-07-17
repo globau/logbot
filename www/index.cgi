@@ -167,7 +167,7 @@ if ($vars->{action} eq 'about') {
 
         if ($vars->{action} eq 'browse') {
             # browse
-            $args{template}      = 'browse';
+            $args{template}      = $vars->{raw} ? 'browse-raw' : 'browse';
             $args{start_date}    = $vars->{start_date};
             $args{end_date}      = $vars->{end_date};
             $args{hilite}        = $vars->{h};
@@ -259,6 +259,7 @@ sub parse_parameters {
         $vars->{e}   = $cgi->param('e');
         $vars->{j}   = $cgi->param('j');
         $vars->{b}   = $cgi->param('b');
+        $vars->{raw} = $cgi->param('raw') ? 1 : 0;
 
         # start date
 

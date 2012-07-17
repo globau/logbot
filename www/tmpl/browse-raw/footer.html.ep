@@ -1,0 +1,10 @@
+</pre>
+
+% if ($vars->{last_event}) {
+    % use Time::Duration;
+    % use LogBot::Util;
+    % my $ago = ago(now()->epoch() - $vars->{last_event}->datetime->epoch());
+    <div class="last_event">
+        Last message: <%= $ago %>
+    </div>
+% }
