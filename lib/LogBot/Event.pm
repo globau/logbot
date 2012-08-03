@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use feature qw(switch);
 
+use base 'LogBot::Base';
+
 use DateTime;
 use LogBot::Constants;
 use LogBot::Util;

@@ -41,6 +41,26 @@ sub new {
 }
 
 #
+# methods
+#
+
+sub join {
+    my ($self, $channel) = @_;
+
+    return unless $channel->{join};
+    print"  Joining " . $channel->{name} , "\n";
+    $self->{_irc}->yield(join => $channel->{name});
+}
+
+sub part {
+    my ($self, $channel) = @_;
+
+    return if $channel->{join};
+    print"  Parting " . $channel->{name} , "\n";
+    $self->{_irc}->yield(part => $channel->{name});
+}
+
+#
 # commands
 #
 

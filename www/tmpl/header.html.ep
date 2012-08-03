@@ -42,7 +42,7 @@
         <select name="c" id="channel_select" onchange="channel_changed()"
                 data-placeholder="Select a Channel">
             <option></option>
-            % foreach my $network ($vars->{config}->networks) {
+            % foreach my $network ($vars->{logbot}->networks) {
                 % next unless $network->public_channels;
                 <optgroup label="<%= $network->{network} %>">
                     % foreach my $channel ($network->channels) {

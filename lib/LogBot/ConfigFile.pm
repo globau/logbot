@@ -9,8 +9,8 @@ use fields qw(
     web
     data_path
     tmpl_path
-    _networks
-    _conf_filename
+    networks
+    filename
     _missing _invalid
 );
 
@@ -35,50 +35,27 @@ use constant FALSE => 0;
 # initialisation
 #
 
-my $_instance;
-
-sub init {
-    die "double init" if $_instance;
-    my ($class, $conf_filename) = @_;
-    $_instance = fields::new($class);
-    $_instance->{_conf_filename} = $conf_filename;
-    $_instance->reload();
+sub new {
+    my ($class, $filename) = @_;
+    my $self = fields::new($class);
+    $self->{filename} = $filename;
+    $self->load();
+    return $self;
 }
 
-sub instance {
-    die "not inited" unless $_instance;
-    return $_instance;
-}
-
-sub reload {
+sub load {
     my ($self) = @_;
 
     $/ = "\n";
     my %config = Config::General->new(
-        -ConfigFile => $self->{_conf_filename},
+        -ConfigFile => $self->{filename},
         -AllowMultiOptions => 'no',
         -AutoTrue => 'yes',
         -LowerCaseNames => 'yes',
     )->getall();
+    my $config = \%config;
 
-    $self->_load(\%config);
-}
-
-sub networks {
-    my ($self) = @_;
-    return sort { $a->{network} cmp $b->{network} } @{$self->{_networks}};
-}
-
-sub network {
-    my ($self, $name) = @_;
-    my @networks = grep { $_->{network} eq $name } $self->networks;
-    return @networks ? $networks[0] : undef;
-}
-
-sub _load {
-    my ($self, $config, $schema) = @_;
-
-    $self->{_networks} = [];
+    $self->{networks} = {};
     $self->{_missing} = [];
     $self->{_invalid} = [];
 
@@ -94,8 +71,9 @@ sub _load {
 
     foreach my $network_name (keys %{$config->{network}}) {
         my $network_config = $config->{network}->{$network_name};
-        my $network = LogBot::Network->new($network_name);
+        my $network = {};
 
+        $network->{network} = $network_name;
         $network->{server} = $self->_value($network_config, 'server', STR, MAND);
         $network->{port} = $self->_value($network_config, 'port', INT, OPT, 6667);
 
@@ -107,28 +85,30 @@ sub _load {
         my @bots = map { lc_irc($_) } split(/\s+/, $bots);
         $network->{bots} = \@bots;
 
-        $network->{_channels} = {};
+        $network->{channels} = {};
         if (exists $network_config->{channel}) {
             foreach my $key (keys %{$network_config->{channel}}) {
                 my $channel_config = $network_config->{channel}{$key};
                 my $channel_name = canon_channel($key);
-                my $channel = LogBot::Channel->new($network_name, $channel_name);
+                my $channel = {};
 
+                $channel->{name} = $channel_name;
                 $channel->{public} = $self->_value($channel_config, 'public', BOOL, OPT, FALSE);
                 $channel->{in_channel_search} = $self->_value($channel_config, 'in_channel_search', BOOL, OPT, TRUE);
                 $channel->{log_events} = $self->_value($channel_config, 'log_events', BOOL, OPT, TRUE);
                 $channel->{join} = $self->_value($channel_config, 'join', BOOL, OPT, TRUE);
 
-                $network->{_channels}->{$channel_name} = $channel;
+                $network->{channels}->{$channel_name} = $channel;
             }
         }
 
-        push @{$self->{_networks}}, $network;
+        $self->{networks}->{$network_name} = $network;
     }
 
     if (@{$self->{_missing}} || @{$self->{_invalid}}) {
         $self->_report_error($self->{_missing}, 'missing');
         $self->_report_error($self->{_invalid}, 'invalid');
+        # XXX this should die not exit
         exit;
     }
 }
@@ -166,9 +146,9 @@ sub _report_error {
     my ($self, $fields, $description) = @_;
     return unless @$fields;
     if (scalar @$fields == 1) {
-        print "the following option in " . $self->{_conf_filename} . " is $description:\n";
+        print "the following option in " . $self->{filename} . " is $description:\n";
     } else {
-        print "the following options in " . $self->{_conf_filename} . " are $description:\n";
+        print "the following options in " . $self->{filename} . " are $description:\n";
     }
     foreach my $field (@$fields) {
         print "  $field\n";

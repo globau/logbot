@@ -5,10 +5,8 @@ use warnings;
 use feature qw(say);
 use autodie;
 
-BEGIN {
-    use File::Basename;
-    use lib dirname(__FILE__) . '/lib';
-}
+use FindBin qw($Bin);
+use lib "$Bin/lib";
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
@@ -33,7 +31,7 @@ foreach my $network ($config_file->networks) {
 
         my @rows;
 
-        my $dbh = $channel->{database}->{dbh};
+        my $dbh = $channel->database->{dbh};
         my $sth = $dbh->prepare("SELECT rowid,time,nick,event,data FROM logs ORDER BY time");
         $sth->execute;
         my ($_rowid, $_time, $_nick, $_event, $_data) = ('', '', '', '', '');

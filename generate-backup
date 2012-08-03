@@ -5,10 +5,8 @@ use warnings;
 use feature qw(say);
 use autodie;
 
-BEGIN {
-    use File::Basename;
-    use lib dirname(__FILE__) . '/lib';
-}
+use FindBin qw($Bin);
+use lib "$Bin/lib";
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
@@ -21,13 +19,12 @@ use LogBot;
 
 # init
 
-LogBot::ConfigFile->init(dirname(__FILE__) . '/logbot.conf');
-my $config_file = LogBot::ConfigFile->instance;
+LogBot->new(dirname(__FILE__) . '/logbot.conf');
 my $backup_path = dirname(__FILE__) . '/backup';
 
 # generate text logs of events
 
-foreach my $network ($config_file->networks) {
+foreach my $network (LogBot->networks) {
     my $network_path = "$backup_path/logs/" . $network->{network};
 
     foreach my $channel ($network->channels) {
@@ -99,7 +96,7 @@ foreach my $network ($config_file->networks) {
 # backup the source
 
 my $source_path = "$backup_path/source";
-mkdir($source_path) unless -d $source_path;
+make_path($source_path) unless -d $source_path;
 
 chdir(dirname(__FILE__));
 foreach my $file (glob('*')) {
@@ -111,7 +108,7 @@ foreach my $file (glob('*')) {
 
 rsync('lib', $source_path);
 rsync('3rd-party-licenses', $source_path);
-mkdir("$source_path/www") unless -d "$source_path/www";
+make_path("$source_path/www") unless -d "$source_path/www";
 my $www_path = -l 'www' ? readlink('www') : 'www/';
 rsync($www_path, "$source_path/www", "--exclude 'google*.html'");
 rsync("${www_path}.ht*", "$source_path/www");

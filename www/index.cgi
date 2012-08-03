@@ -26,13 +26,15 @@ foreach my $path (@INC) {
     $conf_filename = "$path/../$conf_filename";
     last;
 }
-LogBot::ConfigFile->init($conf_filename);
+LogBot->new($conf_filename);
+LogBot->reload();
 
-our $config_file = LogBot::ConfigFile->instance;
 our $cgi = LogBot::CGI->instance;
+our $config = LogBot->config;
 our $vars = {
-    cgi => $cgi,
-    config => $config_file,
+    cgi    => $cgi,
+    config => $config,
+    logbot => LogBot->instance,
 };
 $cgi->{vars} = $vars;
 
@@ -96,7 +98,7 @@ if ($vars->{action} eq 'json') {
         my $channel_name = $channel->{name};
         $channel_name =~ s/^#//;
         print read_file(
-            $config_file->{data_path} . '/plot/hours/' . $channel->{network} . "-$channel_name.json"
+            $config->{data_path} . '/plot/hours/' . $channel->{network} . "-$channel_name.json"
         );
 
     }
@@ -185,7 +187,7 @@ if ($vars->{action} eq 'about') {
             $args{hilite}        = $vars->{q};
             $args{messages_only} = 1;
             $args{empty_dates}   = 0;
-            $args{limit}         = $config_file->{web}->{search_limit};
+            $args{limit}         = $config->{web}->{search_limit};
             if ($vars->{q} =~ s/<([^>]+)>//) {
                 $args{nick} = $1;
             }
@@ -214,20 +216,20 @@ sub parse_parameters {
     my ($network_name, $channel_name);
     $channel_name = $cgi->param('c');
     if (!defined $channel_name || $channel_name eq '') {
-        $network_name = $config_file->{web}->{default_network};
-        $channel_name = $config_file->{web}->{default_channel};
+        $network_name = $config->{web}->{default_network};
+        $channel_name = $config->{web}->{default_channel};
     } elsif ($channel_name =~ /^([^#]+)(#.+)$/) {
         ($network_name, $channel_name) = ($1, $2);
     } else {
-        $network_name = $config_file->{web}->{default_network};
+        $network_name = $config->{web}->{default_network};
         $channel_name = '#' . $channel_name unless $channel_name =~ /^#/;
     }
 
     # validate network
 
-    my $network = $config_file->network($network_name);
+    my $network = LogBot->network($network_name);
     if (!$network) {
-        $network = $config_file->network($config_file->{web}->{default_network});
+        $network = LogBot->network($config->{web}->{default_network});
     }
     $vars->{network} = $network;
 

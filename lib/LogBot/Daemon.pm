@@ -3,9 +3,11 @@ package LogBot::Daemon;
 use strict;
 use warnings;
 
+use Carp qw(confess);
 use Cwd qw(abs_path);
 use Daemon::Generic;
 use File::Basename;
+use LogBot;
 use LogBot::ConfigFile;
 use LogBot::IRC;
 use Pod::Usage;
@@ -15,22 +17,31 @@ my $_debugging = 0;
 my $_running = 0;
 
 sub start {
+    $SIG{__DIE__} = sub { confess(@_) };
     newdaemon(configfile => 'logbot.conf');
 }
 
 sub gd_preconfig {
     my ($self) = @_;
 
+    if (!LogBot->initialised) {
+        my $config_file = LogBot::ConfigFile->new($self->{configfile});
+        LogBot->new($self->{configfile});
+        return (
+            pidfile => $config_file->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
+        );
+    } else {
+        LogBot->reload();
+    }
+}
+
+sub gd_postconfig {
+    my ($self) = @_;
+
     if ($_log_filename) {
         close(STDERR);
         open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     }
-    if ($_running) {
-        LogBot::ConfigFile->instance->reload();
-    }
-    return (
-        pidfile => LogBot::ConfigFile->instance->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
-    );
 }
 
 sub gd_getopt {
@@ -42,16 +53,6 @@ sub gd_getopt {
     }
 
     $self->SUPER::gd_getopt();
-
-    my $config_filename = $self->{configfile};
-    if (!-e $config_filename) {
-        if (dirname($config_filename) eq '.') {
-            my $path = abs_path(dirname(__FILE__) . '/../..');
-            $config_filename = "$path/$config_filename";
-        }
-    }
-
-    LogBot::ConfigFile->init($config_filename);
 }
 
 sub gd_usage {
@@ -61,7 +62,7 @@ sub gd_usage {
 
 sub gd_redirect_output {
     my ($self) = @_;
-    $_log_filename = LogBot::ConfigFile->instance->{data_path} . '/logbot.log';
+    $_log_filename = LogBot->config->{data_path} . '/logbot.log';
     open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     close(STDOUT);
     open(STDOUT, ">&STDERR") or die "redirect STDOUT -> STDERR: $!";
@@ -80,4 +81,3 @@ sub gd_run {
 }
 
 1;
-

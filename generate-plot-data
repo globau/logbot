@@ -40,7 +40,7 @@ foreach my $network ($config_file->networks) {
         my $filename = "$data_path/" . $network->{network} . "-$channel_name.json";
         $QUIET || say $filename;
 
-        my $dbh = $channel->{database}->{dbh};
+        my $dbh = $channel->database->{dbh};
         my %values;
         foreach my $row (@{ $dbh->selectall_arrayref($sql) }) {
             my ($ss, $value) = @$row;

@@ -3,6 +3,9 @@ package LogBot::Database;
 use strict;
 use warnings;
 
+use base 'LogBot::Base';
+
+use LogBot;
 use LogBot::Constants;
 use LogBot::Util;
 use LogBot::Event;
@@ -16,8 +19,10 @@ sub new {
     my $self = {};
     bless($self, $class);
 
-    my $network = lc shift;
+    my $network = shift;
     die "missing network" unless $network;
+    $network = $network->{network} if ref($network);
+    $network = lc($network);
     $network =~ s/[^a-z1-9_\.-]/_/g;
     $self->{network} = $network;
 
@@ -252,7 +257,9 @@ sub _filename {
     my ($self, $channel) = @_;
     $channel =~ s/^#//;
     $channel =~ s/[^a-z1-9_-]/_/g;
-    my $path = LogBot::ConfigFile->instance->{data_path} . '/db/' . $self->{network};
+    my $path = LogBot->config->{data_path} . '/db';
+    mkdir($path) unless -d $path;
+    $path .= '/' . $self->{network};
     mkdir($path) unless -d $path;
     return "$path/$channel.db";
 }

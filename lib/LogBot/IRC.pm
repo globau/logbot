@@ -5,9 +5,9 @@ use warnings;
 
 use Class::Sniff;
 use IRC::Utils ':ALL';
+use LogBot;
 use LogBot::Bot;
 use LogBot::Constants;
-use LogBot::ConfigFile;
 use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotAddressed;
@@ -18,52 +18,55 @@ use Scalar::Util 'blessed';
 sub start {
     my ($class) = @_;
 
-    my $config_file = LogBot::ConfigFile->instance();
+    LogBot->connect();
+    $poe_kernel->run();
+}
 
-    foreach my $network ($config_file->networks) {
-        next unless grep { $_->{join} } $network->channels;
-        printf "Connecting to %s (%s:%s)\n", $network->{network}, $network->{server}, $network->{port};
+sub connect_network {
+    my ($class, $network) = @_;
 
-        my $irc = POE::Component::IRC->spawn(
-            nick        => $network->{nick},
-            ircname     => $network->{name},
-            server      => $network->{server},
-            port        => $network->{port},
-            debug       => $config_file->{bot}->{debug_irc},
-        ) or die "failed: $!\n";
+    return unless grep { $_->{join} } $network->channels;
+    printf "Connecting to %s (%s:%s)\n", $network->{network}, $network->{server}, $network->{port};
 
-        if ($network->{password}) {
-            $irc->plugin_add(
-                'NickServID',
-                POE::Component::IRC::Plugin::NickServID->new(
-                    Password => $network->{password}
-                )
-            );
-        }
+    my $irc = POE::Component::IRC->spawn(
+        nick        => $network->{nick},
+        ircname     => $network->{name},
+        server      => $network->{server},
+        port        => $network->{port},
+        debug       => LogBot->config->{bot}->{debug_irc},
+    ) or die "failed: $!\n";
 
+    if ($network->{password}) {
         $irc->plugin_add(
-            'BotAddressed',
-            POE::Component::IRC::Plugin::BotAddressed->new()
-        );
-
-        my $bot = LogBot::Bot->new($irc, $network);
-
-        my @poe_methods = Class::Sniff->new({ class => $class })->methods;
-        @poe_methods = grep { /^irc_/ } @poe_methods;
-        push @poe_methods, '_start';
-
-        my @bot_methods = Class::Sniff->new({ class => blessed($bot) })->methods;
-        @bot_methods = grep { /^irc_/ } @bot_methods;
-
-        POE::Session->create(
-            package_states => [ $class => \@poe_methods ],
-            object_states => [ $bot => \@bot_methods ],
-            heap => { irc => $irc, bot => $bot, network => $network },
-            options => { trace => $config_file->{bot}->{debug_poe}, default => 0 },
+            'NickServID',
+            POE::Component::IRC::Plugin::NickServID->new(
+                Password => $network->{password}
+            )
         );
     }
 
-    $poe_kernel->run();
+    $irc->plugin_add(
+        'BotAddressed',
+        POE::Component::IRC::Plugin::BotAddressed->new()
+    );
+
+    my $bot = LogBot::Bot->new($irc, $network);
+
+    my @poe_methods = Class::Sniff->new({ class => $class })->methods;
+    @poe_methods = grep { /^irc_/ } @poe_methods;
+    push @poe_methods, '_start';
+
+    my @bot_methods = Class::Sniff->new({ class => blessed($bot) })->methods;
+    @bot_methods = grep { /^irc_/ } @bot_methods;
+
+    POE::Session->create(
+        package_states => [ $class => \@poe_methods ],
+        object_states => [ $bot => \@bot_methods ],
+        heap => { irc => $irc, bot => $bot, network => $network },
+        options => { trace => LogBot->config->{bot}->{debug_poe}, default => 0 },
+    );
+
+    $network->{bot} = $bot;
 }
 
 sub _start {
@@ -86,9 +89,7 @@ sub irc_001 {
 
     print "Connected to ", $irc->server_name(), "\n";
     foreach my $channel ($network->channels) {
-        next unless $channel->{join};
-        print"  Joining " . $channel->{name} , "\n";
-        $irc->yield(join => $channel->{name});
+        $bot->join($channel);
     }
     return;
 }

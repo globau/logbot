@@ -6,7 +6,7 @@
     These logs are collected by:
 
     <ul>
-    <% foreach my $network ($vars->{config}->networks) { %>
+    <% foreach my $network ($vars->{logbot}->networks) { %>
         <li><b><%= $network->{nick} %></b> on <%= $network->{network} %> (<%= $network->{server} %>)</li>
     <% } %>
     </ul>
@@ -20,7 +20,7 @@
 % use URI::Escape;
 % use DateTime;
 <div id="about_channels">
-    % foreach my $network ($vars->{config}->networks) {
+    % foreach my $network ($vars->{logbot}->networks) {
         % next unless $network->public_channels;
         <div class="network"><%= $network->{network} %></div>
         % foreach my $channel ($network->channels) {

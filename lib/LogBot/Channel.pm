@@ -3,6 +3,8 @@ package LogBot::Channel;
 use strict;
 use warnings;
 
+use base 'LogBot::Base';
+
 use LogBot::Constants;
 use LogBot::Database;
 use LogBot::Util;
@@ -11,20 +13,44 @@ use fields qw(
     network
     name
     public
-    password
     in_channel_search
     log_events
     join
-    database
+    _database
+);
+
+use constant IMUTABLE_FIELDS => qw(
+    network
+    name
 );
 
 sub new {
-    my $class = shift;
+    my ($class, %args) = @_;
     my $self = fields::new($class);
-    $self->{network} = shift;
-    $self->{name} = shift;
-    $self->{database} = LogBot::Database->new($self->{network}, $self->{name});
+    foreach my $field (keys %args) {
+        $self->{$field} = $args{$field};
+    }
     return $self;
+}
+
+sub database {
+    my ($self) = @_;
+    $self->{_database} ||= LogBot::Database->new($self->{network}, $self->{name});
+    return $self->{_database};
+}
+
+sub reconfigure {
+    my ($self, %args) = @_;
+
+    $self->update_from_args([ IMUTABLE_FIELDS ], \%args);
+
+    if (exists $args{join}) {
+        if ($args{join}) {
+            LogBot->action(ACTION_CHANNEL_JOIN, $self->{network}, $self);
+        } else {
+            LogBot->action(ACTION_CHANNEL_PART, $self->{network}, $self);
+        }
+    }
 }
 
 sub log_event {
@@ -36,40 +62,40 @@ sub log_event {
     ) {
         return;
     }
-    $self->{database}->log_event($event);
+    $self->database->log_event($event);
 }
 
 sub search {
     my ($self, %args) = @_;
     return [] unless $self->{in_channel_search};
-    return $self->{database}->search(%args);
+    return $self->database->search(%args);
 }
 
 sub seen {
     my ($self, $nick) = @_;
     return unless $self->{public};
-    return $self->{database}->seen($nick);
+    return $self->database->seen($nick);
 }
 
 sub browse {
     my ($self, %args) = @_;
-    return $self->{database}->query(%args);
+    return $self->database->query(%args);
 }
 
 sub database_size {
     my ($self) = @_;
-    return $self->{database}->size;
+    return $self->database->size;
 }
 
 sub event_count {
     my ($self) = @_;
-    return $self->{database}->event_count;
+    return $self->database->event_count;
 }
 
 sub first_event {
     my ($self) = @_;
     my @events;
-    $self->{database}->query(
+    $self->database->query(
         order    => 'time ASC',
         limit    => '1',
         callback => sub { push @events, shift }, 
@@ -80,7 +106,7 @@ sub first_event {
 sub last_event {
     my ($self) = @_;
     my @events;
-    $self->{database}->query(
+    $self->database->query(
         order    => 'time DESC',
         limit    => '1',
         callback => sub { push @events, shift }, 
@@ -91,7 +117,7 @@ sub last_event {
 sub last_message {
     my ($self) = @_;
     my @events;
-    $self->{database}->query(
+    $self->database->query(
         events   => [ EVENT_PUBLIC, EVENT_ACTION ],
         order    => 'time DESC',
         limit    => '1',
