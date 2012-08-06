@@ -179,32 +179,26 @@ sub do_actions {
         my ($network, $channel) = ($action->{network}, $action->{channel});
         given($action->{type}) {
             when(ACTION_NETWORK_CONNECT) {
-                printf "action: connect %s\n", $network->{name};
                 $self->_remove_actions(network => $network);
                 $network->connect();
             }
             when(ACTION_NETWORK_RECONNECT) {
-                printf "action: reconnect %s\n", $network->{name};
                 $self->_remove_actions(network => $network);
                 $network->disconnect();
                 $network->connect();
             }
             when(ACTION_NETWORK_NICK) {
-                printf "action: nick %s\n", $network->{name};
                 die "not implemented";
             }
             when(ACTION_NETWORK_DISCONNECT) {
-                printf "action: disconnect %s\n", $network->{name};
                 $self->_remove_actions(network => $network);
                 $network->disconnect();
             }
             when(ACTION_CHANNEL_JOIN) {
-                printf "action: join %s\n", $channel->{name};
                 $self->_remove_actions(channel => $channel);
                 $network->{bot}->join($channel);
             }
             when(ACTION_CHANNEL_PART) {
-                printf "action: part %s\n", $channel->{name};
                 $self->_remove_actions(channel => $channel);
                 $network->{bot}->part($channel);
             }
