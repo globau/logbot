@@ -3,9 +3,9 @@ Options -Indexes ExecCGI FollowSymLinks
 RewriteEngine On
 
 # always use the correct hostname
-RewriteCond %{HTTP_HOST} !^logbotdev.glob.com.au
-RewriteRule (.*) http://logbotdev.glob.com.au$1 [R=301,L]
+RewriteCond %{HTTP_HOST} !^logbot.glob.com.au
+RewriteRule (.*) http://logbot.glob.com.au$1 [R=301,L]
 
 # redirect from the old /irc/ path
-RewriteRule ^irc(.*) http://logbotdev.glob.com.au$1 [R=301,L]
+RewriteRule ^irc(.*) http://logbot.glob.com.au$1 [R=301,L]
 
