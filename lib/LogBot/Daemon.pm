@@ -6,6 +6,7 @@ use warnings;
 use Carp qw(confess);
 use Cwd qw(abs_path);
 use Daemon::Generic;
+use FindBin qw($Bin);
 use File::Basename;
 use LogBot;
 use LogBot::ConfigFile;
@@ -64,7 +65,9 @@ sub gd_usage {
 
 sub gd_redirect_output {
     my ($self) = @_;
-    $_log_filename = LogBot->config->{data_path} . '/logbot.log';
+    my $_log_filename = LogBot->config
+        ? LogBot->config->{data_path} . '/logbot.log'
+        : "$Bin/data/logbot.log";
     open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     close(STDOUT);
     open(STDOUT, ">&STDERR") or die "redirect STDOUT -> STDERR: $!";
