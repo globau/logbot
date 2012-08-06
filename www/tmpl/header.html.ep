@@ -47,7 +47,7 @@
                 <optgroup label="<%= $network->{network} %>">
                     % foreach my $channel ($network->channels) {
                         % my $value = $network->{network} . $channel->{name};
-                        % next unless $channel->{public} || ($channel->{hidden} && $vars->{c} eq $value);
+                        % next unless $channel->{public} || ($channel->{hidden} && $vars->{c} && $vars->{c} eq $value);
                         <option value="<%= $value %>"
                             % if ($vars->{c}) {
                                 <%= 'selected' if $vars->{c} eq $value %>
