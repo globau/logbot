@@ -22,7 +22,7 @@ sub _new {
 sub init_session {
     my ($self) = @_;
     return if exists $self->{session};
-    my $path = LogBot::ConfigFile->instance->{data_path} . '/sessions';
+    my $path = LogBot->config->{data_path} . '/sessions';
     $self->{session} = CGI::Session->new(
         'driver:file;serializer:default;id:md5',
         $self,

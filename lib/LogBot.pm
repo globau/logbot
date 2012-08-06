@@ -15,6 +15,7 @@ use fields qw(
     _networks
     _is_daemon
     _actions
+    _config_error
 );
 
 #
@@ -38,7 +39,9 @@ sub new {
     $self->{_actions} = [];
 
     if ($load == LOAD_IMMEDIATE) {
-        $self->reload();
+        unless ($self->reload()) {
+            die $self->config_error . "\n";
+        }
     };
 
     return $self;
@@ -51,7 +54,19 @@ sub instance {
 sub reload {
     my ($class) = @_;
 
-    my $config_file = LogBot::ConfigFile->new($self->{_config_filename});
+    my $config_file;
+    eval {
+        $config_file = LogBot::ConfigFile->new($self->{_config_filename});
+    };
+    if ($@) {
+        my @error;
+        foreach my $line (split /\n/, $@) {
+            last if $line =~ /^\s* at \//;
+            push @error, $line;
+        }
+        $self->{_config_error} = join("\n", @error);
+        return;
+    }
 
     $self->{_config} = LogBot::Config->new(
         bot => $config_file->{bot},
@@ -86,7 +101,8 @@ sub reload {
             %args = (
                 network           => $network,
                 name              => $channel_name,
-                public            => $config_channel->{public},
+                public            => $config_channel->{visibility} eq 'public',
+                hidden            => $config_channel->{visibility} eq 'hidden',
                 in_channel_search => $config_channel->{in_channel_search},
                 log_events        => $config_channel->{log_events},
                 join              => $config_channel->{join},
@@ -109,6 +125,8 @@ sub reload {
             $self->do_actions();
         }
     }
+
+    return 1;
 }
 
 sub connect {
@@ -122,6 +140,10 @@ sub is_daemon {
 
 sub config {
     return $self->{_config};
+}
+
+sub config_error {
+    return $self->{_config_error};
 }
 
 sub networks {

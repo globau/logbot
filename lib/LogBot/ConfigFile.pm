@@ -11,6 +11,7 @@ use fields qw(
     tmpl_path
     networks
     filename
+    _context
     _missing _invalid
 );
 
@@ -24,6 +25,7 @@ use IRC::Utils ':ALL';
 use constant STR   => 0;
 use constant INT   => 1;
 use constant BOOL  => 2;
+use constant LIST  => 3;
 
 use constant MAND  => 1;
 use constant OPT   => 0;
@@ -72,6 +74,7 @@ sub load {
     foreach my $network_name (keys %{$config->{network}}) {
         my $network_config = $config->{network}->{$network_name};
         my $network = {};
+        $self->{_context} = $network_name;
 
         $network->{network} = $network_name;
         $network->{server} = $self->_value($network_config, 'server', STR, MAND);
@@ -91,9 +94,10 @@ sub load {
                 my $channel_config = $network_config->{channel}{$key};
                 my $channel_name = canon_channel($key);
                 my $channel = {};
+                $self->{_context} = sprintf("%s : %s", $network_name, $channel_name);
 
                 $channel->{name} = $channel_name;
-                $channel->{public} = $self->_value($channel_config, 'public', BOOL, OPT, FALSE);
+                $channel->{visibility} = $self->_value($channel_config, 'visibility', LIST, OPT, 'public', 'public|hidden|private');
                 $channel->{in_channel_search} = $self->_value($channel_config, 'in_channel_search', BOOL, OPT, TRUE);
                 $channel->{log_events} = $self->_value($channel_config, 'log_events', BOOL, OPT, TRUE);
                 $channel->{join} = $self->_value($channel_config, 'join', BOOL, OPT, TRUE);
@@ -106,22 +110,22 @@ sub load {
     }
 
     if (@{$self->{_missing}} || @{$self->{_invalid}}) {
-        $self->_report_error($self->{_missing}, 'missing');
-        $self->_report_error($self->{_invalid}, 'invalid');
-        # XXX this should die not exit
-        exit;
+        my $error = "Failed to load " . $self->{filename} . ":\n";
+        $error .= $self->_report_error($self->{_missing}, 'missing');
+        $error .= $self->_report_error($self->{_invalid}, 'invalid');
+        die "$error\n";
     }
 }
 
 sub _value {
-    my ($self, $config, $name, $type, $mandatory, $default) = @_;
+    my ($self, $config, $name, $type, $mandatory, $default, $list_values) = @_;
 
     if (!$mandatory && !defined($default)) {
         die "must provide default value for optional '$name'";
     }
 
     if ($mandatory && !exists $config->{$name}) {
-        push @{$self->{_missing}}, $name;
+        push @{$self->{_missing}}, $self->{_context} . " : $name";
         return;
     }
 
@@ -133,9 +137,14 @@ sub _value {
         when(STR)  { $value =~ s/(^\s+|\s+$)//g }
         when(INT)  { $valid = 0 if $value =~ /\D/ }
         when(BOOL) { $value = $value ? 1 : 0 }
+        when(LIST) {
+            my @valid = split(/\|/, lc($list_values));
+            $valid = (grep { lc($_) eq $value } @valid) ? 1 : 0;
+            $value = lc($value) if $valid;
+        }
     }
     if (!$valid) {
-        push @{$self->{_invalid}}, $name;
+        push @{$self->{_invalid}}, $self->{_context} . " : $name ($value)";
         return;
     }
 
@@ -144,15 +153,17 @@ sub _value {
 
 sub _report_error {
     my ($self, $fields, $description) = @_;
-    return unless @$fields;
+    return '' unless @$fields;
+    my @result;
     if (scalar @$fields == 1) {
-        print "the following option in " . $self->{filename} . " is $description:\n";
+        push @result, "the following option is $description:";
     } else {
-        print "the following options in " . $self->{filename} . " are $description:\n";
+        push @result, "the following options are $description:";
     }
     foreach my $field (@$fields) {
-        print "  $field\n";
+        push @result, "  $field";
     }
+    return join("\n", @result);
 }
 
 1;

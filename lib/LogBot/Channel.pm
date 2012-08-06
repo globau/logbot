@@ -13,6 +13,7 @@ use fields qw(
     network
     name
     public
+    hidden
     in_channel_search
     log_events
     join

@@ -21,7 +21,6 @@ use constant IMUTABLE_FIELDS => qw(
 );
 
 use IRC::Utils ':ALL';
-use LogBot::ConfigFile;
 use LogBot::Constants;
 use LogBot::Util;
 

@@ -32,7 +32,8 @@ sub gd_preconfig {
             pidfile => $config_file->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
         );
     } else {
-        LogBot->reload();
+        LogBot->reload()
+            || print LogBot->config_error . "\n";
     }
 }
 

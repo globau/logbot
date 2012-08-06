@@ -33,7 +33,7 @@ my $sql = sprintf("
 
 foreach my $network (LogBot->networks) {
     foreach my $channel ($network->channels) {
-        next unless $channel->{public};
+        next unless $channel->{public} || $channel->{hidden};
         _generate($network->{network}, $channel);
     }
 }

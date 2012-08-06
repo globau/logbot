@@ -15,7 +15,6 @@ use File::Slurp;
 use HTTP::BrowserDetect;
 use LogBot;
 use LogBot::CGI;
-use LogBot::ConfigFile;
 use LogBot::Constants;
 use LogBot::Template;
 use LogBot::Util;
@@ -237,7 +236,7 @@ sub parse_parameters {
     # validate channel
 
     my $channel = $network->channel($channel_name);
-    if (!$channel || !$channel->{public}) {
+    if (!$channel || !($channel->{public} || $channel->{hidden})) {
         $vars->{error} = "Unsupported channel $channel_name";
         $vars->{action} = 'about';
         return;

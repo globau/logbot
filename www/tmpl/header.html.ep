@@ -46,11 +46,11 @@
                 % next unless $network->public_channels;
                 <optgroup label="<%= $network->{network} %>">
                     % foreach my $channel ($network->channels) {
-                        % next unless $channel->{public};
-                        <option
-                            value="<%= $network->{network} . $channel->{name} %>"
+                        % my $value = $network->{network} . $channel->{name};
+                        % next unless $channel->{public} || ($channel->{hidden} && $vars->{c} eq $value);
+                        <option value="<%= $value %>"
                             % if ($vars->{c}) {
-                                <%= 'selected' if $vars->{c} eq $network->{network} . $channel->{name} %>
+                                <%= 'selected' if $vars->{c} eq $value %>
                             % }
                         ><%= $channel->{name} %></option>
                     % }
