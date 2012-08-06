@@ -7,7 +7,6 @@ use feature qw(switch);
 use LogBot::Config;
 use LogBot::ConfigFile;
 use LogBot::Constants;
-use LogBot::Daemon;
 use LogBot::Network;
 
 use fields qw(
@@ -30,13 +29,17 @@ sub initialised {
 }
 
 sub new {
-    my ($class, $config_filename) = @_;
+    my ($class, $config_filename, $load) = @_;
 
     $self ||= fields::new($class);
 
     $self->{_config_filename} = $config_filename;
     $self->{_is_daemon} = 0;
     $self->{_actions} = [];
+
+    if ($load == LOAD_IMMEDIATE) {
+        $self->reload();
+    };
 
     return $self;
 }
@@ -134,6 +137,10 @@ sub network {
     }
     return $self->{_networks}->{$name};
 }
+
+# when an object (such as Network or Channel) is told to (re)configure, it
+# pushes an action to this class.  then, once all reconfiguration has taken
+# place, if we're running as a deamon we take the required action.
 
 sub action {
     my ($class, $type, $network, $channel) = @_;

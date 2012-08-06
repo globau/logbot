@@ -26,8 +26,7 @@ foreach my $path (@INC) {
     $conf_filename = "$path/../$conf_filename";
     last;
 }
-LogBot->new($conf_filename);
-LogBot->reload();
+LogBot->new($conf_filename, LOAD_IMMEDIATE);
 
 our $cgi = LogBot::CGI->instance;
 our $config = LogBot->config;
@@ -50,7 +49,7 @@ if ($vars->{action} eq 'json') {
 
     $SIG{__DIE__} = sub {
         my $error = shift;
-        print $json->encode({ error => $error });
+        print $json->encode({ error => sanatise_perl_error($error) });
         exit;
     };
 
@@ -94,12 +93,14 @@ if ($vars->{action} eq 'json') {
         });
 
     } elsif ($request eq 'channel_plot_hours') {
-        my $network = $channel->{network};
+        my $network = $channel->{network}->{network};
         my $channel_name = $channel->{name};
         $channel_name =~ s/^#//;
-        print read_file(
-            $config->{data_path} . '/plot/hours/' . $channel->{network} . "-$channel_name.json"
-        );
+        my $filename = $config->{data_path} . "/plot/hours/$network-$channel_name.json";
+        if (!-e $filename) {
+            $filename = $config->{data_path} . '/plot/hours/_empty.json';
+        }
+        print read_file($filename);
 
     }
 

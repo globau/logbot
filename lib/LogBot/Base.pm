@@ -3,9 +3,12 @@ package LogBot::Base;
 use strict;
 use warnings;
 
+# updates $self from an $args hashref; $imutable is an arrayref of args which can't be changed.
+# returns a list of fields which were changed.
 sub update_from_args {
     my ($self, $imutable, $args) = @_;
 
+    my @changed;
     foreach my $field (keys %$args) {
         my $unchanged = 0;
         if ($field =~ /^_/) {
@@ -38,12 +41,12 @@ sub update_from_args {
             $unchanged = 1;
         }
 
-        if ($unchanged) {
-            delete $args->{$field};
-        } else {
+        if (!$unchanged) {
             $self->{$field} = $args->{$field};
+            push @changed, $field;
         }
     }
+    return @changed;
 }
 
 1;

@@ -42,10 +42,10 @@ sub database {
 sub reconfigure {
     my ($self, %args) = @_;
 
-    $self->update_from_args([ IMUTABLE_FIELDS ], \%args);
+    my @changed = $self->update_from_args([ IMUTABLE_FIELDS ], \%args);
 
-    if (exists $args{join}) {
-        if ($args{join}) {
+    if (grep { $_ eq 'join'} @changed) {
+        if ($self->{join}) {
             LogBot->action(ACTION_CHANNEL_JOIN, $self->{network}, $self);
         } else {
             LogBot->action(ACTION_CHANNEL_PART, $self->{network}, $self);

@@ -40,12 +40,12 @@ sub new {
 sub reconfigure {
     my ($self, %args) = @_;
 
-    $self->update_from_args([ IMUTABLE_FIELDS ], \%args);
+    my @changed = $self->update_from_args([ IMUTABLE_FIELDS ], \%args);
 
-    if (exists $args{server} || exists $args{port}) {
+    if (grep { $_ eq 'server' || $_ eq 'port' } @changed) {
         LogBot->action(ACTION_NETWORK_RECONNECT, $self);
 
-    } elsif (exists $args{nick}) {
+    } elsif (grep { $_ eq 'nick' } @changed) {
         LogBot->action(ACTION_NETWORK_NICK, $self);
     }
 }

@@ -19,8 +19,8 @@ use LogBot;
 
 # init
 
-LogBot->new(dirname(__FILE__) . '/logbot.conf');
-my $backup_path = dirname(__FILE__) . '/backup';
+LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+my $backup_path = "$Bin/backup";
 
 # generate text logs of events
 

@@ -9,6 +9,7 @@ use Daemon::Generic;
 use File::Basename;
 use LogBot;
 use LogBot::ConfigFile;
+use LogBot::Constants;
 use LogBot::IRC;
 use Pod::Usage;
 
@@ -26,7 +27,7 @@ sub gd_preconfig {
 
     if (!LogBot->initialised) {
         my $config_file = LogBot::ConfigFile->new($self->{configfile});
-        LogBot->new($self->{configfile});
+        LogBot->new($self->{configfile}, LOAD_DELAYED);
         return (
             pidfile => $config_file->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
         );

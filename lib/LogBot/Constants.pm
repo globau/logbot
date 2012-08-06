@@ -20,6 +20,9 @@ our @EXPORT = qw(
     ACTION_CHANNEL_PART
 
     MAX_BROWSE_DAY_SPAN
+
+    LOAD_IMMEDIATE
+    LOAD_DELAYED
 );
 
 use constant EVENT_PUBLIC   => 0;
@@ -36,5 +39,8 @@ use constant ACTION_CHANNEL_JOIN       => 4;
 use constant ACTION_CHANNEL_PART       => 5;
 
 use constant MAX_BROWSE_DAY_SPAN => 28;
+
+use constant LOAD_IMMEDIATE => 1;
+use constant LOAD_DELAYED   => 2;
 
 1;
