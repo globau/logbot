@@ -72,7 +72,7 @@ sub execute {
     }
 
     $search_nick = lc_irc($search_nick);
-    my $bot_nick = $network->config->{nick};
+    my $bot_nick = $network->{nick};
 
     my @results;
     $channel->browse(

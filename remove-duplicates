@@ -16,15 +16,15 @@ use File::Basename;
 use FileHandle;
 use File::Path qw(make_path remove_tree);
 use LogBot;
+use LogBot::Constants;
 
 # init
 
-LogBot::ConfigFile->init(dirname(__FILE__) . '/logbot.conf');
-my $config_file = LogBot::ConfigFile->instance;
+LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
 
 # generate text logs of events
 
-foreach my $network ($config_file->networks) {
+foreach my $network (LogBot->networks) {
     say $network->{network};
     foreach my $channel ($network->channels) {
         say "  " . $channel->{name};
@@ -54,8 +54,7 @@ foreach my $network ($config_file->networks) {
         if (@rows) {
             my $rows = join(',', @rows);
             my $sql = "DELETE FROM logs WHERE rowid IN ($rows)";
-            die "disabled";
-            #$dbh->do($sql);
+            #$dbh->do($sql); XXX disabled
         }
     }
 }

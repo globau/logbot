@@ -16,6 +16,7 @@ use File::Basename;
 use FileHandle;
 use File::Path qw(make_path remove_tree);
 use LogBot;
+use LogBot::Constants;
 
 # init
 
