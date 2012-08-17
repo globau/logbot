@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use lib '/home/logbot/logbot/lib';
+use lib '/home/logbot/logbot.dev/lib';
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
