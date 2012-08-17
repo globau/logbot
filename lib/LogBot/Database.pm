@@ -50,6 +50,9 @@ sub connect {
     $dbh->do("CREATE INDEX IF NOT EXISTS idx_time ON logs(time)");
     $dbh->do("CREATE INDEX IF NOT EXISTS idx_data ON logs(data)");
 
+    $dbh->do("CREATE TABLE IF NOT EXISTS logs_meta(name INTEGER, id INTEGER)");
+    $dbh->do("CREATE INDEX IF NOT EXISTS idx_meta ON logs_meta(name)");
+
     $self->{dbh} = $dbh;
 }
 
@@ -211,7 +214,7 @@ sub seen {
     $nick = $dbh->quote(trim($nick));
     $nick =~ s/\*/%/g;
 
-    my $sql = "SELECT event,time,nick,data FROM logs WHERE " .
+    my $sql = "SELECT rowid,event,time,nick,data FROM logs WHERE " .
               "((event = " . EVENT_PUBLIC . ") OR (event = " . EVENT_ACTION . ")) " .
               "AND (nick LIKE $nick) " .
               "ORDER BY time DESC " .
@@ -223,8 +226,9 @@ sub seen {
     }
     $sth->execute;
 
-    while (my($type, $time, $nick, $text) = $sth->fetchrow_array) {
+    while (my($id, $type, $time, $nick, $text) = $sth->fetchrow_array) {
         return LogBot::Event->new(
+            id      => $id,
             type    => $type,
             time    => $time,
             channel => $self->{channel},
@@ -234,6 +238,36 @@ sub seen {
     }
 
     return;
+}
+
+sub meta {
+    my ($self, $name, $event) = @_;
+    if (defined($event)) {
+        $self->{dbh}->do(
+            "INSERT OR REPLACE INTO logs_meta(name, id) VALUES(?, ?)",
+            undef,
+            $name, $event->{id}
+        );
+    } else {
+        my $sql = "SELECT logs.rowid,logs.event,logs.time,logs.nick,logs.data 
+                     FROM logs_meta
+                          INNER JOIN logs ON logs.rowid = logs_meta.id
+                    WHERE logs_meta.name = ?
+                    LIMIT 1";
+        my $sth = $self->{dbh}->prepare($sql);
+        $sth->execute($name);
+        while (my($id, $type, $time, $nick, $text) = $sth->fetchrow_array) {
+            return LogBot::Event->new(
+                id      => $id,
+                type    => $type,
+                time    => $time,
+                channel => $self->{channel},
+                nick    => $nick,
+                text    => $text,
+            );
+        }
+        return;
+    }
 }
 
 sub last_updated {

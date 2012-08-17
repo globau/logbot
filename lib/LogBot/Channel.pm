@@ -95,13 +95,19 @@ sub event_count {
 
 sub first_event {
     my ($self) = @_;
-    my @events;
-    $self->database->query(
-        order    => 'time ASC',
-        limit    => '1',
-        callback => sub { push @events, shift }, 
-    );
-    return @events ? $events[0] : undef;
+
+    my $event = $self->database->meta('first_event');
+    if (!$event) {
+        my @events;
+        $self->database->query(
+            order    => 'time ASC',
+            limit    => '1',
+            callback => sub { push @events, shift },
+        );
+        $event = @events ? $events[0] : undef;
+        $self->database->meta('first_event', $event);
+    }
+    return $event;
 }
 
 sub last_event {

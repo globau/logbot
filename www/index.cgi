@@ -107,7 +107,7 @@ if ($vars->{action} eq 'json') {
 }
 
 # force queries from robots to a single date
-my $is_robot = HTTP::BrowserDetect::robot();
+my $is_robot = HTTP::BrowserDetect::robot() || 1;
 if ($is_robot) {
     if ($vars->{action} eq 'browse') {
         $vars->{end_date} = $vars->{start_date}->clone->add(days => 1);
@@ -142,14 +142,13 @@ if ($vars->{action} eq 'about') {
             my $channel = $vars->{channel};
             my $first_event = $channel->first_event;
             my $last_event  = $channel->last_event;
-            my $first_date = $first_event->datetime;
-            my $last_date = $last_event->datetime
-                                    ->clone()
-                                    ->truncate(to => 'day')
-                                    ->add(days => 1)
-                                    ->add(nanoseconds => -1);
+            my $first_date = $first_event ? $first_event->datetime : now();
+            my $last_date = $last_event ? $last_event->datetime->clone() : now();
             my $date = $first_date->clone()
                               ->truncate(to => 'day');
+            $last_date = $last_date->truncate(to => 'day')
+                                   ->add(days => 1)
+                                   ->add(nanoseconds => -1);
             my @dates;
             while ($date < $last_date) {
                 push @dates, $date->format_cldr('d MMM y');
@@ -391,6 +390,29 @@ sub parse_parameters {
                             ->add(days => 1)
                             ->add(nanoseconds => -1);
 
+    # don't allow browsing outside collected date ranges
+
+    my $first_event = $channel->first_event;
+    my $first_event_date = $first_event
+        ? $first_event->datetime->truncate(to => 'day')
+        : now()->truncate(to => 'day');
+    $vars->{first_date} = $first_event_date;
+    my $last_date = now()
+                    ->truncate(to => 'day')
+                    ->add(days => 1)
+                    ->add(nanoseconds => -1);
+    $vars->{last_date} = $last_date;
+
+    if ($vars->{start_date} < $first_event_date) {
+        $vars->{start_date} = $first_event_date;
+    } elsif ($vars->{start_date} > $last_date) {
+        $vars->{start_date} = $last_date;
+    }
+
+    if ($vars->{end_date} > $last_date) {
+        $vars->{end_date} = $last_date;
+    }
+
     # ensure start date < end date
 
     if ($vars->{start_date} > $vars->{end_date}) {
@@ -490,6 +512,8 @@ sub show_events {
                         ->add(days => -1);
     }
     my $today_date = now()->truncate(to => 'day');
+    my $last_date = $vars->{last_date};
+    my $first_date = $vars->{first_date};
 
     my $last_event = 0;
     my $event_count = 0;
@@ -514,12 +538,7 @@ sub show_events {
                     if ($current_date) {
                         $current_date->add(days => 1);
                         while ($current_date < $event->date) {
-                            $template->render(
-                                "$template_dir/date.html",
-                                date => $current_date,
-                                prev => $current_date->clone->add(days => -1),
-                                next => $current_date->clone->add(days => 1),
-                            );
+                            render_date("$template_dir/date.html", $current_date, $first_date, $last_date);
                             $template->render("$template_dir/empty.html");
                             $current_date->add(days => 1);
                         }
@@ -529,12 +548,7 @@ sub show_events {
 
                 # date header
 
-                $template->render(
-                    "$template_dir/date.html",
-                    date => $event->date,
-                    prev => $event->date->clone->add(days => -1),
-                    next => $event->date->clone->add(days => 1),
-                );
+                render_date("$template_dir/date.html", $event->date, $first_date, $last_date);
                 $current_date = $event->date;
             }
 
@@ -566,12 +580,7 @@ sub show_events {
         while ($current_date <= $args{end_date}) {
             last if $current_date > $today_date;
             $trailing_dates = 1;
-            $template->render(
-                "$template_dir/date.html",
-                date => $current_date,
-                prev => $current_date->clone->add(days => -1),
-                next => $current_date->clone->add(days => 1),
-            );
+            render_date("$template_dir/date.html", $current_date, $first_date, $last_date);
             $template->render("$template_dir/empty.html");
             $current_date->add(days => 1);
         }
@@ -579,12 +588,7 @@ sub show_events {
         # if we output nothing (such as all dates are in the future), show something
         if (!$trailing_dates && !$last_event) {
             $current_date = $args{start_date}->clone->truncate(to => 'day');
-            $template->render(
-                "$template_dir/date.html",
-                date => $current_date,
-                prev => $current_date->clone->add(days => -1),
-                next => $current_date->clone->add(days => 1),
-            );
+            render_date("$template_dir/date.html", $current_date, $first_date, $last_date);
             $template->render("$template_dir/empty.html");
         }
     }
@@ -596,18 +600,30 @@ sub show_events {
         if ($last_event
             && $current_date->ymd() eq $last_event->datetime->ymd()
         ) {
-            $template->render(
-                "$template_dir/date.html",
-                date => $current_date,
-                prev => $current_date->clone->add(days => -1),
-                next => $current_date->clone->add(days => 1),
-            );
+            render_date("$template_dir/date.html", $current_date, $first_date, $last_date);
         }
     }
 
     $vars->{last_event}  = $last_event;
     $vars->{event_count} = $event_count;
     $template->render("$template_dir/footer.html", vars => $vars);
+}
+
+sub render_date {
+    my ($file, $date, $first_date, $last_date) = @_;
+
+    my $prev = $date->clone->add(days => -1);
+    $prev = undef if $prev < $first_date;
+
+    my $next = $date->clone->add(days => 1);
+    $next = undef if $next > $last_date;
+
+    $template->render(
+        $file,
+        date => $date,
+        prev => $prev,
+        next => $next,
+    );
 }
 
 #
