@@ -620,13 +620,13 @@ sub linkify {
     # munge email addresses
     $value =~ s#([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)#$1\%$2#g;
 
-    unless ($value =~ s#&lt;(https?://.+?)&gt;#'&lt;<a href="' . $rs_href->($1) . '">' . shorten($1) . '</a>&gt;'#ge) {
-        $value =~ s#(https?://[^\s\b]+)#'<a href="' . $rs_href->($1) . '">' . shorten($1) . '</a>'#ge;
+    unless ($value =~ s#&lt;(https?://.+?)&gt;#'&lt;<a href="' . $rs_href->($1) . '" target="_blank">' . shorten($1) . '</a>&gt;'#ge) {
+        $value =~ s#(https?://[^\s\b]+)#'<a href="' . $rs_href->($1) . '" target="_blank">' . shorten($1) . '</a>'#ge;
     }
 
     # bugzilla urls
-    $value =~ s#(\bbug\s+(\d+))#<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2">$1</a>#gi;
-    $value =~ s#(\battachment\s+(\d+))#<a href="https://bugzilla.mozilla.org/attachment.cgi?id=$2&action=edit">$1</a>#gi;
+    $value =~ s#(\bbug\s+(\d+))#<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2" target="_blank">$1</a>#gi;
+    $value =~ s#(\battachment\s+(\d+))#<a href="https://bugzilla.mozilla.org/attachment.cgi?id=$2&action=edit" target="_blank">$1</a>#gi;
 
     return $value;
 }
