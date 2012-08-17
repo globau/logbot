@@ -1,5 +1,6 @@
 backup/
 data/
 imports/
+www/.htaccess
 www/google*.html
 *.conf
