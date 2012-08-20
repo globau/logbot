@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-use lib '/home/logbot/logbot.dev/lib';
+# set this in apache with
+# SetEnv HTTP_X_LIB_PATH /home/logbot/logbot/lib
+use lib $ENV{HTTP_X_LIB_PATH};
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
