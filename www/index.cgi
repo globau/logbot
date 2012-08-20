@@ -107,7 +107,7 @@ if ($vars->{action} eq 'json') {
 }
 
 # force queries from robots to a single date
-my $is_robot = HTTP::BrowserDetect::robot() || 1;
+my $is_robot = HTTP::BrowserDetect::robot();
 if ($is_robot) {
     if ($vars->{action} eq 'browse') {
         $vars->{end_date} = $vars->{start_date}->clone->add(days => 1);
