@@ -48,7 +48,7 @@ sub join {
 
     return unless $channel->{join};
     print"  Joining " . $channel->{name} , "\n";
-    $self->{_irc}->yield(join => $channel->{name});
+    $self->{_irc}->yield(join => $channel->{name}, $channel->{password});
 }
 
 sub part {

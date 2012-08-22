@@ -97,6 +97,7 @@ sub load {
                 $self->{_context} = sprintf("%s : %s", $network_name, $channel_name);
 
                 $channel->{name} = $channel_name;
+                $channel->{password} = $self->_value($channel_config, 'password', STR, OPT, '');
                 $channel->{visibility} = $self->_value($channel_config, 'visibility', LIST, OPT, 'public', 'public|hidden|private');
                 $channel->{in_channel_search} = $self->_value($channel_config, 'in_channel_search', BOOL, OPT, TRUE);
                 $channel->{log_events} = $self->_value($channel_config, 'log_events', BOOL, OPT, TRUE);

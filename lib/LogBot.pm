@@ -101,6 +101,7 @@ sub reload {
             %args = (
                 network           => $network,
                 name              => $channel_name,
+                password          => $config_channel->{password},
                 public            => $config_channel->{visibility} eq 'public',
                 hidden            => $config_channel->{visibility} eq 'hidden',
                 in_channel_search => $config_channel->{in_channel_search},

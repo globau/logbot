@@ -12,6 +12,7 @@ use LogBot::Util;
 use fields qw(
     network
     name
+    password
     public
     hidden
     in_channel_search
