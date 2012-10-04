@@ -257,7 +257,7 @@ sub parse_parameters {
 
         # browse
 
-        $vars->{run} = 0;
+        $vars->{run} = 1;
         $vars->{s}   = $cgi->param('s');
         $vars->{e}   = $cgi->param('e');
         $vars->{j}   = $cgi->param('j');
@@ -272,7 +272,6 @@ sub parse_parameters {
                 $vars->{error} = 'Invalid start date';
                 return;
             }
-            $vars->{run} = 1;
             $vars->{start_date} = DateTime->from_epoch(epoch => $start_time);
         }
 
@@ -284,7 +283,6 @@ sub parse_parameters {
                 $vars->{error} = 'Invalid end date';
                 return;
             }
-            $vars->{run} = 1;
             $vars->{end_date} = DateTime->from_epoch(epoch => $end_time);
         }
 
