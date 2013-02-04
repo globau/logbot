@@ -174,7 +174,9 @@ sub action {
 
 sub _log_event {
     my ($self, $event) = @_;
-    $self->{_network}->channel($event->{channel})->log_event($event);
+    my $channel = $self->{_network}->channel($event->{channel});
+    return unless $channel;
+    $channel->log_event($event);
 }
 
 sub _is_bot {
