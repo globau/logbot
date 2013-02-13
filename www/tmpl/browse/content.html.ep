@@ -6,9 +6,9 @@
 </td><% # %>
 % if ($event->{type} == EVENT_PUBLIC) {
 <td class="event_nick"><%= $event->{nick} %></td><% # %>
-<td class="event_text"><%= b($event->{text}) %></td><% # %>
+<td class="event_text"><%== $event->{text} %></td><% # %>
 % } elsif ($event->{type} == EVENT_ACTION) {
-<td colspan="2" class="event_action">* <%= $event->{nick} %> <%= b($event->{text}) %></td><% # %>
+<td colspan="2" class="event_action">* <%= $event->{nick} %> <%== $event->{text} %></td><% # %>
 % } elsif ($event->{type} == EVENT_JOIN) {
 <td colspan="2" class="event_join">*** <%= $event->{nick} %> has joined</td><% # %>
 % } elsif ($event->{type} == EVENT_PART) {

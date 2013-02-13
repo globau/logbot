@@ -3,7 +3,7 @@
 <div class="date_prev"><% # %>
 % if ($prev) {
 <a class="date_nav" title="Previous Day (<%= $prev->format_cldr('d MMM y') %>)" <% # %>
-href="<%= b($cgi->logbot_url(browse => $prev)) %>" <% # %>
+href="<%== $cgi->logbot_url(browse => $prev) %>" <% # %>
 onclick="return nav_date('<%= $prev->ymd('') %>','<%= $prev->format_cldr('d MMM y') %>')"><% # %>
 &#x25B2;</a><% # %>
 % } else {
@@ -13,7 +13,7 @@ onclick="return nav_date('<%= $prev->ymd('') %>','<%= $prev->format_cldr('d MMM 
 <div class="date_next"><% # %>
 % if ($next) {
 <a class="date_nav" title="Next Day (<%= $next->format_cldr('d MMM y') %>)" <% # %>
-href="<%= b($cgi->logbot_url(browse => $next)) %>" <% # %>
+href="<%== $cgi->logbot_url(browse => $next) %>" <% # %>
 onclick="return nav_date('<%= $next->ymd('') %>','<%= $next->format_cldr('d MMM y') %>')"><% # %>
 &#x25BC;</a><% # %>
 % } else {
