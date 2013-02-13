@@ -20,6 +20,7 @@ use LogBot::CGI;
 use LogBot::Constants;
 use LogBot::Template;
 use LogBot::Util;
+use Mojo::Util qw(xml_escape);
 
 my $conf_filename = 'logbot.conf';
 foreach my $path (@INC) {
@@ -556,8 +557,7 @@ sub show_events {
             if (defined $hilite) {
                 $event->{text} = hilite($event->{text}, $hilite);
             } else {
-                Mojo::Util::xml_escape($event->{text});
-                $event->{text} = linkify($event->{text});
+                $event->{text} = xml_escape(linkify($event->{text}));
             }
 
             $template->render("$template_dir/content.html", vars => $vars, event => $event);
@@ -655,7 +655,7 @@ sub hilite {
     $value =~ s/>/\001/g;
     $value =~ s/&/\002/g;
 
-    Mojo::Util::xml_escape($value);
+    $value = xml_escape($value);
     $value =~ s#($hilite)#\003$1\004#goi;
 
     $value =~ s/\000/&lt;/g;
