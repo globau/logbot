@@ -557,7 +557,7 @@ sub show_events {
             if (defined $hilite) {
                 $event->{text} = hilite($event->{text}, $hilite);
             } else {
-                $event->{text} = xml_escape(linkify($event->{text}));
+                $event->{text} = linkify(xml_escape($event->{text}));
             }
 
             $template->render("$template_dir/content.html", vars => $vars, event => $event);
