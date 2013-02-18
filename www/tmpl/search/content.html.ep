@@ -1,14 +1,14 @@
 <tr class="event"><% # %>
 <td class="event_time"><% # %>
-<a href="<%= b($cgi->logbot_url(browse => $event->datetime, hilite => $vars->{q})) %>#c<%= $event->{id} %>"><% # %>
+<a href="<%== $cgi->logbot_url(browse => $event->datetime, hilite => $vars->{q}) %>#c<%= $event->{id} %>"><% # %>
 <%= sprintf('%02d:%02d', $event->datetime->hour, $event->datetime->minute) %><% # %>
 </a><% # %>
 </td><% # %>
 % if ($event->{type} == EVENT_PUBLIC) {
 <td class="event_nick"><%= $event->{nick} %></td><% # %>
-<td class="event_text"><%= b($event->{text}) %></td><% # %>
+<td class="event_text"><%== $event->{text} %></td><% # %>
 % } elsif ($event->{type} == EVENT_ACTION) {
-<td colspan="2" class="event_action">* <%= $event->{nick} %> <%= b($event->{text}) %></td><% # %>
+<td colspan="2" class="event_action">* <%= $event->{nick} %> <%== $event->{text} %></td><% # %>
 % } elsif ($event->{type} == EVENT_JOIN) {
 <td colspan="2" class="event_join">*** <%= $event->{nick} %> has joined</td><% # %>
 % } elsif ($event->{type} == EVENT_PART) {

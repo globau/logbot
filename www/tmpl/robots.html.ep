@@ -5,6 +5,6 @@
 <h4><%= $vars->{channel}->{network}->{network} %> :: <%= $vars->{channel}->{name} %></h4>
 
 % foreach my $date (@{ $vars->{dates} }) {
-    <a href="<%= b($cgi->logbot_url(browse => $date)) %>"><%= $date %></a><br>
+    <a href="<%== $cgi->logbot_url(browse => $date) %>"><%= $date %></a><br>
 % }
 

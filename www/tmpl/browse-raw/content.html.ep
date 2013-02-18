@@ -3,9 +3,9 @@
 </a> <% # %>
 % if ($event->{type} == EVENT_PUBLIC) {
 &lt;<%= $event->{nick} %>&gt; <% # %>
-<%= b($event->{text}) %>
+<%== $event->{text} %>
 % } elsif ($event->{type} == EVENT_ACTION) {
-* <%= $event->{nick} %> <%= b($event->{text}) %>
+* <%= $event->{nick} %> <%== $event->{text} %>
 % } elsif ($event->{type} == EVENT_JOIN) {
 *** <%= $event->{nick} %> has joined
 % } elsif ($event->{type} == EVENT_PART) {
