@@ -178,6 +178,13 @@ a:hover {
     cursor: default;
 }
 
+#nav_text {
+    float: right;
+    color: #888888;
+    margin-right: 1em;
+    font-size: x-small;
+}
+
 #nav_bottom {
     float: right;
     color: #888888;
@@ -203,12 +210,12 @@ a:hover {
     background-color: #eeeeee;
 }
 
-.date_raw {
+.date_min {
     color: #000000;
     background-color: #eeeeee;
 }
 
-.date_raw a {
+.date_min a {
     color: #000000;
 }
 

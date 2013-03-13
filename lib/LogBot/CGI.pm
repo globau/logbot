@@ -66,9 +66,9 @@ sub logbot_url {
         $query{s} = $date;
         $query{e} = $date;
         $query{h} = $args{hilite} if exists $args{hilite};
-        if ($self->{vars}->{raw}) {
-            push @$fields, 'raw';
-            $query{raw} = $self->{vars}->{raw};
+        if ($self->{vars}->{t}) {
+            push @$fields, 't';
+            $query{t} = $self->{vars}->{t};
         }
     }
 

@@ -1,4 +1,4 @@
-<span class="date_raw" id="d<%= $date->ymd('') %>"><% # %>
+<span class="date_min" id="d<%= $date->ymd('') %>"><% # %>
 % if ($prev) {
 <a title="Previous Day (<%= $prev->format_cldr('d MMM y') %>)" <% # %>
 href="<%== $cgi->logbot_url(browse => $prev) %>" <% # %>

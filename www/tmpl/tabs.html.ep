@@ -47,6 +47,7 @@
 
         % if ($vars->{run}) {
             <a href="#end" id="nav_bottom" title="Bottom of page">&dArr;</a>
+            <a href="<%== $cgi->logbot_url() %>&amp;t=text" id="nav_text" title="View as plain text">text</a>
         % }
     </form>
 </div>

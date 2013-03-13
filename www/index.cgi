@@ -123,7 +123,14 @@ if ($is_robot) {
     }
 }
 
-print $cgi->header(-charset => 'utf-8');
+# need special handling for the browse text format
+my $is_text = $vars->{action} eq 'browse' && $vars->{t} eq 'text';
+
+if ($is_text) {
+    print $cgi->header(-charset => 'utf-8', -type => 'text/plain');
+} else {
+    print $cgi->header(-charset => 'utf-8');
+}
 
 if ($vars->{action} eq 'browse') {
     $cgi->{fields} = [qw(c s e j b h)];
@@ -131,7 +138,8 @@ if ($vars->{action} eq 'browse') {
     $cgi->{fields} = [qw(a c q ss se)];
 }
 
-$template->render('header.html', vars => $vars);
+$template->render('header.html', vars => $vars)
+    unless $is_text;
 
 if ($vars->{action} eq 'about') {
 
@@ -161,7 +169,8 @@ if ($vars->{action} eq 'about') {
         }
         $template->render('robots.html', vars => $vars);
     } else {
-        $template->render('tabs.html', vars => $vars);
+        $template->render('tabs.html', vars => $vars)
+            unless $is_text;
     }
 
     if ($vars->{run} && !$vars->{error}) {
@@ -171,12 +180,13 @@ if ($vars->{action} eq 'about') {
 
         if ($vars->{action} eq 'browse') {
             # browse
-            $args{template}      = $vars->{raw} ? 'browse-raw' : 'browse';
+            $args{template}      = $vars->{t} ? 'browse-' . $vars->{t} : 'browse';
             $args{start_date}    = $vars->{start_date};
             $args{end_date}      = $vars->{end_date};
             $args{hilite}        = $vars->{h};
             $args{messages_only} = !$vars->{j};
-            $args{empty_dates}   = 1;
+            $args{empty_dates}   = !$is_text;
+            $args{linkify}       = !$is_text;
             if ($vars->{b}) {
                 $args{exclude_nicks} = $vars->{network}->{bots};
             }
@@ -189,6 +199,7 @@ if ($vars->{action} eq 'about') {
             $args{hilite}        = $vars->{q};
             $args{messages_only} = 1;
             $args{empty_dates}   = 0;
+            $args{linkify}       = 1;
             $args{limit}         = $config->{web}->{search_limit};
             if ($vars->{q} =~ s/<([^>]+)>//) {
                 $args{nick} = $1;
@@ -200,7 +211,8 @@ if ($vars->{action} eq 'about') {
     }
 }
 
-$template->render('footer.html');
+$template->render('footer.html')
+    unless $is_text;
 
 #
 
@@ -263,7 +275,7 @@ sub parse_parameters {
         $vars->{e}   = $cgi->param('e');
         $vars->{j}   = $cgi->param('j');
         $vars->{b}   = $cgi->param('b');
-        $vars->{raw} = $cgi->param('raw') ? 1 : 0;
+        $vars->{t}   = $cgi->param('t');
 
         # start date
 
@@ -306,6 +318,10 @@ sub parse_parameters {
             $vars->{b} = $cgi->param('b') eq '1' ? '1' : '0';
         }
         delete $vars->{b} unless $vars->{b};
+
+        # template
+
+        $vars->{t} = '' unless $vars->{t} && ($vars->{t} eq 'min' || $vars->{t} eq 'text');
 
     } elsif ($action eq 'json') {
         $vars->{action} = 'json';
@@ -554,10 +570,12 @@ sub show_events {
             }
 
             # linkify text
-            if (defined $hilite) {
-                $event->{text} = hilite($event->{text}, $hilite);
-            } else {
-                $event->{text} = linkify(xml_escape($event->{text}));
+            if ($args{linkify}) {
+                if (defined $hilite) {
+                    $event->{text} = hilite($event->{text}, $hilite);
+                } else {
+                    $event->{text} = linkify(xml_escape($event->{text}));
+                }
             }
 
             $template->render("$template_dir/content.html", vars => $vars, event => $event);

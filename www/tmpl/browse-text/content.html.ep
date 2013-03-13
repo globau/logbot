@@ -1,0 +1,11 @@
+[<%= sprintf('%02d:%02d', $event->datetime->hour, $event->datetime->minute) %>] <% # %>
+% if ($event->{type} == EVENT_PUBLIC) {
+<<%= $event->{nick} %>> <% # %>
+<%== $event->{text} %>
+% } elsif ($event->{type} == EVENT_ACTION) {
+* <%= $event->{nick} %> <%== $event->{text} %>
+% } elsif ($event->{type} == EVENT_JOIN) {
+*** <%= $event->{nick} %> has joined
+% } elsif ($event->{type} == EVENT_PART) {
+*** <%= $event->{nick} %> has left
+% }
