@@ -20,33 +20,32 @@ use LogBot::Constants;
 my $QUIET = grep { $_ eq '-q' } @ARGV;
 
 LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
-my $data_path = LogBot->config->{data_path} . '/plot/hours';
-make_path($data_path) unless -d $data_path;
+my $DATA_PATH = LogBot->config->{data_path} . '/plot';
 
-my $sql = sprintf("
-        SELECT CAST(time %% (24 * 3600) AS INT), COUNT(*)
-          FROM logs
-         WHERE event in (%s, %s)
-      GROUP BY CAST(time %% (24 * 3600) AS INT)",
-    EVENT_PUBLIC, EVENT_ACTION
-);
-
+generate_hours('', { name => '_empty' });
 foreach my $network (LogBot->networks) {
     foreach my $channel ($network->channels) {
         next unless $channel->{public} || $channel->{hidden};
-        _generate($network->{network}, $channel);
+        generate_hours($network->{network}, $channel);
+        generate_nicks($network->{network}, $channel);
     }
 }
-_generate('', { name => '_empty' });
 
-sub _generate {
+sub generate_hours {
     my ($network_name, $channel) = @_;
+    my $data_path = $DATA_PATH . '/hours';
+    make_path($data_path) unless -d $data_path;
 
-    my $channel_name = $channel->{name};
-    $channel_name =~ s/^#//;
-    $network_name .= '-' if $network_name;
-    my $filename = "$data_path/$network_name$channel_name.json";
-    $QUIET || say $filename;
+    my $sql = sprintf("
+        SELECT CAST(time %% (24 * 3600) AS INT), COUNT(*)
+          FROM logs
+         WHERE event in (%s, %s)
+         GROUP BY CAST(time %% (24 * 3600) AS INT)
+        ",
+        EVENT_PUBLIC, EVENT_ACTION
+    );
+
+    my $filename = json_filename($data_path, $network_name, $channel);
 
     my %values;
     if ($channel->{name} ne '_empty') {
@@ -71,6 +70,36 @@ sub _generate {
             fill => JSON::true,
         },
     };
-    # $QUIET || say encode_json($json);
     write_file($filename, encode_json($json));
 }
+
+sub generate_nicks {
+    my ($network_name, $channel) = @_;
+    my $data_path = $DATA_PATH . '/nicks';
+    make_path($data_path) unless -d $data_path;
+
+    my $sql = "
+        SELECT nick, COUNT(*) AS count
+          FROM logs
+         GROUP BY nick
+         ORDER BY COUNT(*) DESC, nick ASC
+         LIMIT 20
+    ";
+
+    my $filename = json_filename($data_path, $network_name, $channel);
+
+    my $dbh = $channel->database->{dbh};
+    my $json = $dbh->selectall_arrayref($sql, { Slice => {} });
+    write_file($filename, encode_json($json));
+}
+
+sub json_filename {
+    my ($data_path, $network_name, $channel) = @_;
+    my $channel_name = $channel->{name};
+    $channel_name =~ s/^#//;
+    $network_name .= '-' if $network_name;
+    my $filename = "$data_path/$network_name$channel_name.json";
+    $QUIET || say $filename;
+    return $filename;
+}
+
