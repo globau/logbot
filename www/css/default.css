@@ -67,6 +67,7 @@ a:hover {
 #about_channels .channel {
     margin-left: 1em;
     color: #888888;
+    line-height: 150%;
 }
 
 #about_channels a {
