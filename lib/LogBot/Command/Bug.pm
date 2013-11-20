@@ -42,7 +42,7 @@ sub _summary {
         return sprintf "Error fetching bug %s: %s", $id, $error;
     }
 
-    # Bug http://bugzil.la/258711 min, --, Bugzilla 2.18, wurblzap, ASSI, move.pl should honour emailsuffix
+    # Bug https://bugzil.la/258711 min, --, Bugzilla 2.18, wurblzap, ASSI, move.pl should honour emailsuffix
 
     # min               //bug/bug_severity (first 3 chars)
     # --                //bug/priority
@@ -56,7 +56,7 @@ sub _summary {
     if ($xml =~ /<bug error="([^"]+)">/) {
         my $error = decode_entities($1);
         return sprintf "Bug %s was not found.", $id if $error eq 'NotFound';
-        return sprintf "Bug http://bugzil.la/%s is not accessible", $id if $error eq 'NotPermitted';
+        return sprintf "Bug https://bugzil.la/%s is not accessible", $id if $error eq 'NotPermitted';
         return sprintf "Bug %s was not found.", $id if $error eq 'NotFound';
         return sprintf "Invalid Bug ID %s", $id if $error eq 'InvalidBugId';
         return "BMO returned an error for bug %s: %s", $id, $error;
@@ -69,7 +69,7 @@ sub _summary {
     }
 
     return sprintf
-        "Bug http://bugzil.la/%s %s, %s, %s, %s, %s %s, %s",
+        "Bug https://bugzil.la/%s %s, %s, %s, %s, %s %s, %s",
         $bug{bug_id},
         $bug{bug_severity},
         $bug{priority},
