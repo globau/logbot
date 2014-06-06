@@ -115,7 +115,9 @@
     </tr>
     </table>
     <div class="about_header">Channel activity by hour:</div>
-    <div id="hours_plot"></div>
+    <div id="hours_plot"><span class="loading">loading..</span></div>
+    <div class="about_header">Top Users (by number of messages):</div>
+    <div id="nicks_plot"><span class="loading">loading..</span></div>
 </div>
 
 <script>
@@ -123,8 +125,8 @@
     add_tab('search_tab');
     add_tab('about_tab');
     init_tabs('<%= $vars->{c} %>');
-    var current_hh = <%= $now->strftime('%H') %>;
-    var current_mm = <%= $now->strftime('%M') %>;
+    var current_hh = <%= $now->strftime('%H') + 0 %>;
+    var current_mm = <%= $now->strftime('%M') + 0 %>;
 </script>
 
 % if ($vars->{error}) {

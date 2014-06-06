@@ -94,13 +94,14 @@ if ($vars->{action} eq 'json') {
             event_count => commify($channel->event_count),
         });
 
-    } elsif ($request eq 'channel_plot_hours') {
+    } elsif ($request =~ /^channel_plot_(hours|nicks)$/) {
+        my $type = $1;
         my $network = $channel->{network}->{network};
         my $channel_name = $channel->{name};
         $channel_name =~ s/^#//;
-        my $filename = $config->{data_path} . "/plot/hours/$network-$channel_name.json";
+        my $filename = $config->{data_path} . "/plot/$type/$network-$channel_name.json";
         if (!-e $filename) {
-            $filename = $config->{data_path} . '/plot/hours/_empty.json';
+            $filename = $config->{data_path} . "/plot/$type/_empty.json";
         }
         print read_file($filename);
 

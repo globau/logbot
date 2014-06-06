@@ -48,7 +48,9 @@ function init_tabs(channel) {
 
 var about_loaded = false;
 var plot = false;
-function load_about_tab() {
+function show_about_tab() {
+  $('#events').addClass('hidden');
+
   if (about_loaded)
     return;
   about_loaded = true;
@@ -56,7 +58,7 @@ function load_about_tab() {
     return;
 
   $.ajax({
-    url: '?a=json&r=channel_last_updated&c=' + encodeURIComponent(current_channel)
+    url: 'index.cgi?a=json&r=channel_last_updated&c=' + encodeURIComponent(current_channel)
   }).done(function(data) {
     if (data.last_updated) {
       $('#last_updated').html('Last updated ' + data.last_updated);
@@ -66,19 +68,19 @@ function load_about_tab() {
   });
 
   $.ajax({
-    url: '?a=json&r=channel_database_size&c=' + encodeURIComponent(current_channel)
+    url: 'index.cgi?a=json&r=channel_database_size&c=' + encodeURIComponent(current_channel)
   }).done(function(data) {
     $('#database_size').html(data.database_size);
   });
 
   $.ajax({
-    url: '?a=json&r=channel_event_count&c=' + encodeURIComponent(current_channel)
+    url: 'index.cgi?a=json&r=channel_event_count&c=' + encodeURIComponent(current_channel)
   }).done(function(data) {
     $('#event_count').html(data.event_count);
   });
 
   $.ajax({
-    url: '?a=json&r=channel_plot_hours&c=' + encodeURIComponent(current_channel),
+    url: 'index.cgi?a=json&r=channel_plot_hours&c=' + encodeURIComponent(current_channel),
     method: 'GET',
     dataType: 'json',
     success: function(series) {
@@ -112,6 +114,53 @@ function load_about_tab() {
       hours_plot.append('<div id="hours_now" style="' + style + '">Now</div>');
     }
   });
+
+  if ($('#nicks_plot').length == 0)
+    return;
+
+  $.ajax({
+    url: 'index.cgi?a=json&r=channel_plot_nicks&c=' + encodeURIComponent(current_channel),
+    method: 'GET',
+    dataType: 'json',
+    success: function(series) {
+      var tbl = document.createElement('table');
+      tbl.id = 'top_nicks';
+
+      for (var i = 0, il = series.data.length; i < il; i++) {
+        var row = series.data[i];
+        var tr = document.createElement('tr');
+
+        var cell = document.createElement('td');
+        cell.className = 'top_nicks_nick';
+        $(cell).text(row.nick);
+        tr.appendChild(cell);
+
+        cell = document.createElement('td');
+        cell.className = 'top_nicks_count';
+        $(cell).text(row.count).commify();
+        tr.appendChild(cell);
+
+        cell = document.createElement('td');
+        cell.className = 'top_nicks_bar';
+        cell.width = '100%';
+        var bar = document.createElement('div');
+        bar.style.background = '#f8e7b3';
+        bar.style.color = '#f8e7b3';
+        bar.style.width = (row.count / series.data[0].count * 100) + '%';
+        $(bar).text('-');
+        cell.appendChild(bar);
+        tr.appendChild(cell);
+
+        tbl.appendChild(tr);
+      }
+      $('#nicks_plot').text('');
+      $('#nicks_plot').append(tbl);
+    }
+  });
+}
+
+function hide_about_tab() {
+  $('#events').removeClass('hidden');
 }
 
 function switch_tab(id) {
@@ -135,8 +184,11 @@ function switch_tab(id) {
     }
   }
 
-  if (id == 'about_tab')
-    load_about_tab();
+  if (id == 'about_tab') {
+    show_about_tab();
+  } else {
+    hide_about_tab();
+  }
 }
 
 // browse
@@ -176,3 +228,26 @@ $(document).ready(function() {
   hash_hilite();
 });
 
+// util
+
+// https://github.com/hiroaki/jquery-commify
+(function($){
+    $.fn.commify = function(){
+        var _commify = function (matched,cap){
+                if( matched.match(/\..*\./) || matched.match(/,/) ){
+                    return matched;
+                }
+                while(cap != (cap = cap.replace(/^(-?\d+)(\d{3})/, '$1,$2')));
+                return cap;
+            };
+
+        $(this).each(function(){
+            $(this).contents().each(function (){
+                if( this.nodeType == 3 ){ // if text node
+                    $(this).replaceWith( $(this).text().replace(/([0-9\.,]+)/g, _commify ) );
+                }
+            });
+        });
+        return this;
+    };
+})(jQuery);

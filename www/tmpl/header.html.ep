@@ -18,8 +18,8 @@
 
     <script src="js/jquery.flot.min.js"></script>
 
-    <link rel="stylesheet" href="/css/default.css?2">
-    <script src="/js/logbot.js"></script>
+    <link rel="stylesheet" href="/css/default.css?4">
+    <script src="/js/logbot.js?3"></script>
 </head>
 <body>
 <div id="top"></div>
@@ -31,9 +31,13 @@
     </a>
 </div>
 
+<div id="nav_source">
+    <a href="https://github.com/globau/logbot">source</a>
+</div>
+
 % if ($vars->{c}) {
     <div id="nav_about">
-        <a href="/">logbot</a>
+        <a href="/">index</a>
     </div>
 % }
 

@@ -23,6 +23,7 @@ LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
 my $DATA_PATH = LogBot->config->{data_path} . '/plot';
 
 generate_hours('', { name => '_empty' });
+generate_nicks('', { name => '_empty' });
 foreach my $network (LogBot->networks) {
     foreach my $channel ($network->channels) {
         next unless $channel->{public} || $channel->{hidden};
@@ -87,9 +88,19 @@ sub generate_nicks {
     ";
 
     my $filename = json_filename($data_path, $network_name, $channel);
+    my $data = [];
 
-    my $dbh = $channel->database->{dbh};
-    my $json = $dbh->selectall_arrayref($sql, { Slice => {} });
+    if ($channel->{name} ne '_empty') {
+        my $dbh = $channel->database->{dbh};
+        $data = $dbh->selectall_arrayref($sql, { Slice => {} });
+    }
+
+    my $json = {
+        data => $data,
+        bars => {
+            show => JSON::true,
+        },
+    };
     write_file($filename, encode_json($json));
 }
 

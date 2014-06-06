@@ -83,12 +83,17 @@ a:hover {
 #about_alt {
     margin-top: 1em;
     margin-left: 2em;
+    margin-bottom: 4em;
     color: #444444;
 }
 
 #about_alt a {
     margin-left: 1em;
     color: #888888;
+}
+
+#about_tab {
+    line-height: 150%;
 }
 
 #hours_plot {
@@ -103,6 +108,16 @@ a:hover {
     font-size: smaller;
 }
 
+#nicks_plot {
+    width: 800px;
+    height: 100%;
+    margin-left: 1em;
+}
+
+.top_nicks_count {
+    text-align: right;
+}
+
 /* nav - global */
 
 #nav_about {
@@ -112,6 +127,15 @@ a:hover {
 }
 
 #nav_about a {
+    color: #888888;
+}
+
+#nav_source {
+    float: right;
+    margin-right: 1em;
+}
+
+#nav_source a {
     color: #888888;
 }
 
@@ -144,7 +168,7 @@ a:hover {
 
 .tab_title {
     display: inline;
-    padding: 0 1em;
+    padding: 4px 1em 0 1em;
     cursor: pointer;
 }
 
