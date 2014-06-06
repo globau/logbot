@@ -35,10 +35,17 @@ sub new {
     foreach my $field (qw(id type time channel nick text)) {
         $self->{$field} = $args{$field};
     }
+    if (defined $self->{text}) {
+        # remove irc colours
+        $self->{text} =~ s/\cC\d{1,2}(?:,\d{1,2})?//g;
+        $self->{text} =~ s/(?:\c[CBIURO])//g;
+        $self->{text} =~ tr/\x02\x0f\x1f//d;
+    } else {
+        $self->{text} = '';
+    }
     $self->{id} ||= 0;
     $self->{channel} = canon_channel($self->{channel});
     $self->{time} ||= now()->hires_epoch;
-    $self->{text} = '' unless defined $self->{text};
 
     return $self;
 }
