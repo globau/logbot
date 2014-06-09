@@ -197,11 +197,15 @@ sub do_actions {
             }
             when(ACTION_CHANNEL_JOIN) {
                 $self->_remove_actions(channel => $channel);
-                $network->{bot}->join($channel);
+                if ($network->{bot}) {
+                    $network->{bot}->join($channel);
+                }
             }
             when(ACTION_CHANNEL_PART) {
                 $self->_remove_actions(channel => $channel);
-                $network->{bot}->part($channel);
+                if ($network->{bot}) {
+                    $network->{bot}->part($channel);
+                }
             }
         }
     }
