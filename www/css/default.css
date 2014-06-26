@@ -222,6 +222,7 @@ a:hover {
     width: 100%;
     font-family: "Andale Mono", Consolas, "Lucida Console", "Bitstream Vera Sans Mono", "Courier New", monospace;
     margin-top: 1px;
+    word-break: break-all;
 }
 
 #events td {

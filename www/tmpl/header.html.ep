@@ -18,7 +18,7 @@
 
     <script src="js/jquery.flot.min.js"></script>
 
-    <link rel="stylesheet" href="/css/default.css?4">
+    <link rel="stylesheet" href="/css/default.css?6">
     <script src="/js/logbot.js?3"></script>
 </head>
 <body>
