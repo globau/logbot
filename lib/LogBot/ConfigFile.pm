@@ -134,15 +134,16 @@ sub _value {
     $value = $default unless defined $value;
 
     my $valid = 1;
-    given($type) {
-        when(STR)  { $value =~ s/(^\s+|\s+$)//g }
-        when(INT)  { $valid = 0 if $value =~ /\D/ }
-        when(BOOL) { $value = $value ? 1 : 0 }
-        when(LIST) {
-            my @valid = split(/\|/, lc($list_values));
-            $valid = (grep { lc($_) eq $value } @valid) ? 1 : 0;
-            $value = lc($value) if $valid;
-        }
+    if ($type == STR) {
+        $value =~ s/(^\s+|\s+$)//g;
+    } elsif ($type == INT) {
+        $valid = 0 if $value =~ /\D/;
+    } elsif ($type == BOOL) {
+        $value = $value ? 1 : 0;
+    } elsif ($type == LIST) {
+        my @valid = split(/\|/, lc($list_values));
+        $valid = (grep { lc($_) eq $value } @valid) ? 1 : 0;
+        $value = lc($value) if $valid;
     }
     if (!$valid) {
         push @{$self->{_invalid}}, $self->{_context} . " : $name ($value)";

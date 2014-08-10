@@ -78,12 +78,16 @@ sub to_string {
     my ($self) = @_;
 
     my $template;
-    given($self->{type}) {
-        when(EVENT_PUBLIC) { $template = '%s <%s> %s' }
-        when(EVENT_JOIN)   { $template = '%s *** %s (%s) has joined %s' }
-        when(EVENT_PART)   { $template = '%s *** %s (%s) has left %s' }
-        when(EVENT_QUIT)   { $template = '%s *** %s has quit IRC [%s]' }
-        when(EVENT_ACTION) { $template = '%s * %s %s' }
+    if ($self->{type} == EVENT_PUBLIC) {
+        $template = '%s <%s> %s';
+    } elsif ($self->{type} == EVENT_JOIN) {
+        $template = '%s *** %s (%s) has joined %s';
+    } elsif ($self->{type} == EVENT_PART) {
+        $template = '%s *** %s (%s) has left %s';
+    } elsif ($self->{type} == EVENT_QUIT) {
+        $template = '%s *** %s has quit IRC [%s]';
+    } elsif ($self->{type} == EVENT_ACTION) {
+        $template = '%s * %s %s';
     }
     return sprintf($template, simple_date_string($self->datetime), $self->{nick}, $self->{text} || '', $self->{channel});
 }
@@ -92,12 +96,16 @@ sub log_string {
     my ($self) = @_;
 
     my $template;
-    given($self->{type}) {
-        when(EVENT_PUBLIC) { $template = '%s <%s> %s' }
-        when(EVENT_JOIN)   { $template = '%s *** %s (%s) has joined %s' }
-        when(EVENT_PART)   { $template = '%s *** %s (%s) has left %s' }
-        when(EVENT_QUIT)   { $template = '%s *** %s has quit IRC [%s]' }
-        when(EVENT_ACTION) { $template = '%s * %s %s' }
+    if ($self->{type} == EVENT_PUBLIC) {
+        $template = '%s <%s> %s';
+    } elsif ($self->{type} == EVENT_JOIN) {
+        $template = '%s *** %s (%s) has joined %s';
+    } elsif ($self->{type} == EVENT_PART) {
+        $template = '%s *** %s (%s) has left %s';
+    } elsif ($self->{type} == EVENT_QUIT) {
+        $template = '%s *** %s has quit IRC [%s]';
+    } elsif ($self->{type} == EVENT_ACTION) {
+        $template = '%s * %s %s';
     }
     return sprintf($template, $self->datetime, $self->{nick}, $self->{text} || '', $self->{channel});
 }

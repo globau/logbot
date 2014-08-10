@@ -178,34 +178,27 @@ sub action {
 sub do_actions {
     while (my $action = shift @{ $self->{_actions} }) {
         my ($network, $channel) = ($action->{network}, $action->{channel});
-        given($action->{type}) {
-            when(ACTION_NETWORK_CONNECT) {
-                $self->_remove_actions(network => $network);
-                $network->connect();
+        if ($action->{type} == ACTION_NETWORK_CONNECT) {
+            $self->_remove_actions(network => $network);
+            $network->connect();
+        } elsif ($action->{type} == ACTION_NETWORK_RECONNECT) {
+            $self->_remove_actions(network => $network);
+            $network->disconnect();
+            $network->connect();
+        } elsif ($action->{type} == ACTION_NETWORK_NICK) {
+            die "not implemented";
+        } elsif ($action->{type} == ACTION_NETWORK_DISCONNECT) {
+            $self->_remove_actions(network => $network);
+            $network->disconnect();
+        } elsif ($action->{type} == ACTION_CHANNEL_JOIN) {
+            $self->_remove_actions(channel => $channel);
+            if ($network->{bot}) {
+                $network->{bot}->join($channel);
             }
-            when(ACTION_NETWORK_RECONNECT) {
-                $self->_remove_actions(network => $network);
-                $network->disconnect();
-                $network->connect();
-            }
-            when(ACTION_NETWORK_NICK) {
-                die "not implemented";
-            }
-            when(ACTION_NETWORK_DISCONNECT) {
-                $self->_remove_actions(network => $network);
-                $network->disconnect();
-            }
-            when(ACTION_CHANNEL_JOIN) {
-                $self->_remove_actions(channel => $channel);
-                if ($network->{bot}) {
-                    $network->{bot}->join($channel);
-                }
-            }
-            when(ACTION_CHANNEL_PART) {
-                $self->_remove_actions(channel => $channel);
-                if ($network->{bot}) {
-                    $network->{bot}->part($channel);
-                }
+        } elsif ($action->{type} == ACTION_CHANNEL_PART) {
+            $self->_remove_actions(channel => $channel);
+            if ($network->{bot}) {
+                $network->{bot}->part($channel);
             }
         }
     }
