@@ -1,5 +1,6 @@
 backup/
 data/
+data-debug/
 imports/
 www/.htaccess
 www/google*.html
