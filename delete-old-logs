@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use FindBin '$Bin';
+use lib "$Bin/lib";
+
+use DateTime;
+use LogBot;
+use LogBot::Constants;
+
+LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+
+my $cutoff = DateTime->now->add(days => -5)->ymd('');
+foreach my $file (glob(LogBot->config->{data_path} . '/log/logbot-*')) {
+    next unless $file =~ /-(\d+)\.log$/;
+    my $date = $1;
+    next if $date >= $cutoff;
+    unlink($file);
+}

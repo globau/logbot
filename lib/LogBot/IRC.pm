@@ -26,14 +26,14 @@ sub connect_network {
     my ($class, $network) = @_;
 
     return unless grep { $_->{join} } $network->channels;
-    printf "Connecting to %s (%s:%s)\n", $network->{network}, $network->{server}, $network->{port};
+    printf STDERR "Connecting to %s (%s:%s)\n", $network->{network}, $network->{server}, $network->{port};
 
     my $irc = POE::Component::IRC->spawn(
         nick        => $network->{nick},
         ircname     => $network->{name},
         server      => $network->{server},
         port        => $network->{port},
-        debug       => LogBot->config->{bot}->{debug_irc},
+        debug       => 1,
     ) or die "failed: $!\n";
 
     if ($network->{password}) {
@@ -87,7 +87,7 @@ sub irc_001 {
     my $bot = $heap->{bot};
     my $network = $heap->{network};
 
-    print "Connected to ", $irc->server_name(), "\n";
+    print STDERR "Connected to ", $irc->server_name(), "\n";
     foreach my $channel ($network->channels) {
         $bot->join($channel);
     }

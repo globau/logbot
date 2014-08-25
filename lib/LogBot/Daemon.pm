@@ -6,20 +6,23 @@ use warnings;
 use Carp qw(confess);
 use Cwd qw(abs_path);
 use Daemon::Generic;
+use DateTime;
 use FindBin qw($Bin);
 use File::Basename;
+use IO::Handle;
 use LogBot;
 use LogBot::ConfigFile;
 use LogBot::Constants;
 use LogBot::IRC;
 use Pod::Usage;
 
-my $_log_filename;
 my $_debugging = 0;
 my $_running = 0;
 
 sub start {
-    $SIG{__DIE__} = sub { confess(@_) };
+    $SIG{__DIE__} = sub {
+        confess(@_);
+    };
     newdaemon(configfile => 'logbot.conf');
 }
 
@@ -35,15 +38,6 @@ sub gd_preconfig {
     } else {
         LogBot->reload()
             || print LogBot->config_error . "\n";
-    }
-}
-
-sub gd_postconfig {
-    my ($self) = @_;
-
-    if ($_log_filename) {
-        close(STDERR);
-        open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
     }
 }
 
@@ -65,12 +59,37 @@ sub gd_usage {
 
 sub gd_redirect_output {
     my ($self) = @_;
-    my $_log_filename = LogBot->config
-        ? LogBot->config->{data_path} . '/logbot.log'
-        : "$Bin/data/logbot.log";
-    open(STDERR, ">>$_log_filename") or (print "could not open stderr: $!" && exit(1));
-    close(STDOUT);
-    open(STDOUT, ">&STDERR") or die "redirect STDOUT -> STDERR: $!";
+    tie(*STDERR => 'LogBot::Daemon::stderr', \&_log);
+}
+
+sub gd_reopen_output {
+    # no-op
+}
+
+my $_log_filename = '';
+my $_log_filehandle;
+sub _log {
+    my ($line) = @_;
+    chomp($line);
+
+    if ($_debugging) {
+        print $line, "\n";
+    }
+
+    my $now = DateTime->now();
+    my $filename = LogBot->config
+        ? LogBot->config->{data_path} . '/log/logbot-'
+        : "$Bin/data/log/logbot-";
+    $filename .= $now->ymd('') . '.log';
+    if ($_log_filename ne $filename) {
+        $_log_filename = $filename;
+        unless (open($_log_filehandle, ">>$_log_filename")) {
+            print "could not create $_log_filename $!\n";
+            exit(1);
+        }
+        $_log_filehandle->autoflush();
+    }
+    print $_log_filehandle '[' . $now->hms(':') . ']' . $line . "\n";
 }
 
 sub gd_setup_signals {
@@ -84,5 +103,34 @@ sub gd_run {
     $_running = 1;
     LogBot::IRC->start();
 }
+
+1;
+
+package LogBot::Daemon::stderr;
+
+use strict;
+
+sub TIEHANDLE {
+    my ($class) = @_;
+    bless({ callback => $_[1] }, $class);
+}
+
+sub PRINT {
+    my $self = shift;
+    $self->{callback}->(join('', @_));
+}
+
+sub PRINTF {
+    &PRINT($_[0], sprintf($_[1], @_[2..$#_]));
+}
+
+sub OPEN {}
+sub READ {}
+sub READLINE {}
+sub GETC {}
+sub WRITE {}
+sub FILENO {}
+sub CLOSE {}
+sub DESTROY {}
 
 1;

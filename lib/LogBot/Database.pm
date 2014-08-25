@@ -182,7 +182,7 @@ sub query {
     }
 
     if ($args{debug_sql}) {
-        print "$sql\n";
+        print STDERR "$sql\n";
     }
 
     my $sth;

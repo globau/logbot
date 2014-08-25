@@ -64,7 +64,6 @@ sub load {
     $self->{data_path} = $self->_value($config, 'data_path', STR, MAND);
     $self->{data_path} =~ s/\/$//;
 
-    $self->{bot}->{debug_poe} = $self->_value($config->{bot}, 'debug_poe', BOOL, OPT, FALSE);
     $self->{bot}->{debug_irc} = $self->_value($config->{bot}, 'debug_irc', BOOL, OPT, FALSE);
 
     $self->{web}->{default_network} = $self->_value($config->{web}, 'default_network', STR, MAND);
