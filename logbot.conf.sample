@@ -1,0 +1,30 @@
+# logbot config
+
+data_path = /home/logbot/logbot/data
+
+<bot>
+    debug_poe = no
+</bot>
+
+<web>
+    default_network = mozilla
+    default_channel = bugzilla
+    search_limit    = 1000
+</web>
+
+<network mozilla>
+    server = irc.example.com
+    port = 6667
+    bots = someotherbot
+
+    nick = mybot
+    name = mybot (my name)
+
+    <channel somechannel>
+        # password = xxx
+        public = yes
+        log_events = no
+        search = no
+        join = yes
+    </channel>
+</mozilla>
