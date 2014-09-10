@@ -2,7 +2,6 @@ package LogBot::Event;
 
 use strict;
 use warnings;
-use feature qw(switch);
 
 use base 'LogBot::Base';
 

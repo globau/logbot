@@ -2,7 +2,6 @@ package LogBot::ConfigFile;
 
 use strict;
 use warnings;
-use feature qw(switch);
 
 use fields qw(
     bot
