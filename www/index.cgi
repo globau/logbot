@@ -29,7 +29,7 @@ foreach my $path (@INC) {
     $conf_filename = "$path/$conf_filename";
     last;
 }
-LogBot->new($conf_filename, LOAD_IMMEDIATE);
+LogBot->init($conf_filename);
 
 our $cgi = LogBot::CGI->instance;
 our $config = LogBot->config;

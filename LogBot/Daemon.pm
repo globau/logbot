@@ -6,7 +6,6 @@ use DateTime;
 use FindBin qw($RealBin);
 use File::Basename;
 use IO::Handle;
-use LogBot::ConfigFile;
 use LogBot::IRC;
 use Pod::Usage;
 
@@ -21,11 +20,9 @@ sub gd_preconfig {
     my ($self) = @_;
 
     if (!LogBot->initialised) {
-        # XXX why both?
-        my $config_file = LogBot::ConfigFile->new($self->{configfile});
-        LogBot->new($self->{configfile}, LOAD_DELAYED);
+        LogBot->init($self->{configfile}, LOAD_DELAYED);
         return (
-            pidfile => $config_file->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
+            pidfile => LogBot->config_file->{data_path} . ($_debugging ? '/logbot-debug.pid' : '/logbot.pid'),
         );
     } else {
         LogBot->reload()

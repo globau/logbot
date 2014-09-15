@@ -9,7 +9,7 @@ use DateTime;
 use LogBot;
 use LogBot::Constants;
 
-LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+LogBot->init("$Bin/logbot.conf");
 
 my $cutoff = DateTime->now->add(days => -5)->ymd('');
 foreach my $file (glob(LogBot->config->{data_path} . '/log/logbot-*')) {

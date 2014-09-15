@@ -19,7 +19,7 @@ use LogBot::Constants;
 
 my $QUIET = grep { $_ eq '-q' } @ARGV;
 
-LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+LogBot->init("$Bin/logbot.conf");
 my $DATA_PATH = LogBot->config->{data_path} . '/plot';
 
 generate_hours('', { name => '_empty' });

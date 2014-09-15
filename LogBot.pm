@@ -7,6 +7,7 @@ use LogBot::Network;
 
 use fields qw(
     _config_filename
+    _config_file
     _config
     _networks
     _is_daemon
@@ -25,8 +26,8 @@ sub initialised {
     return $self ? 1 : 0;
 }
 
-sub new {
-    my ($class, $config_filename, $load) = @_;
+sub init {
+    my ($class, $config_filename, $load_deferred) = @_;
 
     $self ||= fields::new($class);
 
@@ -34,7 +35,9 @@ sub new {
     $self->{_is_daemon} = 0;
     $self->{_actions} = [];
 
-    if ($load == LOAD_IMMEDIATE) {
+    $self->_load_config();
+
+    unless ($load_deferred) {
         unless ($self->reload()) {
             die $self->config_error . "\n";
         }
@@ -47,12 +50,24 @@ sub instance {
     return $self;
 }
 
+sub config_file {
+    my ($class) = @_;
+    if (!$self->{_config_file}) {
+        $self->_load_config();
+    }
+    return $self->{_config_file};
+}
+
+sub _load_config {
+    my ($class) = @_;
+    $self->{_config_file} = LogBot::ConfigFile->new($self->{_config_filename});
+}
+
 sub reload {
     my ($class) = @_;
 
-    my $config_file;
     eval {
-        $config_file = LogBot::ConfigFile->new($self->{_config_filename});
+        $self->_load_config();
     };
     if ($@) {
         my @error;
@@ -63,6 +78,7 @@ sub reload {
         $self->{_config_error} = join("\n", @error);
         return;
     }
+    my $config_file = $self->{_config_file};
 
     $self->{_config} = LogBot::Config->new(
         bot => $config_file->{bot},
@@ -122,6 +138,9 @@ sub reload {
             $self->do_actions();
         }
     }
+
+    # no longer need this loaded
+    $self->{_config_file} = undef;
 
     return 1;
 }

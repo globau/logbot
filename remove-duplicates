@@ -20,7 +20,7 @@ use LogBot::Constants;
 
 # init
 
-LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+LogBot->init("$Bin/logbot.conf");
 
 # generate text logs of events
 

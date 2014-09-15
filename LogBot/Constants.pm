@@ -19,7 +19,6 @@ our @EXPORT = qw(
 
     MAX_BROWSE_DAY_SPAN
 
-    LOAD_IMMEDIATE
     LOAD_DELAYED
 );
 
@@ -38,7 +37,6 @@ use constant ACTION_CHANNEL_PART       => 5;
 
 use constant MAX_BROWSE_DAY_SPAN => 28;
 
-use constant LOAD_IMMEDIATE => 1;
-use constant LOAD_DELAYED   => 2;
+use constant LOAD_DELAYED   => 1;
 
 1;
