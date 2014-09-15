@@ -1,8 +1,6 @@
 package LogBot::Template;
+use LogBot::BP;
 
-use strict;
-
-use LogBot;
 use Mojo::Template;
 use File::Slurp;
 

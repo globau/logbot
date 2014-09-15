@@ -1,13 +1,9 @@
 package LogBot::Channel;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use base 'LogBot::Base';
 
-use LogBot::Constants;
 use LogBot::Database;
-use LogBot::Util;
 
 use fields qw(
     network

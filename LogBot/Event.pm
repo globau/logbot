@@ -1,13 +1,9 @@
 package LogBot::Event;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use base 'LogBot::Base';
 
 use DateTime;
-use LogBot::Constants;
-use LogBot::Util;
 
 use fields qw(
     id

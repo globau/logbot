@@ -1,18 +1,12 @@
 package LogBot::Daemon;
+use LogBot::BP;
 
-use strict;
-use warnings;
-
-use Carp qw(confess);
-use Cwd qw(abs_path);
 use Daemon::Generic;
 use DateTime;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use File::Basename;
 use IO::Handle;
-use LogBot;
 use LogBot::ConfigFile;
-use LogBot::Constants;
 use LogBot::IRC;
 use Pod::Usage;
 
@@ -20,16 +14,14 @@ my $_debugging = 0;
 my $_running = 0;
 
 sub start {
-    $SIG{__DIE__} = sub {
-        confess(@_);
-    };
-    newdaemon(configfile => 'logbot.conf');
+    newdaemon(configfile => "$RealBin/logbot.conf");
 }
 
 sub gd_preconfig {
     my ($self) = @_;
 
     if (!LogBot->initialised) {
+        # XXX why both?
         my $config_file = LogBot::ConfigFile->new($self->{configfile});
         LogBot->new($self->{configfile}, LOAD_DELAYED);
         return (
@@ -79,7 +71,7 @@ sub _log {
     my $now = DateTime->now();
     my $filename = LogBot->config
         ? LogBot->config->{data_path} . '/log/logbot-'
-        : "$Bin/data/log/logbot-";
+        : "$RealBin/data/log/logbot-";
     $filename .= $now->ymd('') . '.log';
     if ($_log_filename ne $filename) {
         $_log_filename = $filename;

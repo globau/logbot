@@ -1,7 +1,5 @@
 package LogBot::Base;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 # updates $self from an $args hashref; $imutable is an arrayref of args which can't be changed.
 # returns a list of fields which were changed.

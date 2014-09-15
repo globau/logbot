@@ -1,31 +1,32 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
-
+# the web ui needs to know where logbot is installed
 # set this in apache with
 # SetEnv HTTP_X_LIB_PATH /home/logbot/logbot/lib
-use lib $ENV{HTTP_X_LIB_PATH};
 
-# because we log times as UTC, force all our timezone dates to UTC
-BEGIN { $ENV{TZ} = 'UTC' }
+use FindBin '$RealBin';
+BEGIN {
+    if ($ENV{HTTP_X_LIB_PATH}) {
+        unshift @INC, $ENV{HTTP_X_LIB_PATH};
+    } else {
+        unshift @INC, "$RealBin/..";
+    }
+}
+use LogBot::BP;
 
 use CGI::Simple;
 use DateTime;
 use Date::Manip;
 use File::Slurp;
 use HTTP::BrowserDetect;
-use LogBot;
 use LogBot::CGI;
-use LogBot::Constants;
 use LogBot::Template;
-use LogBot::Util;
 use Mojo::Util qw(xml_escape);
 
 my $conf_filename = 'logbot.conf';
 foreach my $path (@INC) {
-    next unless -e "$path/../$conf_filename";
-    $conf_filename = "$path/../$conf_filename";
+    next unless -e "$path/$conf_filename";
+    $conf_filename = "$path/$conf_filename";
     last;
 }
 LogBot->new($conf_filename, LOAD_IMMEDIATE);

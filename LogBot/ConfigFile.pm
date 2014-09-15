@@ -1,7 +1,5 @@
 package LogBot::ConfigFile;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use fields qw(
     bot

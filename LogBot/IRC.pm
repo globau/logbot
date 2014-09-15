@@ -1,13 +1,9 @@
 package LogBot::IRC;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use Class::Sniff;
 use IRC::Utils ':ALL';
-use LogBot;
 use LogBot::Bot;
-use LogBot::Constants;
 use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotAddressed;

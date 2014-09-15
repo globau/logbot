@@ -1,11 +1,8 @@
 package LogBot;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use LogBot::Config;
 use LogBot::ConfigFile;
-use LogBot::Constants;
 use LogBot::Network;
 
 use fields qw(

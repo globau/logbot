@@ -1,13 +1,8 @@
 package LogBot::Database;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use base 'LogBot::Base';
 
-use LogBot;
-use LogBot::Constants;
-use LogBot::Util;
 use LogBot::Event;
 use DBI;
 use DBD::SQLite;

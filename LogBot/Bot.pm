@@ -1,7 +1,5 @@
 package LogBot::Bot;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use Carp;
 use IRC::Utils ':ALL';
@@ -9,9 +7,7 @@ use LogBot::Command::Ping;
 use LogBot::Command::Bug;
 use LogBot::Command::Search;
 use LogBot::Command::Seen;
-use LogBot::Constants;
 use LogBot::Event;
-use LogBot::Util;
 
 use fields qw(
     _irc

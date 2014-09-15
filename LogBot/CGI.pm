@@ -1,6 +1,5 @@
 package LogBot::CGI;
-
-use strict;
+use LogBot::BP;
 
 use base 'CGI::Simple';
 

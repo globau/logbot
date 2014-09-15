@@ -1,10 +1,6 @@
 package LogBot::Command::Search;
+use LogBot::BP;
 
-use strict;
-use warnings;
-
-use LogBot::Constants;
-use LogBot::Util;
 use IRC::Utils ':ALL';
 
 use constant MAX_RESULTS_PUBLIC  => 3;

@@ -1,7 +1,5 @@
 package LogBot::Network;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use base 'LogBot::Base';
 

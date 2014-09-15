@@ -1,7 +1,5 @@
 package LogBot::Command::Bug;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;

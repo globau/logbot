@@ -1,9 +1,5 @@
 package LogBot::Command::Ping;
-
-use strict;
-use warnings;
-
-use LogBot::Util;
+use LogBot::BP;
 
 sub new {
     my $class = shift;

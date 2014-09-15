@@ -1,10 +1,7 @@
 package LogBot::Command::Seen;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use DateTime;
-use LogBot::Util;
 use Time::Duration;
 use Time::Local;
 

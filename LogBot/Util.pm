@@ -1,7 +1,5 @@
 package LogBot::Util;
-
-use strict;
-use warnings;
+use LogBot::BP;
 
 use base 'Exporter';
 
