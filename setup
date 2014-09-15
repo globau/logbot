@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use FindBin qw($RealBin);
+use lib $RealBin;
+
+# check for required modules
+
+my @requires = qw(
+    CGI::Session
+    CGI::Simple
+    Class::Sniff
+    Config::General
+    Daemon::Generic
+    Date::Manip
+    Date::Parse
+    DBD::SQLite
+    DBI
+    File::Slurp
+    HTML::Entities
+    HTTP::BrowserDetect
+    IRC::Utils
+    JSON
+    LWP::UserAgent
+    Mojo::Template
+    Moo
+    POE
+    POE::Component::IRC
+    POE::Component::IRC::Plugin::BotAddressed
+    POE::Component::IRC::Plugin::Connector
+    POE::Component::IRC::Plugin::NickServID
+    Time::Duration
+);
+my @missing;
+foreach my $required (@requires) {
+    (my $file = $required) =~ s/::/\//g;
+    $file .= '.pm';
+    my $found = 0;
+    foreach my $path (@INC) {
+        if (-e "$path/$file") {
+            $found = 1;
+            last;
+        }
+    }
+    push @missing, $required
+        unless $found;
+}
+die "missing mandatory modules:\n  " . join("\n  ", @missing) . "\n"
+    if @missing;
+
+print "setup ok\n";
