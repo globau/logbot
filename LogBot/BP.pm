@@ -2,8 +2,12 @@ package LogBot::BP;
 
 # common/boilerplater code
 
+use 5.010_000;
+
 use strict;
 use warnings;
+
+use feature ();
 
 use Carp qw(confess);
 use Data::Dumper;
@@ -24,9 +28,10 @@ sub import {
     binmode(STDOUT, ":utf8");
     binmode(STDERR, ":utf8");
 
-    # enable strict, warnings
+    # enable strict, warnings, features
     strict->import();
     warnings->import();
+    feature->import( $] > 5.011003 ? ':5.12' : ':5.10' );
 
     # auto-use app-wide packages
     my $dest_pkg = caller();

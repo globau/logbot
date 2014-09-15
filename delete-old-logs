@@ -1,15 +1,11 @@
 #!/usr/bin/perl
-use strict;
-use warnings;
-
-use FindBin '$Bin';
-use lib "$Bin/lib";
+use FindBin '$RealBin';
+use lib "$RealBin";
+use LogBot::BP;
 
 use DateTime;
-use LogBot;
-use LogBot::Constants;
 
-LogBot->init("$Bin/logbot.conf");
+LogBot->init("$RealBin/logbot.conf");
 
 my $cutoff = DateTime->now->add(days => -5)->ymd('');
 foreach my $file (glob(LogBot->config->{data_path} . '/log/logbot-*')) {

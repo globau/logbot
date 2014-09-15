@@ -1,26 +1,16 @@
 #!/usr/bin/perl
-
-use strict;
-use warnings;
-use feature qw(say);
-use autodie;
-
-use FindBin qw($Bin);
-use lib "$Bin/lib";
-
-# because we log times as UTC, force all our timezone dates to UTC
-BEGIN { $ENV{TZ} = 'UTC' }
+use FindBin '$RealBin';
+use lib "$RealBin";
+use LogBot::BP;
 
 use DateTime;
 use File::Basename;
 use FileHandle;
 use File::Path qw(make_path remove_tree);
-use LogBot;
-use LogBot::Constants;
 
 # init
 
-LogBot->init("$Bin/logbot.conf");
+LogBot->init("$RealBin/logbot.conf");
 
 # generate text logs of events
 

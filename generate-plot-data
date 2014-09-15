@@ -1,25 +1,16 @@
 #!/usr/bin/perl
-
-use strict;
-use warnings;
-use feature qw(say);
-use autodie;
-
-BEGIN { $ENV{TZ} = 'UTC' }
-
-use FindBin qw($Bin);
-use lib "$Bin/lib";
+use FindBin '$RealBin';
+use lib "$RealBin";
+use LogBot::BP;
 
 use DateTime;
 use File::Path qw(make_path);
 use File::Slurp;
 use JSON;
-use LogBot;
-use LogBot::Constants;
 
 my $QUIET = grep { $_ eq '-q' } @ARGV;
 
-LogBot->init("$Bin/logbot.conf");
+LogBot->init("$RealBin/logbot.conf");
 my $DATA_PATH = LogBot->config->{data_path} . '/plot';
 
 generate_hours('', { name => '_empty' });
