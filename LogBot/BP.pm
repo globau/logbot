@@ -9,16 +9,24 @@ use warnings;
 
 use feature ();
 
-use Carp qw(confess);
+use Carp qw(verbose);
 use Data::Dumper;
 
 BEGIN {
     # because we log times as UTC, force all our timezone dates to UTC
     $ENV{TZ} = 'UTC';
+
     # always die with a stack trace
     $SIG{__DIE__} = sub {
-        confess(@_);
+        die @_ if $^S || ref($_[0]);
+        if ($_[-1] =~ /\n$/s) {
+            my $arg = pop @_;
+            $arg =~ s/(.*)( at .*? line .*?\n$)/$1/s;
+            push @_, $arg;
+        }
+        die &Carp::longmess;
     };
+
     # always sort keys when debugging
     $Data::Dumper::Sortkeys = 1;
 }
