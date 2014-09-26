@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use FindBin '$RealBin';
-use lib "$RealBin";
+use lib $RealBin;
 use LogBot::BP;
 
 use DateTime;
@@ -97,12 +97,13 @@ foreach my $file (glob('*')) {
     rsync($file, "$source_path/$file") or die $!;
 }
 
-rsync('lib', $source_path);
+rsync('LogBot*', $source_path);
 rsync('3rd-party-licenses', $source_path);
 make_path("$source_path/www") unless -d "$source_path/www";
 my $www_path = -l 'www' ? readlink('www') : 'www/';
 rsync($www_path, "$source_path/www", "--exclude 'google*.html'");
-rsync("${www_path}.ht*", "$source_path/www");
+rsync("${www_path}.ht*", "$source_path/www")
+    if glob("${www_path}.ht*");
 
 rsync("logbot.conf", "$backup_path");
 
