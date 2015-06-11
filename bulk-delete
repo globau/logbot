@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use feature qw(say);
+use autodie;
+
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+
+# because we log times as UTC, force all our timezone dates to UTC
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use DateTime;
+use File::Basename;
+use FileHandle;
+use File::Path qw(make_path remove_tree);
+use LogBot;
+use LogBot::Constants;
+use Term::ReadKey;
+
+# init
+
+my $nick_search = grep { $_ eq '--nick' } @ARGV;
+my $mozilla_only = grep { $_ eq '--mozilla' } @ARGV;
+@ARGV = grep { !/^--/ } @ARGV;
+my $query = shift
+    or die "syntax: bulk-delete [--mozilla] [--nick] <query>\nany line matching <query> will be deleted from all logs\n";
+LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+
+# generate text logs of events
+
+foreach my $network (LogBot->networks) {
+    next if $mozilla_only && $network->{network} ne 'mozilla';
+    say $network->{network};
+    foreach my $channel ($network->channels) {
+        say "  " . $channel->{name};
+        my $dbh = $channel->database->{dbh};
+
+        my @events;
+        if ($nick_search) {
+            $channel->database->query(
+                nick         => $query,
+                order        => 'time',
+                callback     => sub { push @events, shift },
+            );
+        } else {
+            $channel->database->query(
+                include_text => [ $query ],
+                order        => 'time',
+                callback     => sub { push @events, shift },
+            );
+        }
+        foreach my $event (@events) {
+            print "$event\ndelete ?";
+            next unless yn();
+            $dbh->do("DELETE FROM logs WHERE rowid=?", undef, $event->{id});
+            print "deleted row " . $event->{id} . "\n";
+        }
+
+    }
+}
+
+sub yn {
+    my $key = '';
+    ReadMode(4);
+    END { ReadMode(0) }
+    do {
+        $key = ReadKey();
+        if (ord($key) == 3 || ord($key) == 27) {
+            print "^C\n";
+            exit;
+        }
+        $key = lc($key);
+    } until $key eq 'y' || $key eq 'n';
+    ReadMode(0);
+    print " $key\n";
+    return $key eq 'y';
+}
