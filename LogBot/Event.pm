@@ -74,17 +74,26 @@ sub to_string {
 
     my $template;
     if ($self->{type} == EVENT_PUBLIC) {
-        $template = '%s <%s> %s';
+        $template = '[%s] <%s> %s';
     } elsif ($self->{type} == EVENT_JOIN) {
-        $template = '%s *** %s (%s) has joined %s';
+        $template = '[%s] *** %s (%s) has joined %s';
     } elsif ($self->{type} == EVENT_PART) {
-        $template = '%s *** %s (%s) has left %s';
+        $template = '[%s] *** %s (%s) has left %s';
     } elsif ($self->{type} == EVENT_QUIT) {
-        $template = '%s *** %s has quit IRC [%s]';
+        $template = '[%s] *** %s has quit IRC [%s]';
     } elsif ($self->{type} == EVENT_ACTION) {
-        $template = '%s * %s %s';
+        $template = '[%s] * %s %s';
     }
     return sprintf($template, simple_date_string($self->datetime), $self->{nick}, $self->{text} || '', $self->{channel});
+}
+
+sub to_ref {
+    my ($self) = @_;
+    my $ref = {};
+    foreach my $field (qw( id type time channel nick text )) {
+        $ref->{$field} = $self->{$field};
+    }
+    return $ref;
 }
 
 sub log_string {
