@@ -10,6 +10,7 @@ data_path = /home/logbot/logbot/data
     default_network = mozilla
     default_channel = bugzilla
     search_limit    = 1000
+    url             = http://logs.example.com/
 </web>
 
 <network mozilla>

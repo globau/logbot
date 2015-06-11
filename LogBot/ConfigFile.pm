@@ -66,6 +66,7 @@ sub load {
     $self->{web}->{default_network} = $self->_value($config->{web}, 'default_network', STR, MAND);
     $self->{web}->{default_channel} = canon_channel($self->_value($config->{web}, 'default_channel', STR, MAND));
     $self->{web}->{search_limit}    = $self->_value($config->{web}, 'search_limit', INT, OPT, 1000);
+    $self->{web}->{url}             = $self->_value($config->{web}, 'url', STR, MAND);
 
     foreach my $network_name (keys %{$config->{network}}) {
         my $network_config = $config->{network}->{$network_name};
