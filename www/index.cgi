@@ -21,7 +21,8 @@ use File::Slurp;
 use HTTP::BrowserDetect;
 use LogBot::CGI;
 use LogBot::Template;
-use Mojo::Util qw(xml_escape);
+use LogBot::Util;
+use Mojo::Util qw(xml_escape url_escape);
 
 my $conf_filename = 'logbot.conf';
 foreach my $path (@INC) {
@@ -55,6 +56,7 @@ if ($vars->{action} eq 'json') {
         print $json->encode({ error => sanatise_perl_error($error) });
         exit;
     };
+    die $vars->{error} . "\n" if exists $vars->{error};
 
     my $channel = $vars->{channel};
     my $request = $vars->{r};
@@ -106,13 +108,30 @@ if ($vars->{action} eq 'json') {
         }
         print read_file($filename);
 
+    } elsif ($request eq 'link_to') {
+        print $json->encode(link_to($channel));
+
     }
 
     exit;
 }
 
+if ($vars->{action} eq 'link_to') {
+    my $link_to;
+    eval {
+        $link_to = link_to($vars->{channel});
+    };
+    if ($@) {
+        $vars->{error} = $@;
+        $vars->{action} = 'browse';
+    } else {
+        print "Location: " . $link_to->{url}, "\n\n";
+        exit;
+    }
+}
+
 # force queries from robots to a single date
-my $is_robot = HTTP::BrowserDetect::robot();
+my $is_robot = HTTP::BrowserDetect::robot() || $cgi->param('robot');
 if ($is_robot) {
     if ($vars->{action} eq 'browse') {
         $vars->{end_date} = $vars->{start_date}->clone->add(days => 1);
@@ -254,7 +273,7 @@ sub parse_parameters {
     my $channel = $network->channel($channel_name);
     if (!$channel || !($channel->{public} || $channel->{hidden})) {
         $vars->{error} = "Unsupported channel $channel_name";
-        $vars->{action} = 'about';
+        $vars->{action} = $cgi->param('a') eq 'json' ? 'json' : 'about';
         return;
     }
     $vars->{channel} = $channel;
@@ -264,7 +283,7 @@ sub parse_parameters {
     # action
 
     my $action = $cgi->param('a');
-    $action = '' if !defined($action) || ($action ne 'search' && $action ne 'json');
+    $action = '' if !defined($action) || ($action ne 'search' && $action ne 'json' && $action ne 'link_to');
 
     if ($action eq '') {
         delete $vars->{a};
@@ -334,6 +353,10 @@ sub parse_parameters {
 
         # no need to prefill data for tabs
 
+        return;
+
+    } elsif ($action eq 'link_to') {
+        $vars->{action} = 'link_to';
         return;
 
     } else {
@@ -697,3 +720,49 @@ sub hilite {
     return $value;
 }
 
+
+sub link_to {
+    my ($channel) = @_;
+
+    my $nick = $cgi->param('n') // die "nick required in param 'n'\n";
+    my $time = $cgi->param('t') // die "time required in param 't'\n";
+    die "invalid time\n" if $time =~ /\D/;
+
+    my @events;
+    $channel->database->query(
+        event => EVENT_PUBLIC,
+        nick => $nick,
+        date_before => $time + 5,
+        date_after => $time - 5,
+        callback => sub { push @events, $_[0] },
+    );
+
+    @events = sort { abs($time - $a->{time}) <=> abs($time - $b->{time}) } @events;
+    die "failed to find message\n" unless @events;
+    my $event = $events[0]->to_ref;
+    delete $event->{type};
+
+    my $url = $config->{web}->{url} . '?';
+
+    my $network = $channel->{network}->{network};
+    my $c = '';
+    if ($network ne $config->{web}->{default_network}) {
+        $c = $network;
+    }
+    if ($channel->{name} ne $config->{web}->{default_channel}) {
+        $c .= $channel->{name};
+    }
+    if ($c) {
+        $url .= 'c=' . url_escape($c);
+    }
+
+    my $s = DateTime->from_epoch(epoch => $time)->truncate(to => 'day')->ymd('');
+    $url .= '&s=' . $s. '&e=' . $s;
+
+    $url .= '#c' . $event->{id};
+
+    return {
+        event => $event,
+        url   => $url,
+    };
+}
