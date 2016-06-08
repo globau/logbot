@@ -101,6 +101,7 @@ sub shorten_url {
 
     # protocol is noise
     $value =~ s#^https?://##;
+    $value =~ s#/$##;
 
     return $value if length($value) < 70;
     while (length($value) >= 70) {
