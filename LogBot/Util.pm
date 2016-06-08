@@ -12,7 +12,7 @@ our @EXPORT = qw(
     commify
     now
     trim
-    shorten
+    shorten_url
     simple_date_string
 );
 
@@ -92,9 +92,16 @@ sub trim {
     return $v;
 }
 
-sub shorten {
-    # trims the middle of a string
+sub shorten_url {
+    # trims the middle of a url, or generates nice short version
     my ($value) = @_;
+
+    # shorten mercurial urls
+    $value =~ s#^https://hg\.mozilla\.org/(?:integration|releases|hgcustom)/##;
+
+    # protocol is noise
+    $value =~ s#^https?://##;
+
     return $value if length($value) < 70;
     while (length($value) >= 70) {
         substr($value, length($value) / 2 - 1, 1) = '';

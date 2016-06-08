@@ -681,8 +681,8 @@ sub linkify {
     # munge email addresses
     $value =~ s#([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)#$1\%$2#g;
 
-    unless ($value =~ s#&lt;(https?://.+?)&gt;#'&lt;<a href="' . $rs_href->($1) . '" target="_blank">' . shorten($1) . '</a>&gt;'#ge) {
-        $value =~ s#(https?://[^\s\b,]+)#'<a href="' . $rs_href->($1) . '" target="_blank">' . shorten($1) . '</a>'#ge;
+    unless ($value =~ s#&lt;(https?://.+?)&gt;#'&lt;<a href="' . $rs_href->($1) . '" target="_blank">' . shorten_url($1) . '</a>&gt;'#ge) {
+        $value =~ s#(https?://[^\s\b,]+)#'<a href="' . $rs_href->($1) . '" target="_blank">' . shorten_url($1) . '</a>'#ge;
     }
 
     # bugzilla urls
