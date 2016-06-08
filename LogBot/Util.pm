@@ -97,9 +97,9 @@ sub shorten {
     my ($value) = @_;
     return $value if length($value) < 70;
     while (length($value) >= 70) {
-        substr($value, length($value) / 2 - 1, 3) = '';
+        substr($value, length($value) / 2 - 1, 1) = '';
     }
-    substr($value, length($value) / 2, 3) = '...';
+    substr($value, length($value) / 2, 1) = "\xE2\x80\xA6";
     return $value;
 }
 
