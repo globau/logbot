@@ -26,7 +26,8 @@ my $mozilla_only = grep { $_ eq '--mozilla' } @ARGV;
 @ARGV = grep { !/^--/ } @ARGV;
 my $query = shift
     or die "syntax: bulk-delete [--mozilla] [--nick] <query>\nany line matching <query> will be deleted from all logs\n";
-LogBot->new("$Bin/logbot.conf", LOAD_IMMEDIATE);
+LogBot->init("$Bin/logbot.conf");
+
 
 # generate text logs of events
 
