@@ -23,6 +23,7 @@ use HTTP::BrowserDetect;
 use LogBot::CGI;
 use LogBot::Template;
 use LogBot::Util;
+use Mojo::JSON qw(encode_json);
 use Mojo::Util qw(xml_escape url_escape);
 
 my $conf_filename = 'logbot.conf';
@@ -49,12 +50,9 @@ parse_parameters();
 if ($vars->{action} eq 'json') {
     print $cgi->header(-type => 'application/json', -charset => 'utf-8');
 
-    require Mojo::JSON;
-    my $json = Mojo::JSON->new;
-
     $SIG{__DIE__} = sub {
         my $error = shift;
-        print $json->encode({ error => sanatise_perl_error($error) });
+        print encode_json({ error => sanatise_perl_error($error) });
         exit;
     };
     die $vars->{error} . "\n" if exists $vars->{error};
@@ -70,7 +68,7 @@ if ($vars->{action} eq 'json') {
             $last_updated = '';
         }
 
-        print $json->encode({
+        print encode_json({
             database_size => pretty_size($channel->database_size),
             last_updated => $last_updated,
             event_count => commify($channel->event_count),
@@ -84,17 +82,17 @@ if ($vars->{action} eq 'json') {
         } else {
             $last_updated = '';
         }
-        print $json->encode({
+        print encode_json({
             last_updated => $last_updated,
         });
 
     } elsif ($request eq 'channel_database_size') {
-        print $json->encode({
+        print encode_json({
             database_size => pretty_size($channel->database_size),
         });
 
     } elsif ($request eq 'channel_event_count') {
-        print $json->encode({
+        print encode_json({
             event_count => commify($channel->event_count),
         });
 
@@ -110,7 +108,7 @@ if ($vars->{action} eq 'json') {
         print read_file($filename);
 
     } elsif ($request eq 'link_to') {
-        print $json->encode(link_to($channel));
+        print encode_json(link_to($channel));
 
     }
 
