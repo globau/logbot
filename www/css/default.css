@@ -8,8 +8,8 @@ body {
 }
 
 body, input, select {
-    font-family: "Segoe UI", Helvetica, sans-serif;
-    font-size: small;
+    font-family: "Roboto", sans-serif;
+    font-size: 13px;
 }
 
 form {
@@ -18,10 +18,15 @@ form {
 
 a {
     text-decoration: none;
+    color: #00e;
 }
 
 a:hover {
     text-decoration: underline;
+}
+
+a:visited {
+    color: #939;
 }
 
 .hidden {
@@ -105,7 +110,7 @@ a:hover {
 #hours_now {
     border-left: 2px solid #888;
     padding-left: 1px;
-    font-size: smaller;
+    font-size: 10px;
 }
 
 #nicks_plot {
@@ -190,37 +195,28 @@ a:hover {
 
 /* nav - browse, search */
 
-#start_date, #end_date, #query, #search_start_date, #search_end_date {
-    border: 1px solid #cccccc;
-    padding: 1px;
-}
-
 .cal {
-    border: 1px solid #cccccc;
-    border-radius: 2px;
-    padding: 0 2px;
-    color: #000000;
     cursor: default;
+    vertical-align: bottom;
 }
 
 #nav_text {
     float: right;
     color: #888888;
     margin-right: 1em;
-    font-size: x-small;
+    font-size: 10px;
 }
 
 #nav_bottom {
     float: right;
     color: #888888;
-    font-size: medium;
+    font-size: 16px;
 }
 
 /* events - global */
 
 #events {
     width: 100%;
-    font-family: "Andale Mono", Consolas, "Lucida Console", "Bitstream Vera Sans Mono", "Courier New", monospace;
     margin-top: 1px;
     word-break: break-word;
 }
@@ -259,11 +255,11 @@ a:hover {
 .date_nav {
     display: block;
     text-align: center;
-    color: #000000;
+    color: #000000 !important;
 }
 
 .date_nav:hover {
-    color: #0000ee;
+    color: #0000ee !important;
 }
 
 .date_string {
@@ -272,7 +268,7 @@ a:hover {
 }
 
 .date_string a {
-    color: #000000;
+    color: #000000 !important;
 }
 
 /* events - items */
@@ -312,7 +308,6 @@ a:hover {
 
 .no_events, .last_event, .event_count {
     color: #888888;
-    font-family: "Segoe UI", Helvetica, sans-serif;
     font-style: italic;
 }
 

@@ -18,6 +18,7 @@
 
     <script src="js/jquery.flot.min.js"></script>
 
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/css/default.css?6">
     <script src="/js/logbot.js?3"></script>
 </head>
