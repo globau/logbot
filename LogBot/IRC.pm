@@ -77,17 +77,30 @@ sub _start {
 }
 
 sub irc_001 {
-    my $sender = $_[SENDER];
-    my $heap = $_[HEAP];
+    my ($sender, $kernel, $heap) = @_[SENDER, KERNEL, HEAP];
     my $irc = $heap->{irc};
-    my $bot = $heap->{bot};
     my $network = $heap->{network};
 
     print STDERR "Connected to ", $irc->server_name(), "\n";
+    if (!$network->{password}) {
+        _join_channels($heap->{bot}, $network);
+    }
+    return;
+}
+
+sub irc_identified {
+    my ($sender, $kernel, $heap) = @_[SENDER, KERNEL, HEAP];
+
+    print STDERR "Identified\n";
+    _join_channels($heap->{bot}, $heap->{network});
+    return;
+}
+
+sub _join_channels {
+    my ($bot, $network) = @_;
     foreach my $channel ($network->channels) {
         $bot->join($channel);
     }
-    return;
 }
 
 sub irc_join {
@@ -119,6 +132,7 @@ sub irc_quit {
     my $what = $_[ARG1];
 
     $bot->quit($nick, $what);
+    return;
 }
 
 sub irc_msg {
