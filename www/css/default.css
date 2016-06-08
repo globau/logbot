@@ -311,6 +311,18 @@ a:visited {
     font-style: italic;
 }
 
+.event.bot .event_nick, .event.bot .event_text {
+    color: #888888;
+}
+
+.event.bot .event_text a {
+    color: #55f;
+}
+
+.event.bot .event_text a:visited {
+    color: #939;
+}
+
 .loading {
     color: #888888;
 }

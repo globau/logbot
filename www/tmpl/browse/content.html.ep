@@ -1,4 +1,4 @@
-<tr class="event"><% # %>
+<tr class="event<%= ' bot' if $vars->{bot} %>"><% # %>
 <td class="event_time"><% # %>
 <a href="#c<%= $event->{id} %>" id="c<%= $event->{id} %>" onclick="setTimeout(hash_hilite,10)"><% # %>
 <%= sprintf('%02d:%02d', $event->datetime->hour, $event->datetime->minute) %><% # %>

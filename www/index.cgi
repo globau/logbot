@@ -20,6 +20,7 @@ use Date::Manip;
 use Encode qw(decode);
 use File::Slurp;
 use HTTP::BrowserDetect;
+use List::Util qw(any);
 use LogBot::CGI;
 use LogBot::Template;
 use LogBot::Util;
@@ -603,6 +604,8 @@ sub show_events {
             }
 
             $event->{text} = decode('UTF-8', $event->{text});
+            $vars->{bot} = any { $event->{nick} eq $_ } @{ $vars->{network}->{bots} };
+
             $template->render("$template_dir/content.html", vars => $vars, event => $event);
 
             return 1;
