@@ -292,6 +292,9 @@ a:visited {
     white-space: nowrap;
     padding-right: 0.5em !important;
     vertical-align: top;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .event_action {
