@@ -272,7 +272,7 @@ sub parse_parameters {
     my $channel = $network->channel($channel_name);
     if (!$channel || !($channel->{public} || $channel->{hidden})) {
         $vars->{error} = "Unsupported channel $channel_name";
-        $vars->{action} = $cgi->param('a') eq 'json' ? 'json' : 'about';
+        $vars->{action} = ($cgi->param('a') // '') eq 'json' ? 'json' : 'about';
         return;
     }
     $vars->{channel} = $channel;
