@@ -3,8 +3,9 @@ use LogBot::BP;
 
 use Daemon::Generic;
 use DateTime;
-use FindBin qw($RealBin);
 use File::Basename;
+use FileHandle;
+use FindBin qw($RealBin);
 use IO::Handle;
 use LogBot::IRC;
 use Pod::Usage;
@@ -62,7 +63,7 @@ sub _log {
     chomp($line);
 
     if ($_debugging) {
-        print $line, "\n";
+        print STDOUT $line, "\n";
     }
 
     my $now = DateTime->now();
@@ -72,8 +73,9 @@ sub _log {
     $filename .= $now->ymd('') . '.log';
     if ($_log_filename ne $filename) {
         $_log_filename = $filename;
-        unless (open($_log_filehandle, ">>$_log_filename")) {
-            print "could not create $_log_filename $!\n";
+        $_log_filehandle = FileHandle->new();
+        unless ($_log_filehandle->open($_log_filename, '>>')) {
+            print STDOUT "could not create $_log_filename: $!\n";
             exit(1);
         }
         $_log_filehandle->autoflush();
