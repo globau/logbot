@@ -17,6 +17,7 @@ use LogBot::BP;
 use CGI::Simple;
 use DateTime;
 use Date::Manip;
+use Encode qw(decode);
 use File::Slurp;
 use HTTP::BrowserDetect;
 use LogBot::CGI;
@@ -603,6 +604,7 @@ sub show_events {
                 }
             }
 
+            $event->{text} = decode('UTF-8', $event->{text});
             $template->render("$template_dir/content.html", vars => $vars, event => $event);
 
             return 1;
