@@ -469,7 +469,7 @@ sub parse_parameters {
 
     if ($vars->{action} eq 'browse' && $vars->{run}) {
         if ($vars->{start_date}->delta_days($vars->{end_date})->in_units('days') > MAX_BROWSE_DAY_SPAN) {
-            $vars->{error} = 'You cannot browse dates greater than ' . MAX_BROWSE_DAY_SPAN . ' days appart.';
+            $vars->{error} = 'You cannot browse dates greater than ' . MAX_BROWSE_DAY_SPAN . ' days apart.';
             return;
         }
     }
