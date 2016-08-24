@@ -212,10 +212,6 @@ function nav_date(ymd, date) {
   if (el.length) {
     var bg = el.css('background-color');
     $('html, body').animate({ scrollTop: el.offset().top }, 250);
-    el.animate({ backgroundColor: '#ffff9c' }, 250)
-    window.setTimeout(function() {
-      el.animate({ backgroundColor: bg }, 250)
-    }, 250);
     return false;
   }
 }
