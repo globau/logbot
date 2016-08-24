@@ -51,11 +51,15 @@ var plot = false;
 function show_about_tab() {
   $('#events').addClass('hidden');
 
-  if (about_loaded)
+  if (about_loaded) {
+    if (current_channel)
+      window.location.href = '#about';
     return;
+  }
   about_loaded = true;
   if (!current_channel)
     return;
+  window.location.href = '#about';
 
   $.ajax({
     url: 'index.cgi?a=json&r=channel_data&c=' + encodeURIComponent(current_channel)
@@ -154,6 +158,7 @@ function show_about_tab() {
 
 function hide_about_tab() {
   $('#events').removeClass('hidden');
+  history.pushState('', document.title, window.location.pathname + window.location.search);
 }
 
 function switch_tab(id) {

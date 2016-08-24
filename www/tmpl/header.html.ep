@@ -20,7 +20,7 @@
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/css/default.css?8">
-    <script src="/js/logbot.js?3"></script>
+    <script src="/js/logbot.js?4"></script>
 </head>
 <body>
 <div id="top"></div>
