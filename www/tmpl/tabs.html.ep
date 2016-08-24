@@ -86,9 +86,6 @@
     </tr>
     <tr>
         <td valign="top">
-            <div id="first_updated">
-                Logging Started <span class="loading">loading..</span>
-            </div>
             <div id="last_updated">
                 Last updated <span class="loading">loading..</span>
             </div>
@@ -103,6 +100,9 @@
             &nbsp;&nbsp;&nbsp;
         </td>
         <td valign="top">
+            <div id="first_updated">
+                Logging Started <span class="loading">loading..</span>
+            </div>
             <div>
                 Database size: <span id="database_size">
                     <span class="loading">loading..</span>
