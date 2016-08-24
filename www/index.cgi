@@ -61,39 +61,19 @@ if ($vars->{action} eq 'json') {
     my $channel = $vars->{channel};
     my $request = $vars->{r};
     if ($request eq 'channel_data') {
-        my $last_message = $channel->last_message;
-        my $last_updated;
-        if ($last_message) {
-            $last_updated = $last_message->datetime->strftime('%d %b %Y %H:%M:%S')
-        } else {
-            $last_updated = '';
-        }
+        my $first = $channel->first_event;
+        my $first_updated = $first
+            ? $first->datetime->strftime('%d %b %Y %H:%M:%S')
+            : '';
+        my $last = $channel->last_message;
+        my $last_updated = $last
+            ? $last->datetime->strftime('%d %b %Y %H:%M:%S')
+            : '';
 
         print encode_json({
             database_size => pretty_size($channel->database_size),
+            first_updated => $first_updated,
             last_updated => $last_updated,
-            event_count => commify($channel->event_count),
-        });
-
-    } elsif ($request eq 'channel_last_updated') {
-        my $last_message = $channel->last_message;
-        my $last_updated;
-        if ($last_message) {
-            $last_updated = $last_message->datetime->strftime('%d %b %Y %H:%M:%S')
-        } else {
-            $last_updated = '';
-        }
-        print encode_json({
-            last_updated => $last_updated,
-        });
-
-    } elsif ($request eq 'channel_database_size') {
-        print encode_json({
-            database_size => pretty_size($channel->database_size),
-        });
-
-    } elsif ($request eq 'channel_event_count') {
-        print encode_json({
             event_count => commify($channel->event_count),
         });
 

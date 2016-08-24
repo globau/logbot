@@ -86,6 +86,9 @@
     </tr>
     <tr>
         <td valign="top">
+            <div id="first_updated">
+                Logging Started <span class="loading">loading..</span>
+            </div>
             <div id="last_updated">
                 Last updated <span class="loading">loading..</span>
             </div>

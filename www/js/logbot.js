@@ -58,25 +58,18 @@ function show_about_tab() {
     return;
 
   $.ajax({
-    url: 'index.cgi?a=json&r=channel_last_updated&c=' + encodeURIComponent(current_channel)
+    url: 'index.cgi?a=json&r=channel_data&c=' + encodeURIComponent(current_channel)
   }).done(function(data) {
     if (data.last_updated) {
-      $('#last_updated').html('Last updated ' + data.last_updated);
+      $('#first_updated').text('Logging started ' + data.first_updated);
+      $('#last_updated').text('Last updated ' + data.last_updated);
+      $('#event_count').text(data.event_count);
     } else {
-      $('#last_updated').html('No events');
+      $('#first_updated').text('No events');
+      $('#last_updated').text('No events');
+      $('#event_count').text('0');
     }
-  });
-
-  $.ajax({
-    url: 'index.cgi?a=json&r=channel_database_size&c=' + encodeURIComponent(current_channel)
-  }).done(function(data) {
-    $('#database_size').html(data.database_size);
-  });
-
-  $.ajax({
-    url: 'index.cgi?a=json&r=channel_event_count&c=' + encodeURIComponent(current_channel)
-  }).done(function(data) {
-    $('#event_count').html(data.event_count);
+    $('#database_size').text(data.database_size);
   });
 
   $.ajax({
@@ -188,6 +181,9 @@ function switch_tab(id) {
     show_about_tab();
   } else {
     hide_about_tab();
+    if (id == 'search_tab') {
+      $('#query').focus();
+    }
   }
 }
 
