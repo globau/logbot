@@ -172,9 +172,12 @@ a:visited {
 }
 
 .tab_title {
-    display: inline;
-    padding: 4px 1em 0 1em;
+    display: inline-block;
+    padding: 4px 1em 4px 1em;
     cursor: pointer;
+    z-index: 1;
+    position: relative;
+    top: 1px;
 }
 
 .tab_selected {

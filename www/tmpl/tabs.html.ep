@@ -12,7 +12,7 @@
         %}
         " onclick="switch_tab('search_tab')">Search</div>
     <div id="about_tab_title" class="tab_title"
-         onclick="switch_tab('about_tab')">About</div>
+         onclick="switch_tab('about_tab')">About <%= $vars->{channel}->{name} %></div>
 </div>
 
 % my $class;

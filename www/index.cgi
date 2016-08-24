@@ -258,7 +258,8 @@ sub parse_parameters {
     }
     $vars->{channel} = $channel;
 
-    $vars->{c} = "$network_name$channel_name";
+    ($network_name, $channel_name) = ($network->{network}, $channel->{name});
+    $vars->{c} = $network_name . $channel_name;
 
     # action
 
