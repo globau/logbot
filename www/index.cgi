@@ -2,15 +2,11 @@
 
 # the web ui needs to know where logbot is installed
 # set this in apache with
-# SetEnv HTTP_X_LIB_PATH /home/logbot/logbot/lib
+# SetEnv HTTP_X_LOGBOT_PATH /home/logbot/logbot
 
-use FindBin '$RealBin';
 BEGIN {
-    if ($ENV{HTTP_X_LIB_PATH}) {
-        unshift @INC, $ENV{HTTP_X_LIB_PATH};
-    } else {
-        unshift @INC, "$RealBin/..";
-    }
+    use lib "$ENV{HTTP_X_LOGBOT_PATH}/lib";
+    use local::lib "$ENV{HTTP_X_LOGBOT_PATH}/perllib";
 }
 use LogBot::BP;
 
@@ -27,13 +23,7 @@ use LogBot::Util;
 use Mojo::JSON qw(encode_json);
 use Mojo::Util qw(xml_escape url_escape);
 
-my $conf_filename = 'logbot.conf';
-foreach my $path (@INC) {
-    next unless -e "$path/$conf_filename";
-    $conf_filename = "$path/$conf_filename";
-    last;
-}
-LogBot->init($conf_filename);
+LogBot->init("$ENV{HTTP_X_LOGBOT_PATH}/logbot.conf");
 
 our $cgi = LogBot::CGI->instance;
 our $config = LogBot->config;
@@ -111,7 +101,7 @@ if ($vars->{action} eq 'link_to') {
 }
 
 # force queries from robots to a single date
-my $is_robot = HTTP::BrowserDetect::robot() || $cgi->param('robot');
+my $is_robot = HTTP::BrowserDetect->new()->robot() || $cgi->param('robot');
 if ($is_robot) {
     if ($vars->{action} eq 'browse') {
         $vars->{end_date} = $vars->{start_date}->clone->add(days => 1);

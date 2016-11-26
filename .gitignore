@@ -6,3 +6,6 @@ www/.htaccess
 www/google*.html
 *.conf
 TODO
+perllib/bin
+perllib/lib
+perllib/man

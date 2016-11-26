@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use FindBin qw($RealBin);
-use lib "$RealBin";
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
 
 use LogBot::BP;
 use LogBot::Daemon;

@@ -5,8 +5,9 @@ use warnings;
 use feature qw(say);
 use autodie;
 
-use FindBin qw($Bin);
-use lib "$Bin/lib";
+use FindBin qw($RealBin);
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
 
 # because we log times as UTC, force all our timezone dates to UTC
 BEGIN { $ENV{TZ} = 'UTC' }
@@ -27,7 +28,7 @@ my $yes = grep { $_ eq '--yes' } @ARGV;
 @ARGV = grep { !/^--/ } @ARGV;
 my $query = shift
     or die "syntax: bulk-delete [--mozilla] [--nick] [--yes] <query>\nany line matching <query> will be deleted from all logs\n";
-LogBot->init("$Bin/logbot.conf");
+LogBot->init("$RealBin/logbot.conf");
 
 
 # generate text logs of events

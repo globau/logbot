@@ -3,7 +3,8 @@ use strict;
 use warnings;
 
 use FindBin qw($RealBin);
-use lib $RealBin;
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
 
 # check for required modules
 
@@ -15,6 +16,7 @@ my @requires = qw(
     Daemon::Generic
     Date::Manip
     Date::Parse
+    DateTime
     DBD::SQLite
     DBI
     File::Slurp

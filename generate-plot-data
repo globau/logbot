@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use FindBin '$RealBin';
-use lib $RealBin;
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
 use LogBot::BP;
 
 use DateTime;
