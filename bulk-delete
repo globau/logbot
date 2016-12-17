@@ -25,9 +25,10 @@ use Term::ReadKey;
 my $nick_search = grep { $_ eq '--nick' } @ARGV;
 my $mozilla_only = grep { $_ eq '--mozilla' } @ARGV;
 my $yes = grep { $_ eq '--yes' } @ARGV;
+my $no = grep { $_ eq '--no' } @ARGV;
 @ARGV = grep { !/^--/ } @ARGV;
 my $query = shift
-    or die "syntax: bulk-delete [--mozilla] [--nick] [--yes] <query>\nany line matching <query> will be deleted from all logs\n";
+    or die "syntax: bulk-delete [--mozilla] [--nick] [--yes|--no] <query>\nany line matching <query> will be deleted from all logs\n";
 LogBot->init("$RealBin/logbot.conf");
 
 
@@ -56,6 +57,7 @@ foreach my $network (LogBot->networks) {
         }
         foreach my $event (@events) {
             print "$event\n";
+            next if $no;
             unless ($yes) {
                 print "delete ?";
                 next unless yn();
