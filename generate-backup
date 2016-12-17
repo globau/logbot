@@ -50,6 +50,7 @@ foreach my $network (LogBot->networks) {
         # determine the last date
 
         my $last_event  = $channel->last_event;
+        next unless $last_event;
         my $last_date = $last_event->datetime
                                    ->clone()
                                    ->truncate(to => 'day')
