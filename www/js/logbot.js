@@ -19,7 +19,7 @@ function init_about() {
 // channels
 
 function init_channels() {
-  $('#channel_select').chosen();
+  $('#channel_select').chosen({ search_contains: true });
 }
 
 function channel_changed() {
