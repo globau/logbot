@@ -19,6 +19,7 @@ my @requires = qw(
     DateTime
     DBD::SQLite
     DBI
+    File::Path
     File::Slurp
     HTML::Entities
     HTTP::BrowserDetect

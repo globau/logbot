@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+use FindBin '$RealBin';
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
+use LogBot::BP;
+
+use DateTime;
+use DBI;
+use File::Basename qw( basename );
+use File::Path qw( make_path remove_tree );
+use IO::Compress::Gzip qw( $GzipError );
+
+my $backup_path = shift || die "syntax: db-dump <path>\n";
+$backup_path =~ s#/$##;
+die "invalid dir: $backup_path\n" unless -d $backup_path;
+
+foreach my $network (map { basename($_) } grep { -d $_ } glob("$RealBin/data/db/*")) {
+    my $network_path = "$backup_path/$network";
+    foreach my $db_file (glob("$RealBin/data/db/$network/*.db")) {
+        (my $channel = basename($db_file)) =~ s/\.db$//;
+        my $dbh = DBI->connect("DBI:SQLite:$db_file", '', '', { RaiseError => 1 });
+
+        my $channel_path = "$network_path/$channel";
+        make_path($channel_path) unless -d $channel_path;
+
+        my @current_logs =
+            sort { basename($a, '.txt.gz') <=> basename($b, '.txt.gz') }
+            glob("$channel_path/*.txt.gz");
+
+        my $first_date;
+        if (@current_logs) {
+            # use the date of the most recent log file as the first_date
+            my $ymd = basename(pop @current_logs, '.txt.gz');
+            my ($y, $m, $d) = $ymd =~ /^(\d\d\d\d)(\d\d)(\d\d)$/;
+            die unless $y;
+            $first_date = DateTime->new(
+                year => $y, month => $m, day => $d,
+            );
+
+        } else {
+            # no logs, use the first event's date
+            my ($time) = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time ASC LIMIT 1");
+            next unless $time;
+            $first_date = DateTime->from_epoch( epoch => $time );
+
+        }
+
+        # determine the last date
+
+        my ($time) = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time DESC LIMIT 1");
+        next unless $time;
+        my $last_date = DateTime->from_epoch( epoch => $time )
+                                ->clone()
+                                ->truncate(to => 'day')
+                                ->add(days => 1)
+                                ->add(nanoseconds => -1);
+
+        # one file per date
+
+        my $sth = $dbh->prepare("SELECT time,nick,event,data FROM logs WHERE time >= ? AND time <= ? ORDER BY time");
+        my $date = $first_date->clone()
+                              ->truncate(to => 'day');
+        while ($date < $last_date) {
+            my $file = "$channel_path/" . $date->ymd('') . '.txt.gz';
+            my $temp_file = $file . '.part';
+            $ENV{DEBUG} && print "$file\n";
+            my $gz = IO::Compress::Gzip->new($temp_file, AutoClose => 1)
+                // die "IO::Compress::Gzip failed: $GzipError\n";
+
+            my $end_date = $date->clone()->add(days => 1)->add(nanoseconds => -1);
+            my $count = 0;
+            $sth->execute($date->epoch, $end_date->epoch);
+            while (my @row = $sth->fetchrow_array) {
+                $count++;
+                $gz->print(join('|', map { $_ // '' } @row) . "\n");
+            }
+            $gz->close();
+
+            unlink($file) if -e $file;
+            if ($count) {
+                rename($temp_file, $file) or die "$temp_file -> $file: $!\n";
+            } else {
+                unlink($temp_file);
+            }
+
+            $date->add(days => 1);
+        }
+    }
+}

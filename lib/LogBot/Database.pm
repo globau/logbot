@@ -6,6 +6,8 @@ use base 'LogBot::Base';
 use LogBot::Event;
 use DBI;
 use DBD::SQLite;
+use File::Basename qw(dirname);
+use File::Path qw(make_path);
 
 #
 
@@ -34,6 +36,7 @@ sub connect {
     my ($self, $channel) = @_;
 
     my $filename = $self->{filename};
+    make_path(dirname($filename));
     my $dbh = DBI->connect(
         "DBI:SQLite:$filename", '', '', { 
             PrintError => 0, 

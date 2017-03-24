@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use FindBin '$RealBin';
+use lib "$RealBin/lib";
+use local::lib "$RealBin/perllib";
+use LogBot::BP;
+
+use LogBot::Database;
+
+use DateTime;
+use DBI;
+use File::Basename qw( basename );
+use File::Path qw( make_path remove_tree );
+use IO::Uncompress::Gunzip qw( $GunzipError );
+
+# init
+
+LogBot->init("$RealBin/logbot.conf");
+my $backup_path = shift // die "syntax: db-restore <path>\n";
+$backup_path =~ s#/$##;
+die "invalid dir: $backup_path\n" unless -d $backup_path;
+
+foreach my $n_dir (sort grep { -d $_ } glob("'$backup_path/*'")) {
+    my $network = basename($n_dir);
+    foreach my $c_dir (sort grep { -d $_ } glob("'$n_dir/*'")) {
+        my $channel = '#' . basename($c_dir);
+        print "$network $channel\n";
+        # create db, tables
+        my $db_file = LogBot::Database->new($network, $channel)->{filename};
+        my $dbh = DBI->connect("DBI:SQLite:$db_file", '', '', { RaiseError => 1 });
+        foreach my $log_file (sort glob("'$c_dir/*.txt.gz'")) {
+            die unless basename($log_file) =~ /^(\d\d\d\d)(\d\d)(\d\d)\.txt\.gz$/;
+            my ($yyyy, $mm, $dd) = ($1, $2, $3);
+            $dbh->do('BEGIN TRANSACTION');
+            $dbh->do(
+                "DELETE FROM logs WHERE time BETWEEN ? AND ?",
+                undef,
+                DateTime->new(year => $yyyy, month => $mm, day => $dd)->truncate(to => 'day')->epoch,
+                DateTime->new(year => $yyyy, month => $mm, day => $dd)->add(days => 1)->subtract(nanoseconds => 1)->epoch,
+            );
+            my $gz = IO::Uncompress::Gunzip->new($log_file)
+                // die "IO::Uncompress::Gunzip failed: $GunzipError\n";
+            while(my $line = $gz->getline) {
+                print $line;
+                chomp($line);
+                my ($time, $nick, $type, $text) = split /\|/, $line, 4;
+                $dbh->do(
+                    "INSERT INTO logs(time,nick,event,data) VALUES (?,?,?,?)",
+                    undef,
+                    split(/\|/, $line, 4)
+                );
+            }
+            $dbh->do('COMMIT TRANSACTION');
+        }
+    }
+}
