@@ -1,0 +1,15 @@
+[Unit]
+Description=LogBot mozilla IRC Daemon
+After=syslog.target network.target
+
+[Service]
+ExecReload=/home/logbot/logbot/logbot-irc mozilla --reload
+ExecStart=/home/logbot/logbot/logbot-irc mozilla
+Group=logbot
+KillSignal=SIGINT
+Restart=always
+RestartSec=5
+User=logbot
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,174 @@
+#!/usr/bin/perl
+$| = 1;
+use strict;
+use warnings;
+use local::lib;
+use v5.10;
+
+use File::Basename qw( basename );
+use File::Find qw( find );
+use FindBin qw( $RealBin );
+use List::Util qw( any );
+use Mojo::File ();
+use Perl::Tidy ();
+
+# tidy sass (sort selectors)
+
+foreach my $file (glob('web/*.sass')) {
+    print $file;
+    my @original = split("\n", Mojo::File->new($file)->slurp());
+    my @output;
+    my $chunk = {};
+
+    reset_chunk($chunk);
+    foreach my $line (@original) {
+        my $indent = $line =~ /^(\s+)/ ? length($1) : 0;
+
+        if ($line eq '') {
+            push @output, process_chunk($chunk);
+            push @output, '';
+            $chunk->{indent} = $indent;
+            next;
+        }
+
+        if ($indent != $chunk->{indent}) {
+            push @output, process_chunk($chunk);
+            $chunk->{indent} = $indent;
+            push @{ $chunk->{lines} }, $line;
+            next;
+        }
+
+        push @{ $chunk->{lines} }, $line;
+    }
+    push @output, process_chunk($chunk);
+
+    sub reset_chunk {
+        my ($chunk) = @_;
+        $chunk->{indent} = -1;
+        $chunk->{lines}  = [];
+    }
+
+    sub process_chunk {
+        my ($chunk) = @_;
+        my @lines =
+            sort {
+            return -1 if $a =~ m#^\s*//#;
+            return 1  if $b =~ m#^\s*//#;
+            return $a cmp $b;
+            } @{ $chunk->{lines} };
+        reset_chunk($chunk);
+        return @lines;
+    }
+
+    my $original = join("\n", @original) . "\n";
+    my $output   = join("\n", @output) . "\n";
+    if ($original ne $output) {
+        print " \033[34mupdated\033[0m";
+        Mojo::File->new($file)->spurt($output);
+    } else {
+        print " unchanged";
+    }
+    print "\n";
+}
+
+# tidy all the perl as per .perltidy
+
+find(
+    sub {
+        # look for files in . and under lib/
+        return unless -f $_ && -s $_;
+        my $file = substr($File::Find::name, 2);
+        return if $file =~ m#/# && $file !~ m#^lib/#;
+        return if basename($file) =~ m#^\.# || $file =~ m#\.(bak|swp)$#;
+
+        # detect perl by file extension or #!
+        my $is_perl = 0;
+        if ($file =~ /\.p[ml]$/) {
+            $is_perl = 1;
+        } else {
+            open(my $fh, '<', $file) or die "open $file: $!\n";
+            my ($first_line) = <$fh>;
+            close($fh);
+            $is_perl = $first_line =~ m#\#!/usr/bin/perl#;
+        }
+        return unless $is_perl;
+
+        print $file;
+
+        # init
+        my $original = Mojo::File->new("$RealBin/$file")->slurp();
+        my $input    = $original;
+        my $output   = '';
+
+        # sort use lines, as well as their imports
+        $input = sort_use($input);
+
+        # apply perltidy
+        Perl::Tidy::perltidy(
+            source      => \$input,
+            destination => \$output,
+        );
+
+        # apply changes
+        if ($original ne $output) {
+            print " \033[34mupdated\033[0m";
+            Mojo::File->new("$RealBin/$file")->spurt($output);
+        } else {
+            print " unchanged";
+        }
+        print "\n";
+    },
+    '.'
+);
+
+sub sort_use {
+    my ($input) = @_;
+    my @input = split("\n", $input);
+    my @output;
+
+    # find use blocks, assumes they are always followed by a blank line
+    my $in_use_block = 0;
+    my @uses;
+    foreach my $line (@input) {
+        if ($in_use_block) {
+            if ($line eq '') {
+                $in_use_block = 0;
+                push @output, sort_uses(@uses);
+                @uses = ();
+                push @output, '';
+                next;
+            }
+        }
+
+        if ($line =~ /^use /) {
+            $in_use_block = 1;
+            push @uses, $line;
+            next;
+        }
+
+        push @output, $line;
+    }
+
+    return join("\n", @output) . "\n";
+}
+
+sub sort_uses {
+    my @uses = @_;
+
+    # skip setup / lib blocks
+    if (any { /^use local::lib/ || /^use lib / } @uses) {
+        return @uses;
+    }
+
+    # sort imports
+    foreach my $line (@uses) {
+        next unless $line =~ /^(use\s+\S+)\s+qw\(([^\)]+)\);$/;
+        my ($module, $imports) = ($1, $2);
+        my @imports = split(' ', $imports);
+        $imports = join(' ', sort split(' ', $imports));
+        $line = "$module qw( $imports );";
+    }
+
+    # sort modules
+    return sort { lc($a) cmp lc($b) } @uses;
+}

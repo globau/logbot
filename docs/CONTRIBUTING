@@ -1,0 +1,19 @@
+this document is under construction.
+
+the very high level install steps for a development setup are:
+- clone repo
+- copy etc/_sample.yml to etc/_development.yml
+- edit etc/_development.yml and set all the values as required
+- install cpanm and the local::lib perl library at a system level
+- install sass and uglifyjs
+- run `cpanm --verbose --local-lib ~/perl5/ --notest --installdeps . --with-develop`
+- run `./dev-server` to start the web server
+- run `./logbot-irc development` to start the irc server
+- run `./logbot-consumer development` to start the message->database consumer
+
+`dev-server` will automatically run `make` when web resources are updated.
+if `dev-server` is not running you must run `make` manually.  some changes
+require a full rebuild of the resources with `make -B`.
+
+run `dev-tidy` before creating any pull requests; this will auto-format
+perl and sass.

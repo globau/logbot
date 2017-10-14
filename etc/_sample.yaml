@@ -1,0 +1,16 @@
+---
+bots:
+  - bugbot
+  - pulsebot
+channels:
+  '#botdev': {}
+help: "I am glob's logbot - https://logs.glob.uno/"
+irc:
+  host: ssl:irc.mozilla.org:6697
+  nick: devbot
+  password: secret
+  real_name: 'devbot (logs.glob.com.au)'
+name: mozilla
+title: Mozilla
+path: ~/logbot-dev/development
+url: https://mozilla.example.com/

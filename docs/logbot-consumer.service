@@ -1,0 +1,14 @@
+[Unit]
+Description=LogBot mozilla Consumer Daemon
+After=syslog.target network.target
+
+[Service]
+ExecStart=/home/logbot/logbot/logbot-consumer mozilla
+Group=logbot
+KillSignal=SIGINT
+Restart=always
+RestartSec=5
+User=logbot
+
+[Install]
+WantedBy=multi-user.target

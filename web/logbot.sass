@@ -1,0 +1,741 @@
+// bulma
+
+@import "bulma/sass/utilities/initial-variables"
+
+$family-sans-serif: Hind, $family-sans-serif
+
+$primary-invert: #eee
+$primary: #444
+
+$link-color-bot: #7f7ff7
+$link-colour: #00e
+$link-invert: $primary-invert
+$link-visited-colour: #939
+
+$sidebar-gap: 8px
+$sidebar-width-closed: 36px
+$sidebar-width-open: 165px
+
+$nav-height: 30px
+
+$nick-width-small: 7.0em
+$time-width-small: 3em
+
+$nick-width-large: 7.5em
+$time-width-large: 3em
+
+$log-hover: #eee
+
+$transition-time: 250ms
+
+// bulma
+
+@import "bulma/sass/utilities/_all"
+
+@import "bulma/sass/components/menu"
+@import "bulma/sass/components/modal"
+@import "bulma/sass/elements/button"
+@import "bulma/sass/elements/form"
+@import "bulma/sass/elements/notification"
+
+.menu-list a
+  border-radius: 0
+
+// pika
+
+.pika-button
+  &:hover
+    background: #444
+
+.pika-table
+  abbr
+    text-decoration: none
+
+// global
+
+body
+  color: #000
+  font-family: $family-sans-serif
+  margin: 0
+  padding: 0 10px 0 0
+
+a
+  color: $link-colour
+  text-decoration: none
+
+  &:hover
+    text-decoration: underline
+  &:focus
+    outline: none
+  &:visited
+    color: $link-visited-colour
+
+.button
+  display: inline-block
+  height: 1rem
+
+  &.is-white:hover, &.is-white.is-hovered
+    background-color: #dbdbdb
+
+.icon
+  svg
+    height: 18px
+    width: 18px
+
+.notification
+  margin-right: 18px
+  padding: .25rem 1.5rem .25rem .5rem
+
+.hidden
+  visibility: hidden
+
+.default-display-none
+  display: none
+
+#content
+  background: #fff
+  clear: both
+  padding: 0 5px 1.5em 5px
+
+// index
+
+#index
+  max-width: 42rem
+  padding-left: 8px
+
+  #logo-large
+    color: #444
+    font-size: xx-large
+    font-weight: bold
+
+    svg
+      height: 128px
+      vertical-align: middle
+      width: 128px
+
+      #bot
+        fill: #444
+
+  #intro
+    margin-bottom: 2em
+
+    svg
+      height: 1em
+
+  h3
+    color: #444
+    margin-bottom: 0.5em
+    margin-top: 2em
+
+  p
+    color: #444
+    margin-bottom: 0.5em
+    margin-top: 0
+
+// logs
+
+#logs, #search-logs
+
+  .last-timestamp
+    color: #999
+    margin-top: 1rem
+    padding-left: 4px
+
+    a
+      color: #999
+
+  div.notification
+    margin: 4px
+    padding-left: 4px
+
+  ul
+    list-style: none
+    margin: 0
+    padding: 0
+
+    li
+      line-height: 120%
+      padding: 3px 0 3px 4px
+
+      &:hover
+        background: $log-hover
+
+      &.hl
+        background: #ffffb7
+
+    .time
+      color: #999
+      display: inline
+      position: absolute
+
+      a
+        color: #999
+
+    .nick, .notice
+      color: #844
+      display: inline
+      font-weight: 500
+      overflow: hidden
+      position: absolute
+      text-overflow: ellipsis
+      white-space: nowrap
+      width: 7em
+
+      &:hover
+        background: $log-hover
+        overflow: visible
+        padding-right: 5px
+        width: auto !important
+
+    .action
+      overflow-wrap: break-word
+      word-wrap: break-word
+
+      .a
+        color: #999
+
+      .nc
+        color: #844
+        font-weight: 500
+
+    .text
+      overflow-wrap: break-word
+      word-wrap: break-word
+
+    .notice, .notice-text
+      font-style: italic
+
+#debug
+  max-width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 32px})
+  overflow: scroll
+
+// settings
+
+body
+  // small text
+  &.font-s
+    font-size: small
+
+    .menu
+      font-size: small
+
+    #logs, #search-logs
+      .time
+        width: $time-width-small
+      .nick, .notice
+        margin-left: calc(#{$time-width-small} + 4px)
+        width: $nick-width-small
+      .action
+        margin-left: calc(#{$time-width-small} + 4px)
+      .text
+        margin-left: calc(#{$time-width-small} + 4px + #{$nick-width-small} + 4px)
+
+  // normal sized text
+  &:not(.font-s)
+    #logs, #search-logs
+      .time
+        width: $time-width-large
+      .nick, .notice
+        margin-left: calc(#{$time-width-large} + 4px)
+        width: $nick-width-large
+      .action
+        margin-left: calc(#{$time-width-large} + 4px)
+      .text
+        margin-left: calc(#{$time-width-large} + 4px + #{$nick-width-large} + 4px)
+
+  // hide irc bots
+  &.hide-b
+    #logs
+      li
+        &.bot
+          display: none
+
+    #no-filtered-events
+      display: block
+
+  &:not(.hide-b)
+    #no-filtered-events
+      display: none
+
+  // desaturate irc bots
+
+  &:not(.norm-b)
+    #logs, #search-logs
+      li
+        &.bot
+          .nick, .notice, .anick
+            color: #999
+
+          .text, .action
+            color: #999
+
+            a
+              color: $link-color-bot
+
+  // wider nick column
+  &.nick-w
+    &.font-s
+      #logs, #search-logs
+        .nick
+          width: calc(#{$nick-width-small} + 2em)
+        .text
+          margin-left: calc(#{$time-width-small} + 4px + #{$nick-width-small} + 2em + 4px)
+    &:not(.font-s)
+      #logs, #search-logs
+        .nick
+          width: calc(#{$nick-width-large} + 2em)
+        .text
+          margin-left: calc(#{$time-width-large} + 4px + #{$nick-width-large} + 2em + 4px)
+
+#settings-container
+  background: #fff
+  border-radius: 5px
+  font-size: 1rem
+  line-height: 200%
+  padding: 10px
+
+  .setting
+    cursor: default
+
+  .not-implemented
+    color: #ddd
+
+  input
+    background: #fff  // for chrome
+
+    &.hover
+      box-shadow: 0 0 2px $primary
+
+  #settings-close-container
+    text-align: right
+
+    #settings-close
+      display: inline-flex
+
+      &:hover
+        text-decoration: none
+
+// sidebar
+
+#sidebar
+  border-right: 1px solid #eee
+  min-height: 100vh
+  position: absolute
+  top: 0
+  width: $sidebar-width-open
+
+  .select
+    display: block
+    margin: 2px
+
+    select
+      width: 100%
+
+  #actions
+    background-color: #fff
+    font-size: 0px
+    height: $nav-height
+    padding-top: 2px
+    position: fixed
+    width: $sidebar-width-open
+    z-index: 5
+
+    #about
+      float: right
+
+  #menu
+    a
+      color: $grey-dark
+
+      &:hover
+        background-color: $grey-lighter
+        color: #000
+        text-decoration: none !important
+
+      &.is-active
+        background-color: $grey-dark
+        color: $white
+
+        &:hover
+          background-color: $grey-dark
+          color: $white
+
+    #archived
+      background-color: #eee
+      font-weight: 500
+      margin-top: 1em
+      padding: .5em .75em
+
+body
+  &.menu-c
+    #sidebar-open
+      display: none
+    #sidebar-closed
+      display: inline-block
+
+    #sidebar
+      transition-duration: $transition-time
+      transition-property: width
+      width: $sidebar-width-closed
+
+      #actions
+        transition-duration: $transition-time
+        transition-property: width
+        width: $sidebar-width-closed
+
+        .button
+          display: inherit
+
+        #about
+          float: inherit
+
+    #networks
+      display: none
+
+    #channels
+      display: none
+
+    #nav
+      margin-left: $sidebar-width-closed
+      transition-duration: $transition-time
+      transition-property: margin, width
+      width: calc(100% - #{$sidebar-width-closed})
+
+    #main
+      margin-left: $sidebar-width-closed
+      transition-duration: $transition-time
+      transition-property: margin, width
+      width: calc(100vw - #{$sidebar-width-closed + $sidebar-gap + 1px})
+
+  &:not(.menu-c)
+    #sidebar-open
+      display: inline-block
+    #sidebar-closed
+      display: none
+
+    #sidebar
+      transition-duration: $transition-time
+      transition-property: width
+
+      #xxactions
+        transition-duration: $transition-time
+        transition-property: width
+
+    #nav
+      transition-duration: $transition-time
+      transition-property: margin, width
+
+    #main
+      transition-duration: $transition-time
+      transition-property: margin, width
+      width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 1px})
+
+#networks
+  margin-top: $nav-height + 2px
+
+  svg
+    height: 18px
+    width: 18px
+
+  #current-network
+    border-bottom-left-radius: 0
+    border-bottom-right-radius: 0
+    border-top-left-radius: 3px
+    border-top-right-radius: 3px
+    border: 1px solid #dbdbdb
+    color: #4a4a4a
+    margin-bottom: 0
+
+    &:hover
+      border-color: #888
+
+  #current-network-toggle
+    float: right
+
+    svg
+      transform: translateY(25%)
+
+  #other-networks
+    border-bottom-left-radius: 3px
+    border-bottom-right-radius: 3px
+    border: 1px solid #dbdbdb
+    margin: 0 2px 4px 2px
+
+    border-top: none
+
+    .network
+      margin: 0
+
+      &:hover
+        background: #dbdbdb
+        text-decoration: none
+
+  &.collapsed
+    #current-network
+      border-bottom-left-radius: 3px
+      border-bottom-right-radius: 3px
+      margin-bottom: 2px
+
+    #other-networks
+      display: none
+
+    .svg-networks-close
+      display: none
+
+  &:not(.collapsed)
+    .svg-networks-open
+      display: none
+
+  .network
+    color: #4a4a4a
+    cursor: pointer
+    display: block
+    line-height: 2
+    margin: 2px
+    padding: 0 .75em
+
+
+#channels
+  &.one-network
+    margin-top: $nav-height + 2px
+
+  ul
+    list-style: none
+    margin: 0
+    overflow-x: hidden
+    padding: 0
+    white-space: nowrap
+
+// navigation
+
+#nav
+  background-color: #fff
+  border-bottom: 1px solid #eee
+  border-left: 1px solid #eee
+  height: $nav-height
+  margin-left: $sidebar-width-open
+  padding-top: 2px
+  position: fixed
+  top: 0
+  width: calc(100% - #{$sidebar-width-open})
+  z-index: 1
+
+  #date-container
+    border-right: 1px solid #eee
+    float: left
+    font-size: medium
+    margin-left: 4px
+    margin-right: 4px
+    min-width: calc(#{$time-width-large} + 4px + #{$nick-width-large} + 4px)
+    padding-right: 4px
+
+    #date-next
+      float: right
+
+    #date
+      margin-left: 4px
+      vertical-align: bottom
+
+    #date-icon
+      margin-left: 4px
+
+    #date-picker
+      display: inline-block
+
+  .nav-button
+    float: left
+    margin-right: 8px
+
+  #search-container
+    margin-left: 4px
+
+  #search-submit
+    margin-left: 2px
+
+  #search-nav
+    font-size: 1rem
+    margin: 1px 0
+
+  #channel-logs
+    margin-left: 4px
+
+  #loc-container
+    display: inline-block
+    position: absolute
+    right: 10px
+
+    background: #444
+    font-size: medium
+    margin: 1px
+    padding: 0 5px
+
+    a
+      color: #fff
+
+// main content
+
+#main
+  border-left: 1px solid #eee
+  margin-left: $sidebar-width-open
+  min-width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 1px})
+  padding-bottom: 1rem
+  padding-top: 4px
+  position: absolute
+  top: $nav-height
+
+// search
+
+#search-form
+  max-width: 40rem
+
+  .search-label
+    display: inline-block
+    font-weight: 500
+    margin-right: 8px
+    padding: 5px 0
+    text-align: right
+    vertical-align: top
+    width: 5rem
+
+  .search-input
+    display: inline-block
+    padding: 5px 0
+    width: calc(100% - 6rem)
+
+  input
+    border: 1px solid #aaa
+    font-size: 100%
+    padding: 5px
+
+  #search-query, #search-channels
+    width: calc(100% - 10px)
+
+  #search-when-from, #search-when-to
+    width: 7em
+
+  #search-who
+    width: 50%
+
+  #search_channels_chosen
+    width: 100% !important
+
+  #search-form-submit
+    height: auto
+
+.chosen-container-multi .chosen-choices
+  background-image: none
+
+.chosen-container-multi .chosen-choices li.search-field input[type="text"]
+  font-family: inherit
+
+#search_channels_chosen .chosen-search-input.default
+  padding: 0
+
+// search results
+
+#search-logs
+  div
+    &.date
+      background: #444
+      color: #fff
+      margin-top: 1rem
+      padding-left: 4px
+
+  ul
+    li.channel
+      background: #eee
+      color: #000
+      margin: 2px 0
+
+// hide nav search form on search pages
+body
+  &.search
+    #search-nav, #search-submit
+      display: none
+
+// channel stats
+
+body
+  &.stats
+
+    .loading
+      color: #ccc
+
+    h4
+      margin-top: 8px
+
+      a
+        color: #000
+        font-weight: bold
+
+    #main
+      min-width: 800px
+      padding-left: 8px
+
+    #events
+      border-spacing: 0
+      margin: 1em 0
+
+      th
+        font-weight: 500
+        padding: 0 1em 0 0
+        text-align: right
+        vertical-align: top
+        white-space: nowrap
+
+      td
+        min-width: 11em
+        padding: 0 3em 0 0
+
+    #hours-plot
+      height: 150px
+      margin-top: 2em
+      width: 800px
+
+    #hours-now
+      border-left: 2px solid #444
+      filter: drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff)
+      font-size: small
+      padding-left: 1px
+      position: absolute
+
+    #nicks-plot
+      width: 800px
+
+      tr
+        &.bot
+          .nick
+            color: #999 !important
+          .bar
+            div
+              background-color: #ccc !important
+
+      .nick
+        color: #844
+        font-weight: 500
+        padding-right: 8px
+        white-space: nowrap
+
+      .count
+        padding-right: 8px
+        text-align: right
+
+      .bar
+        width: 100%
+
+        div
+          background-color: #b4b4b4
+          border: 1px solid #444
+          height: 1em
+
+// small screens
+
+@media (max-width: 640px)
+  #nav
+    #search-nav, #loc-container, #raw-container, #end-container
+      display: none
+
+@media (max-width: 800px)
+  #nav
+    #search-nav, #loc-container
+      display: none

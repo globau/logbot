@@ -1,0 +1,56 @@
+% layout 'logbot';
+
+% use DateTime ();
+% use LogBot::Util qw( time_to_ymd time_to_datestr );
+% use LogBot::Web::Util qw( url_for_channel );
+% use Time::Duration qw( ago );
+
+<div id="logs">
+
+<ul>
+% foreach my $event (@$logs) {
+% my $type = $event->{type};
+<li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
+<div class="time"><a href="#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
+% if ($type == 0) {
+<div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
+<div class="text"><%== $event->{text} %></div>
+% } elsif ($type == 1) {
+<div class="action"><span class="a">&raquo;</span> <span class="anick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></span> <%== $event->{text} %></div>
+% } else {
+<div class="notice nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
+<div class="text notice-text nc" data-hash="<%= $event->{hash} %>"><%== $event->{text} %></div>
+% }
+</li>
+% }
+</ul>
+
+<div id="end"></div>
+
+% if ($event_count == 0) {
+  <div class="notification no-events" id="no-events">
+    No messages for <%= time_to_datestr($date->epoch) %>.
+  </div>
+% } elsif ($event_count == $bot_event_count) {
+  <div class="notification no-events" id="no-filtered-events">
+    No non-bot messages for <%= time_to_datestr($date->epoch) %>.
+  </div>
+% }
+
+% if ($last_date) {
+  % my $now = DateTime->now();
+  % my $last_date_ymd = $last_date->ymd('');
+  <div class="last-timestamp">
+    Last Message:
+    % if ($last_date_ymd eq $date->ymd('')) {
+        <%= ago($now->epoch - $last_date->epoch) %>
+    % } else {
+      <a href="<%= url_for_channel( channel => $channel, date => $last_date )%>"><%= ago($now->epoch - $last_date->epoch) %></a>
+    % }
+    % if ($now->ymd('') ne $last_date_ymd && $date->ymd('') ne $last_date_ymd) {
+      (<%= time_to_datestr($last_date->epoch) %>)
+    % }
+  </div>
+% }
+
+</div>

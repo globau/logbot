@@ -1,0 +1,93 @@
+#!/usr/bin/perl
+# import event json files created by logbot-irc and inserts into network
+# database
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use Data::Dumper qw( Dumper );
+use DateTime ();
+use Encode qw( encode );
+use LogBot::Config qw( find_config load_config reload_config );
+use LogBot::Database qw( dbh dbh_disconnect );
+use LogBot::JobQueue qw( delete_job fetch_job );
+use LogBot::Util qw( event_to_string logbot_init squash_error timestamp );
+use Time::HiRes qw( sleep );
+use Try::Tiny qw( catch try );
+
+my $config = load_config(find_config(shift)) // die "syntax: logbot-consumer <config file>\n";
+logbot_init($config);
+
+my $quit = 0;
+$SIG{INT} = sub { $quit = 1 };
+
+# init/cache database
+dbh($config, read_write => 1, cached => 1);
+
+my $last_status = '';
+my %tally;
+while (!$quit) {
+
+    # print daily status
+    my $now = DateTime->now();
+    if ($now->ymd ne $last_status || $ENV{DEBUG}) {
+        say $now->ymd('-') if scalar(keys %tally);
+        foreach my $channel (sort { $tally{$b} <=> $tally{$b} } keys %tally) {
+            printf "%7s %s\n", $tally{$channel}, $channel;
+        }
+        %tally       = ();
+        $last_status = $now->ymd;
+    }
+
+    # wait for next job, blocking call
+    my ($job, $event) = fetch_job($config);
+    last unless defined $job;
+
+    if ($ENV{DEBUG}) {
+        say timestamp(), ' << ', encode('UTF-8', event_to_string($event));
+    }
+
+    $config = reload_config($config);
+
+    # deal with lag between queue and config
+    my $ignore = 0;
+    if (my $channel = $config->{channels}->{ $event->{channel} }) {
+        $ignore = 1 if $channel->{no_logs};
+        $ignore = 1 if $channel->{disabled};
+    } else {
+        $ignore = 1;
+    }
+    if ($ignore) {
+        say timestamp(), ' -- ignoring event' if $ENV{DEBUG};
+        delete_job($config, $job);
+        next;
+    }
+
+    # insert into db
+    my $attempts = 0;
+    while ($job && !$quit) {
+        $attempts++;
+        $quit = 1 if $attempts > 20;
+
+        try {
+            my $dbh = dbh($config, read_write => 1, cached => 1);
+            $dbh->do("INSERT INTO logs(time,channel,nick,type,text) VALUES (?,?,?,?,?)",
+                undef, $event->{time}, $event->{channel}, $event->{nick}, $event->{type}, $event->{text});
+            delete_job($config, $job);
+            undef $job;
+
+            $tally{ $event->{channel} }++;
+        }
+        catch {
+            say timestamp(), ' !! ', squash_error($_);
+            dbh_disconnect($config);
+            sleep(0.5);
+        };
+    }
+}

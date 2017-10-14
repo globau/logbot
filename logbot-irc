@@ -1,0 +1,415 @@
+#!/usr/bin/perl
+# bare-bones irc logging bot
+# saves events as json files for processing
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use Data::Dumper qw( Dumper );
+use Encode qw( decode );
+use Encode::Guess;
+use Errno qw( ETIMEDOUT EWOULDBLOCK );
+use IO::Socket::INET ();
+use IO::Socket::SSL qw( $SSL_ERROR );
+use IO::Socket::Timeout ();
+use List::MoreUtils qw( natatime );
+use List::Util qw( min );
+use LogBot::Config qw( find_config load_config reload_config save_config );
+use LogBot::JobQueue qw( publish_job );
+use LogBot::Util qw( file_for logbot_init normalise_channel slurp squash_error timestamp );
+use Time::HiRes ();
+use Try::Tiny qw( catch try );
+
+# globals
+my ($config, $state, $connection);
+
+#
+
+# read message from irc server, or undef if no message ready or disconnected
+sub irc_read {
+    return undef unless $connection;
+    my $message = $connection->getline();
+
+    # timeout
+    if (!$message && (0 + $! == ETIMEDOUT || 0 + $! == EWOULDBLOCK)) {
+        return undef;
+    }
+
+    # disconnect
+    unless (defined $message) {
+        undef $connection;
+        return undef;
+    }
+    $message =~ s/[\r\n]+$//;
+
+    # print all server messages (except ping/pong to reduce noise)
+    say timestamp(), ' << ', $message
+        if $message !~ /^:\S+ PONG / || $ENV{DEBUG};
+    return $message;
+}
+
+# send irc message to server
+sub irc_send {
+    my ($message) = @_;
+
+    # print all client messages (except ping/pong to reduce noise)
+    say timestamp(), ' >> ', $message
+        if substr($message, 0, 5) ne 'PING ' || $ENV{DEBUG};
+    $connection->print($message . "\r\n");
+}
+
+# connect to irc server
+sub irc_connect {
+    my $ssl = $config->{irc}->{host} =~ s/^ssl:// || $config->{irc}->{host} =~ /:6697$/;
+    say timestamp(), ' -- connecting to irc on ', $config->{irc}->{host}, ($ssl ? ' (ssl)' : '');
+    if ($ssl) {
+        $connection = IO::Socket::SSL->new($config->{irc}->{host})
+            or die "connection to " . $config->{irc}->{host} . " failed: $! $SSL_ERROR\n";
+    } else {
+        $connection = IO::Socket::INET->new($config->{irc}->{host})
+            or die "connection to " . $config->{irc}->{host} . " failed: $@\n";
+    }
+    IO::Socket::Timeout->enable_timeouts_on($connection);
+    $connection->read_timeout(0.5);
+
+    # login
+    irc_send('USER ' . $config->{irc}->{nick} . ' 0 * :' . $config->{irc}->{real_name});
+    irc_send('NICK ' . $config->{irc}->{nick});
+
+    # wait for connect (end of motd)
+    while (1) {
+        my $message = irc_read();
+        die "Disconnected" . ($ssl ? '' : ' (possible SSL mismatch)') . "\n" unless $connection;
+        next unless $message;
+        if (substr($message, 0, 5) eq 'PING ') {
+            irc_send('PONG ' . substr($message, 5));
+            next;
+        }
+        next unless $message =~ /^:(\S+) (\d+) /;
+        my ($server, $code) = ($1, $2);
+        die 'Nick ' . $config->{irc}->{nick} . " in use\n" if $code eq '433';  # ERR_NICKNAMEINUSE
+        if ($code eq '376') {                                                  # RPL_ENDOFMOTD
+            $state->{server} = $server;
+            last;
+        }
+    }
+
+    # identify
+    if ($config->{irc}->{password}) {
+        irc_send('PRIVMSG NickServ identify ' . $config->{irc}->{password});
+    }
+}
+
+#
+
+# publish event to processing queue
+sub publish {
+    my ($type, $nick, $channel, $text) = @_;
+
+    return if $config->{channels}->{$channel}->{no_logs};
+
+    try {
+        # decode
+        my $utf8 = guess_encoding($text, 'utf8');
+        $text = $utf8 ? decode('utf8', $text) : decode('cp1252', $text);
+
+        # strip colours, formatting
+        $text =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;  # mirc
+        $text =~ s/\x04[0-9a-fA-F]{0,6}//ig;                   # rgb
+        $text =~ s/\x1B\[.*?[\x00-\x1F\x40-\x7E]//g;           # ecma-84
+        $text =~ s/[\x02\x1f\x16\x1d\x11\x06]//g;              # formatting
+        $text =~ s/\x0f//g;                                    # cancellation
+
+        publish_job(
+            $config, {
+                time    => Time::HiRes::time(),
+                channel => $channel,
+                type    => $type,
+                nick    => $nick,
+                text    => $text,
+            }
+        );
+    }
+    catch {
+        say timestamp(), ' !! ', squash_error($_);
+    };
+}
+
+#
+
+# init config
+$config = load_config(find_config(shift)) // die "syntax: logbot-irc <config file> [--reload][--debug][--quit]\n";
+
+# pid
+my $pid_file = file_for($config, 'pid', 'logbot-irc');
+my $pid = 0;
+if (-e $pid_file) {
+    chomp($pid = slurp($pid_file));
+    $pid = 0 unless kill(0, $pid);
+}
+
+# commands / signals
+if (@ARGV) {
+    if ($ARGV[0] eq '--reload') {
+        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        kill('HUP', $pid);
+        say "reload request sent to pid $pid";
+    } elsif ($ARGV[0] eq '--debug') {
+        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        kill('USR1', $pid);
+        say "debug-dump request sent to pid $pid";
+    } elsif ($ARGV[0] eq '--quit') {
+        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        kill('INT', $pid);
+        say "quit request sent to pid $pid";
+    } else {
+        die "unrecognised parameter\n";
+    }
+    exit;
+}
+
+# init
+$pid && die "logbot-irc (" . $config->{name} . ") is already running\n";
+logbot_init($config);
+
+# consts
+use constant MAX_RECONNECT_INTERVAL => 3 * 60;
+use constant PING_INTERVAL          => 60;
+use constant PING_TIMEOUT           => 30;
+use constant PING_TIMEOUT_ATTEMPTS  => 3;
+use constant RELOAD_INTERVAL        => 60 * 60;
+
+# init signals and state
+$SIG{HUP}  = sub { $state->{reload} = 1 };
+$SIG{USR1} = sub { $state->{dump}   = 1 };
+$SIG{INT}  = sub { $state->{quit}   = 1 };
+
+# event loop
+while (1) {
+
+    # connect/reconnect
+    while (!$connection) {
+        exit if $state->{quit};
+
+        try {
+            # try to connect
+            irc_connect();
+
+            # connected, setup initial state
+            delete $state->{backoff};
+            $state->{reload}        = 1;
+            $state->{next_ping}     = time() + PING_INTERVAL;
+            $state->{pong_timeouts} = 0;
+        }
+        catch {
+            # connection failed, retry with backoff
+            say timestamp(), ' !! ', squash_error($_);
+            undef($connection);
+            $state->{backoff} = min(($state->{backoff} // 1) * 2, MAX_RECONNECT_INTERVAL);
+            say 'sleeping for ', $state->{backoff} if $ENV{DEBUG};
+            sleep($state->{backoff});
+        };
+    }
+
+    my $message = irc_read();
+    my $time    = time();
+
+    # ping timer
+    if (exists $state->{next_ping} && $state->{next_ping} <= $time) {
+        delete $state->{next_ping};
+        $state->{pong_timeout} = $time + PING_TIMEOUT;
+        irc_send('PING :' . $state->{server});
+    }
+    if (exists $state->{pong_timeout} && $state->{pong_timeout} <= $time) {
+        $state->{pong_timeouts}++;
+        say timestamp(), ' !! PING timeout (', $state->{pong_timeouts}, ')';
+
+        # server not responding to our pings, reconnect
+        if ($state->{pong_timeouts} == PING_TIMEOUT_ATTEMPTS) {
+            undef($connection);
+            next;
+        }
+    }
+
+    # reload timer
+    if (exists $state->{next_reload} && $state->{next_reload} <= $time) {
+        say timestamp(), ' -- timer initiated reload';
+        delete $state->{next_reload};
+        $state->{reload} = 1;
+    }
+
+    # trigger reconciliation of joined channels
+    if (delete $state->{reload}) {
+        say timestamp(), ' -- reload config';
+        $config = reload_config($config);
+        $state->{channels_in} = {};
+        irc_send('WHOIS ' . $config->{irc}->{nick});
+    }
+
+    # dump config and state on SIGUSR1
+    if (delete $state->{dump}) {
+        print Dumper($config);
+        print Dumper($state);
+    }
+
+    # quit cleanly when requested
+    if (delete $state->{quit}) {
+        say timestamp(), ' -- quit requested';
+        irc_send('QUIT');
+        last;
+    }
+
+    next unless $message;
+
+    # server initiated ping
+    if (substr($message, 0, 5) eq 'PING ') {
+        irc_send('PONG ' . substr($message, 5));
+        next;
+    }
+
+    # response to our ping
+    if ($message =~ /^:\S+ PONG /) {
+        delete $state->{pong_timeout};
+        $state->{pong_timeouts} = 0;
+        $state->{next_ping}     = $time + PING_INTERVAL;
+        next;
+    }
+
+    # invite
+    if ($message =~ /^:([^!]+)!\S+ INVITE \S+ :(#.+)/) {
+        my ($who, $channel) = ($1, normalise_channel($2));
+        say timestamp(), ' -- invited to ', $channel, ' by ', $who;
+        $config->{channels}->{$channel}->{invite} = timestamp() . ' <' . $who . '>';
+        delete $config->{channels}->{$channel}->{disabled};
+        delete $config->{channels}->{$channel}->{archived};
+        save_config($config);
+        $state->{reload} = 1;
+        next;
+    }
+
+    # joined
+    if ($message =~ /^:([^!]+)!\S+ JOIN :(#.+)/) {
+        my ($who, $channel) = ($1, normalise_channel($2));
+        next unless $who eq $config->{irc}->{nick};
+        $state->{channels_in}->{$channel} = 1;
+        irc_send("MODE $channel");  # trigger mode to grab channel password
+        next;
+    }
+
+    # bad channel key --> archive channel
+    if ($message =~ /^:\S+ 475 (\S+) (#\S+) :(.+)/) {
+        my ($who, $channel, $message) = ($1, normalise_channel($2), $3);
+        next unless $who eq $config->{irc}->{nick};
+        say timestamp(), ' -- join ', $channel, ' failed: ', $message;
+        $state->{channels_in}->{$channel}           = 0;
+        $config->{channels}->{$channel}->{archived} = 1;
+        $config->{channels}->{$channel}->{error}    = timestamp() . ' ' . $message;
+        save_config($config);
+        next;
+    }
+
+    # mode --> extract channel password
+    if ($message =~ /^:\S+ 324 \S+ (#\S+) (\S+) (\S+)/) {
+        my ($channel, $mode, $password) = (normalise_channel($1), $2, $3);
+        next unless $mode =~ /k/;
+        next if ($config->{channels}->{$channel}->{password} // '') eq $password;
+        $config->{channels}->{$channel}->{password} = $password;
+        save_config($config);
+        next;
+    }
+
+    # when kicked track why, and don't try to rejoin
+    if ($message =~ /^:([^!]+)!\S+ KICK (#\S+) (\S+) :(.*)/) {
+        my ($who, $channel, $kicked, $message) = ($1, normalise_channel($2), $3, $4);
+        next unless $kicked eq $config->{irc}->{nick};
+        $message = 'kicked' if ($message // '') eq '';
+        say timestamp(), ' -- kicked from ', $channel, ' by ', $who, ': ', $message;
+        $state->{channels_in}->{$channel}           = 0;
+        $config->{channels}->{$channel}->{disabled} = 1;
+        $config->{channels}->{$channel}->{kick}     = timestamp() . ' <' . $who . '> ' . $message;
+        save_config($config);
+        next;
+    }
+
+    # channel /me ctcp action
+    if ($message =~ /^:([^!]+)!\S+ PRIVMSG (#\S+) :\x01ACTION (.+)\x01/) {
+        publish(1, $1, normalise_channel($2), $3);
+        next;
+    }
+
+    # channel message
+    if ($message =~ /^:([^!]+)!\S+ PRIVMSG (#\S+) :(.+)/) {
+        publish(0, $1, normalise_channel($2), $3);
+        next;
+    }
+
+    # channel notice
+    if ($message =~ /^:([^!]+)!\S+ NOTICE (#\S+) :(.+)/) {
+        publish(2, $1, normalise_channel($2), $3);
+        next;
+    }
+
+    # private message
+    if ($message =~ /^:([^!]+)!\S+ PRIVMSG \S+ :.+/) {
+        my $who = $1;
+        irc_send('PRIVMSG ' . $who . ' ' . $config->{help})
+            if $config->{help};
+    }
+
+    # channel reconciliation RPL_WHOISCHANNELS
+    if ($message =~ /^:\S+ 319 \S+ \S+ :(.+)/) {
+        my $channels = $1;
+        foreach my $channel (split(' ', $channels)) {
+            $channel =~ s/^[^#]+//;  # strip usermode prefix
+            $state->{channels_in}->{ normalise_channel($channel) } = 1;
+        }
+        next;
+    }
+
+    # channel reconciliation RPL_ENDOFWHOIS
+    if ($message =~ /^:\S+ 318 /) {
+
+        # join channels
+        my @join;
+        foreach my $channel (sort keys %{ $config->{channels} }) {
+            next if $config->{channels}->{$channel}->{disabled};
+            next if $config->{channels}->{$channel}->{archived};
+            next if $state->{channels_in}->{$channel};
+
+            # join channels with passwords immediately
+            if (exists $config->{channels}->{$channel}->{password}) {
+                irc_send('JOIN ' . $channel . ' ' . $config->{channels}->{$channel}->{password});
+            } else {
+                push @join, $channel;
+            }
+        }
+
+        # 10 at a time
+        my $iter = natatime(10, @join);
+        while (my @join_channels = $iter->()) {
+            irc_send('JOIN ' . join(',', @join_channels));
+        }
+
+        # part channels
+        my @part;
+        foreach my $channel (sort keys %{ $state->{channels_in} }) {
+            next if $config->{channels}->{$channel};
+            push @part, $channel;
+        }
+
+        # 10 at a time
+        $iter = natatime(10, @part);
+        while (my @part_channels = $iter->()) {
+            irc_send('PART ' . join(',', @part_channels));
+        }
+
+        $state->{next_reload} = time() + RELOAD_INTERVAL;
+        next;
+    }
+}

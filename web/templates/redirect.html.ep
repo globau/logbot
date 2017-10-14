@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Redirecting…</title>
+    <link rel="stylesheet" href="<%= static('redirect.min.css') %>">
+  </head>
+  <body data-redirect-to="<%= $redirect_to %>">
+    <noscript>
+      <a href="<%= $redirect_to %>"><%= $redirect_to %></a>
+    </noscript>
+    <script src="<%= static('redirect.min.js') %>"></script>
+  </body>
+</html>

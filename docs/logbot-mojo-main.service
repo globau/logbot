@@ -1,0 +1,16 @@
+[Unit]
+Description=Logbot Mojolicious Daemon
+After=syslog.target network.target
+
+[Service]
+ExecStart=/home/logbot/logbot/logbot-hypnotoad --pid-file /home/logbot/store/mojo-main.pid --listen-port 3001
+ExecReload=/home/logbot/logbot/logbot-hypnotoad --pid-file /home/logbot/store/mojo-main.pid --listen-port 3001
+Group=logbot
+KillMode=process
+PIDFile=/home/logbot/store/mojo-main.pid
+Restart=always
+Type=forking
+User=logbot
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+$| = 1;
+use strict;
+use warnings;
+use local::lib;
+use v5.10;
+
+use Cwd qw( abs_path );
+use File::Find qw( find );
+use FindBin qw( $RealBin );
+use Mojo::File ();
+
+# inlines svg images into templates
+# to use, create an svg element with a class name "svg-filename"
+# the filename will be loaded from web/svg and replace the svg element
+# only the svg-filename class will be carried over into the inline svg element,
+# other classes and ids will be lost
+# eg. <svg class="svg-sidebar-collapse"></svg>
+
+my $templates_path = "$RealBin/web/templates";
+
+my $svg_path = $RealBin . '/web/svg';
+my $lib_path = $svg_path . '/font-awesome';
+die "failed to find $lib_path\n" unless -d $lib_path;
+
+my @files;
+find(
+    sub {
+        return unless -f $_ && -s $_;
+        my $file = $File::Find::name;
+        return unless $file =~ m#\.html\.ep$#;
+
+        push @files, $file;
+    },
+    $templates_path
+);
+
+foreach my $file (sort @files) {
+    my $orig = Mojo::File->new($file)->slurp();
+    (my $tmpl = $orig) =~ s{
+        <svg\sclass="svg-([^"]+)".+?</svg>
+    }{
+        svg($1)
+    }gxe;
+
+    next if $orig eq $tmpl;
+    say substr($file, length($templates_path) + 1);
+    Mojo::File->new($file)->spurt($tmpl);
+    say 'inline-svg: updated ', substr($file, length($RealBin) + 1);
+}
+
+sub svg {
+    my ($name) = @_;
+    my $file =
+        -e "$lib_path/$name.svg"
+        ? "$lib_path/$name.svg"
+        : "$svg_path/$name.svg";
+    die "failed to find $name.svg\n" unless -e $file;
+    my $svg = Mojo::File->new($file)->slurp();
+    $svg =~ s/^<svg /<svg class="svg-$name" /;
+    $svg =~ s/\s+$//;
+    return $svg;
+}

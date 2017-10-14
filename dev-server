@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+$| = 1;
+use local::lib;
+use strict;
+use warnings;
+use v5.10;
+
+use File::Glob qw( bsd_glob );
+use Mojo::File          ();
+use Mojo::Server::Morbo ();
+use Time::HiRes qw( sleep );
+
+$ENV{DEBUG} = 1;
+$ENV{LOGBOT_CONFIG} = join(',', @ARGV) || '_development';
+
+die "failed to find makefile\n" unless -e 'makefile';
+
+# asset watch
+my $pid = fork();
+if (defined($pid) && $pid == 0) {
+    my $make = Make->new();
+    while (1) {
+        $make->execute() if $make->updated();
+        sleep(0.25);
+    }
+}
+
+# web server
+my $morbo = Mojo::Server::Morbo->new();
+$morbo->backend->watch(['web/templates/', 'web/templates/layouts/', 'lib/LogBot']);
+$morbo->run('logbot-web');
+
+package Make;
+use strict;
+use v5.10;
+use warnings;
+
+use Config qw ( %Config );
+use File::Basename qw( basename );
+use File::Find qw( find );
+use FindBin qw( $RealBin );
+use POSIX qw( WEXITSTATUS WIFEXITED WIFSIGNALED WTERMSIG );
+
+sub new {
+    my ($class) = @_;
+    return bless({ ts => 0, first => 1 }, $class);
+}
+
+sub execute {
+    my ($self) = @_;
+    if ($self->{clean}) {
+        run('make', 'clean');
+        delete $self->{clean};
+    }
+    my @command = ('make');
+    push @command, '--quiet' if delete $self->{first};
+    run(@command);
+}
+
+sub updated {
+    my ($self) = @_;
+
+    if ((stat 'makefile')[9] != $self->{ts}) {
+        $self->{clean}    = $self->{ts} != 0;
+        $self->{ts}       = (stat 'makefile')[9];
+        $self->{files}    = $self->_prerequisites();
+        $self->{files_ts} = {};
+    }
+
+    my $updated = 0;
+    foreach my $file (@{ $self->{files} }) {
+        if (!-e $file) {
+            $self->{ts} = 0;
+            $updated = 1;
+        } else {
+            my $ts = (stat $file)[9];
+            if ($ts != ($self->{files_ts}->{$file} // 0)) {
+                $updated = 1;
+            }
+            $self->{files_ts}->{$file} = $ts;
+        }
+    }
+    return $updated;
+}
+
+sub _prerequisites {
+    my ($self) = @_;
+    my @files;
+    push @files, glob("$RealBin/web/*.js"),      glob("$RealBin/web/*.sass");
+    push @files, glob("$RealBin/web/svg/*.svg"), glob("$RealBin/web/svg/font-awesome/*.svg");
+    return \@files;
+}
+
+sub run {
+    my @command = @_;
+    my $exec    = shift @command;
+    system($exec, @command);
+    my $error = $?;
+    die sprintf(qq#"%s" failed to start: "%s"\n#, $exec, $!) if $error == -1;
+    if (WIFEXITED($error)) {
+        my $exit_val = WEXITSTATUS($error);
+        return if $exit_val == 0;
+        print "\7";
+    } elsif (WIFSIGNALED($error)) {
+        my $signal_no   = WTERMSIG($error);
+        my @sig_names   = split(' ', $Config{sig_name});
+        my $signal_name = $sig_names[$signal_no] // 'UNKNOWN';
+        die sprintf(qq#"%s" died to signal "%s" (%d)\n#, basename($exec), $signal_name, $signal_no);
+    }
+}
+
+1;

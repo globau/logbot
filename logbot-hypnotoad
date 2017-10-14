@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use Mojo::Server::Hypnotoad ();
+use Mojo::Util qw( getopt );
+
+#<<<
+getopt
+    'redirector'    => \$ENV{LOGBOT_REDIRECT},
+    'default=s'     => \$ENV{LOGBOT_DEFAULT_URL},
+    'pid-file=s'    => \$ENV{LOGBOT_PID_FILE},
+    'listen-port=i' => \$ENV{LOGBOT_PORT},
+    'stop'          => \$ENV{HYPNOTOAD_STOP};
+#>>>
+
+chdir($RealBin);
+Mojo::Server::Hypnotoad->new->run($ENV{LOGBOT_REDIRECT} ? 'logbot-redirect' : 'logbot-web');

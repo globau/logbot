@@ -1,0 +1,17 @@
+this document is under construction.
+
+the very high level install steps for a production deployment are:
+- install cpanm and the local::lib perl library at a system level
+- create a user specifically for logbot
+- clone repo
+- run `cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .`
+- copy etc/_sample.yml to etc/network.yml (eg. etc/mozilla.yml)
+- edit etc/network.yml and set all the values as required
+- run logbot-irc and logbot-consumer as daemons (eg. using systemd)
+- run logbot-nightly and logbot-backup nightly (eg. using cron)
+- figure out how you're going to run the mojolicous logbot-web app
+  - http://mojolicious.org/perldoc/Mojolicious/Guides/Cookbook#DEPLOYMENT
+  - i'm using:
+    - logbot-hypnotoad under systemd (hypnotoad wrapper around logbot-web)
+    - apache-httpd with reverse proxy hitting logbot-hypnotoad
+    - the docs/ directory contains my systemd and apache-httpd confs

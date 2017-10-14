@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+BEGIN { $ENV{TZ} = 'UTC' }
+
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use LogBot::Web::Util qw( rewrite_old_urls );
+use Mojolicious::Lite qw( app );
+
+# build default url
+my $default_url = $ENV{LOGBOT_DEFAULT_URL} // die "LOGBOT_DEFAULT_URL not set";
+$default_url =~ s#^https?://##;
+$default_url = 'https://' . $default_url;
+
+sub redirect {
+    my ($c) = @_;
+
+    # redirect old urls
+    if (my $url = rewrite_old_urls($c)) {
+        say "redirecting old url to $url" if $ENV{DEBUG};
+        $c->stash(redirect_to => $url);
+        $c->render('redirect');
+
+        # redirect to default network
+    } else {
+        say "redirecting to $default_url" if $ENV{DEBUG};
+        $c->redirect_to($default_url);
+    }
+}
+
+# static file with timestamp
+my %cache;
+helper static => sub {
+    my ($self, $file) = @_;
+    return $cache{static}->{$file} //= '/static/' . $file . '?' . (stat($RealBin . '/web/public/static/' . $file))[9];
+};
+
+# configure mojo
+app->secrets('!logbot!');
+app->renderer->paths([$RealBin . '/web/templates']);
+app->static->paths([$RealBin . '/web/public']);
+app->config(
+    hypnotoad => {
+        listen => ['http://127.0.0.1:' . ($ENV{LOGBOT_PORT} // 3001)],
+        pid_file => ($ENV{LOGBOT_PID_FILE} // $RealBin . '/logbot-web.pid'),
+    },
+);
+
+get '/'  => \&redirect;
+get '/*' => \&redirect;
+
+app->start;

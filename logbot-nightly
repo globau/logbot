@@ -1,0 +1,153 @@
+#!/usr/bin/perl
+# update channel metadata, etc
+
+BEGIN {
+    $ENV{TZ}   = 'UTC';
+    $ENV{CRON} = !$ENV{DEBUG};
+}
+
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use File::Path qw( make_path );
+use JSON ();
+use JSON::XS qw( encode_json );
+use LogBot::Config qw( find_config load_all_configs load_config save_config );
+use LogBot::Database qw( dbh );
+use LogBot::Util qw( file_for logbot_init nick_hash nick_is_bot path_for spurt );
+
+use constant ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
+
+my @configs;
+if (@ARGV && $ARGV[0] eq '--all') {
+    shift;
+    @configs = values %{ load_all_configs() };
+} else {
+    push @configs, load_config(find_config(shift));
+}
+@configs || die "syntax: syntax: logbot-nightly <config file|--all>\n";
+
+foreach my $config (@configs) {
+    logbot_init($config, quiet => 1);
+
+    foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
+        next if $config->{channels}->{$channel}->{no_logs};
+        say $config->{name}, ': ', $channel if $ENV{DEBUG};
+
+        # generate data for about #channel
+        generate_meta($config, file_for($config, 'meta', $channel, 'meta'), $channel);
+        generate_hours($config, file_for($config, 'meta', $channel, 'hours'), $channel);
+        generate_nicks($config, file_for($config, 'meta', $channel, 'nicks'), $channel);
+    }
+
+    # stop logging and leave stale channels
+    archive_stale_channels($config);
+}
+
+sub generate_meta {
+    my ($config, $output_file, $channel) = @_;
+    my $dbh = dbh($config);
+
+    my $first_event =
+        $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time ASC LIMIT 1", undef, $channel);
+    my $event_size =
+        $dbh->selectrow_array("SELECT SUM(LENGTH(text) + LENGTH(nick)) FROM logs WHERE channel = ?", undef, $channel);
+
+    my $json = {
+        first_time => $first_event,
+        event_size => $event_size,
+    };
+    spurt($output_file, encode_json($json));
+}
+
+sub generate_hours {
+    my ($config, $output_file, $channel) = @_;
+    my $dbh = dbh($config);
+
+    my $sql = '
+        SELECT CAST(time % (24 * 3600) AS INT), COUNT(*)
+          FROM logs
+         WHERE channel = ?
+         GROUP BY CAST(time % (24 * 3600) AS INT)
+    ';
+
+    my %values;
+    foreach my $row (@{ $dbh->selectall_arrayref($sql, undef, $channel) }) {
+        my ($ss, $value) = @$row;
+        my $hh = sprintf("%.1f", $ss / (60 * 60));
+        $hh = "0.0" if $hh == 24;
+        $values{$hh} += $value;
+    }
+
+    my @data;
+    for (my $hh = 0; $hh < 24; $hh += 0.1) {
+        $hh = sprintf("%.1f", $hh);
+        push @data, [$hh * 1.0, ($values{$hh} || 0) * 1];
+    }
+
+    my $json = {
+        data  => \@data,
+        lines => {
+            show => JSON::true,
+            fill => JSON::true,
+        },
+    };
+    spurt($output_file, encode_json($json));
+}
+
+sub generate_nicks {
+    my ($config, $output_file, $channel) = @_;
+    my $dbh = dbh($config);
+
+    my $sql = '
+        SELECT nick, COUNT(*) AS count
+          FROM logs
+         WHERE channel = ?
+         GROUP BY nick
+         ORDER BY COUNT(*) DESC, nick ASC
+         LIMIT 20
+    ';
+
+    my $data = $dbh->selectall_arrayref($sql, { Slice => {} }, $channel);
+
+    my $json = [];
+    foreach my $event (@$data) {
+        $event->{hash} = nick_hash($event->{nick});
+        $event->{bot} = nick_is_bot($config, $event->{nick});
+        push @$json, $event;
+    }
+
+    spurt($output_file, encode_json($json));
+}
+
+sub archive_stale_channels {
+    my ($config) = @_;
+
+    my $now    = time();
+    my $reload = 0;
+    foreach my $channel (sort keys %{ $config->{channels} }) {
+        next if $config->{channels}->{$channel}->{disabled};
+        next if $config->{channels}->{$channel}->{archived};
+
+        my $dbh = dbh($config);
+        my $last_time =
+            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef,
+            $channel);
+
+        next unless $last_time;
+        next unless $now - $last_time > ARCHIVE_TIME;
+
+        say $config->{name}, ': archiving ', $channel if $ENV{DEBUG};
+        $config->{channels}->{$channel}->{archived} = 1;
+        save_config($config);
+    }
+
+    if ($reload) {
+        system("$RealBin/logbot-irc", $config->{_internal}->{file}, '--reload');
+    }
+}

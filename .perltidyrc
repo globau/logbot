@@ -1,0 +1,16 @@
+--block-brace-tightness=1
+--brace-tightness=1
+--closing-token-indentation=0
+--continuation-indentation=4
+--cuddled-else
+--ignore-side-comment-lengths
+--indent-columns=4
+--maximum-line-length=120
+--minimum-space-to-comment=2
+--nobrace-left-and-indent
+--nooutdent-labels
+--nooutdent-long-lines
+--nospace-for-semicolon
+--opening-token-right
+--paren-tightness=2
+--square-bracket-tightness=2

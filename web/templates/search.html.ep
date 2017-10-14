@@ -1,0 +1,138 @@
+% layout 'logbot';
+
+% use DateTime ();
+% use List::Util qw( any );
+% use LogBot::Util qw( time_to_ymd time_to_datestr );
+% use LogBot::Web::Util qw( url_for_channel );
+% use Time::Duration qw( ago );
+
+% my $last_channel = $ch eq '' ? $last_c : $ch;
+
+<div id="search-form">
+
+  <div class="search-field">
+    <div class="search-label">Query</div>
+    <div class="search-input">
+      <input type="text" name="q" id="search-query" placeholder="Search" value="<%= $q %>">
+    </div>
+  </div>
+
+  <div class="search-field">
+    <div class="search-label">Channels</div>
+    <div class="search-input">
+      <div>
+        <input type="radio" id="search-channel-all" name="ch" value="" <%= 'checked' if $ch eq '' %>>
+        <label for="search-channel-all">All channels</label>
+        % if ($last_channel) {
+          <input type="radio" id="search-channel-single" name="ch" value="<%= substr($last_channel, 1) %>" <%= 'checked' if $ch %>>
+          <label for="search-channel-single"><%= $last_channel %></label>
+        % }
+        <input type="radio" id="search-channel-custom" name="ch" value="c" <%= 'checked' if @$chs %>>
+        <label for="search-channel-custom">Specific Channels</label>
+      </div>
+      <div id="search-channel-multi" class="default-display-none">
+        <select name="chs" id="search-channels" multiple size="5">
+          % foreach my $channel (@$channels) {
+            <option <%= 'selected' if any { $_ eq $channel->{name} } @$chs %>><%= $channel->{name} %></option>
+          % }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-field">
+    <div class="search-label">When</div>
+    <div class="search-input">
+      <div>
+        <input type="radio" id="search-when-all" name="w" value="a" <%= 'checked' if $w eq 'a' %>>
+        <label for="search-when-all">All Time</label>
+        <input type="radio" id="search-when-recently" name="w" value="r" <%= 'checked' if $w eq 'r' %>>
+        <label for="search-when-recently" title="Within the last three months">Recently</label>
+        <input type="radio" id="search-when-custom" name="w" value="c" <%= 'checked' if $w eq 'c' %>>
+        <label for="search-when-custom">Specific Range</label>
+      </div>
+      <div id="search-when-range" class="default-display-none">
+        Between <input type="text" id="search-when-from" name="f" value="<%= $f %>">
+        and <input type="text" id="search-when-to" name="t" value="<%= $t %>">
+      </div>
+    </div>
+  </div>
+
+  <div class="search-field">
+    <div class="search-label">Who</div>
+    <div class="search-input">
+      <input type="text" id="search-who" name="n" placeholder="Anybody" value="<%= $n %>">
+      <input type="checkbox" id="search-ignore-bots" name="i" value="1" <%= 'checked' if $i %>>
+      <label for="search-ignore-bots">Exclude Bots</label>
+    </div>
+  </div>
+
+  <div class="search-field">
+    <div class="search-label">Using</div>
+    <div class="search-input">
+      <input type="radio" id="search-using-ft" name="ft" value="y" <%= 'checked' if $ft eq 'y' %>>
+      <label for="search-using-ft">Natural Language</label>
+      <input type="radio" id="search-using-like" name="ft" value="n" <%= 'checked' if $ft eq 'n' %>>
+      <label for="search-using-like">Exact Match (Slower)</label>
+    </div>
+  </div>
+
+  <div class="search-field">
+    <div class="search-label"></div>
+    <div class="search-input">
+      <input type="submit" id="search-form-submit" value="Search" class="button">
+    </div>
+  </div>
+
+</div>
+
+% if ($debug ne '') {
+  <pre id="debug"><%= $debug %></pre>
+% }
+% if ($c->param('debug')) {
+  <input type="hidden" name="debug" value="1">
+% }
+
+% if ($log_count) {
+  <div id="search-count" class="notification">
+    Found <%= 'more than' if $limited %> <%= $log_count %>
+    <%= 'recent' if $w eq 'r' %>
+    result<%= 's' unless $log_count == 1 %>.
+  </div>
+% }
+
+<div id="search-logs">
+
+% foreach my $date_block (@$logs) {
+  % my $date = time_to_ymd($date_block->{date});
+  % my $channels = $date_block->{channels};
+  <div class="date"><%= time_to_datestr($date_block->{date}) %></div>
+  <ul>
+    % foreach my $channel (sort keys %$channels) {
+      <li class="channel"><%= $channel %></li>
+      % foreach my $event (@{ $channels->{$channel} }) {
+<li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
+<div class="time"><a href="<%= url_for_channel(channel => $channel, date => $date) %>#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
+<div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
+<div class="text"><%== $event->{text} %></div>
+</li>
+    % }
+  % }
+  </ul>
+% }
+
+% if ($searched && !$log_count) {
+  <div class="notification">
+    No <%= 'recent' if $w eq 'r' %> results found.
+  </div>
+% }
+% if ($last_date) {
+  <div class="last-timestamp">
+    Last Message:
+    <a href="<%= url_for_channel( channel => $channel, date => $last_date )%>">
+      <%= ago(DateTime->now()->epoch - $last_date->epoch) %>
+    </a>
+  </div>
+% }
+
+</div>

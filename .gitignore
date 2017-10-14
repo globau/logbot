@@ -1,0 +1,3 @@
+etc/*.yaml
+log/*.log
+web/build
