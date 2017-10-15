@@ -63,11 +63,17 @@ $(function() {
             e.preventDefault();
             $('html, body').animate({ scrollTop: document.body.scrollHeight || document.documentElement.scrollHeight }, 50);
         });
-    if ($('.no-events').length) {
-        $('#channel-end')
-            .attr('disabled', true)
-            .attr('href', '');
-    }
+    $(document).on('setting:hide-b', function(e, enabled) {
+        if ($('.no-events:visible').length) {
+            $('#channel-end')
+                .attr('disabled', true)
+                .attr('href', '');
+        } else {
+            $('#channel-end')
+                .attr('disabled', undefined)
+                .attr('href', '#end');
+        }
+    });
 
     // nav - network
     $('#current-network')
@@ -275,6 +281,7 @@ $(function() {
         $setting
             .find('input')
             .prop('checked', enabled);
+        $(document).trigger('setting:' + name, [ enabled ]);
     }
 
     $('#settings')
@@ -287,29 +294,10 @@ $(function() {
             $('#settings-dialog').removeClass('is-active');
         });
 
-    $('#settings-font-size')
+    $('.setting')
         .click(function() {
-            toggle_setting($(this), 'font-s');
-        });
-
-    $('#settings-nick-uncoloured')
-        .click(function() {
-            toggle_setting($(this), 'nick-u');
-        });
-
-    $('#settings-nick-wide')
-        .click(function() {
-            toggle_setting($(this), 'nick-w');
-        });
-
-    $('#settings-hide-bots')
-        .click(function() {
-            toggle_setting($(this), 'hide-b');
-        });
-
-    $('#settings-normal-bots')
-        .click(function() {
-            toggle_setting($(this), 'norm-b');
+            var $this = $(this);
+            toggle_setting($this, $this.data('setting'));
         });
 
     $('#settings-container .setting')
@@ -446,6 +434,12 @@ $(function() {
             }
         });
     }
+
+    $('.setting').each(function() {
+        var $this = $(this);
+        var name = $this.data('setting');
+        $(document).trigger('setting:' + name, [ $('body').hasClass(name) ]);
+    });
 
     initialising = false;
 });

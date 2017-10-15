@@ -134,7 +134,7 @@
 
       <div id="end-container" class="nav-button">
         <a id="channel-end" class="button is-white" title="Scroll to last message" alt="Scroll to last message"
-            href="#end">
+            href="#end" <%= 'disabled' if ($event_count == 0) || ($hide_b && ($event_count == $bot_event_count)) %>>
           <span class="icon is-small">
             <svg class="svg-channel-end" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M230.9 64c8.8 0 16 7.2 16 16v144h93.9c7.1 0 10.7 8.6 5.7 13.6L203.3 381.2c-6.3 6.3-16.4 6.3-22.7 0l-143-143.6c-5-5-1.5-13.6 5.7-13.6h93.9V80c0-8.8 7.2-16 16-16h77.7m0-32h-77.7c-26.5 0-48 21.5-48 48v112H43.3c-35.5 0-53.5 43-28.3 68.2l143 143.6c18.8 18.8 49.2 18.8 68 0l143.1-143.5c25.1-25.1 7.3-68.2-28.3-68.2h-61.9V80c0-26.5-21.6-48-48-48zM384 468v-8c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v8c0 6.6 5.4 12 12 12h360c6.6 0 12-5.4 12-12z"/></svg>
           </span>
@@ -210,19 +210,19 @@
     <div class="modal-background"></div>
     <div class="modal-content">
       <div id="settings-container">
-        <div id="settings-font-size" class="setting">
+        <div data-setting="font-s" class="setting">
           <input type="checkbox" <%= "checked" if $font_s %>> Use smaller text
         </div>
-        <div id="settings-nick-uncoloured" class="setting">
+        <div data-setting="nick-u" class="setting">
           <input type="checkbox" <%= "checked" if $nick_u %>> Don't colourise nicknames
         </div>
-        <div id="settings-nick-wide" class="setting">
+        <div data-setting="nick-w" class="setting">
           <input type="checkbox" <%= "checked" if $nick_w %>> Use wider column for nicknames
         </div>
-        <div id="settings-hide-bots" class="setting">
+        <div data-setting="hide-b" class="setting">
           <input type="checkbox" <%= "checked" if $hide_b %>> Hide IRC bots
         </div>
-        <div id="settings-normal-bots" class="setting">
+        <div data-setting="norm-b" class="setting">
           <input type="checkbox" <%= "checked" if $norm_b %>> Don't desaturate bots
         </div>
         <div id="settings-close-container">

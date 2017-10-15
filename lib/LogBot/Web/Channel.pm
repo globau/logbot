@@ -50,10 +50,8 @@ sub logs {
     return $c->render('index') unless $c->stash('channel');
 
     $c->stash(
-        logs            => undef,
-        event_count     => 0,
-        bot_event_count => 0,
-        last_date       => undef,
+        logs      => undef,
+        last_date => undef,
     );
 
     my $dbh = dbh($config, cached => 1);
