@@ -2,6 +2,8 @@
 
 > IRC logger and publisher.
 
+https://logbot.info/
+
 # About
 
 LogBot is comprised of three main parts:
