@@ -176,18 +176,21 @@ sub shorten_url {
     $value =~ s{^https?://(?:www\.)?}{};
     $value =~ s{/$}{};
 
-    # shorten links to bugs
+    # bmo
     $value =~ s{^bugzilla\.mozilla\.org/show_bug\.cgi\?id=(\d+)}{bugzilla.mozilla.org/$1}
         && return $value;
 
-    # shorten mercurial urls
-    $value =~ s{^hg\.mozilla\.org/integration/((?:[^/]+/)+rev/[0-9a-f]+)$}{$1}
+    # hgmo
+    $value =~ s{^hg\.mozilla\.org/(?:(?:integration|releases)/)?([^/]+)/rev/([0-9a-f]+)$}{$1/$2}
         && return $value;
-    $value =~ s{^hg\.mozilla\.org/((?:[^/]+/)+rev/[0-9a-f]+)$}{$1}
+    $value =~ s{^hg\.mozilla\.org/(?:[^/]+/)?([^/]+)/pushloghtml\?startID=(\d+)&endID=(\d+)}{$1 pushlog:$2-$3}
         && return $value;
 
     # github
-    $value =~ s{^github\.com/([^/]+/[^/]+)/(pull|issues|label)/(.+)}{github $1 $2:$3};
+    $value =~ s{^github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)}{$1 #$2}
+        && return $value;
+    $value =~ s#^github\.com/([^/]+/[^/]+)/commit/([a-z0-9]{7})(?:[a-z0-9]{33})?#$1 $2#
+        && return $value;
 
     # treeherder
     $value =~ s{^treeherder\.mozilla\.org/#/jobs\?repo=([^&]+)&amp;revision=([0-9a-f]+)$}{treeherder $1:$2}
