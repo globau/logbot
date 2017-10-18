@@ -10,12 +10,13 @@ use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
 use LogBot::Web::Util qw( rewrite_old_urls );
+use Mojo::URL ();
 use Mojolicious::Lite qw( app );
 
 # build default url
 my $default_url = $ENV{LOGBOT_DEFAULT_URL} // die "LOGBOT_DEFAULT_URL not set";
-$default_url =~ s#^https?://##;
-$default_url = 'https://' . $default_url;
+$default_url = 'https://' . $default_url unless $default_url =~ m#^https?://#;
+$default_url = Mojo::URL->new($default_url);
 
 sub redirect {
     my ($c) = @_;
@@ -28,8 +29,10 @@ sub redirect {
 
         # redirect to default network
     } else {
-        say "redirecting to $default_url" if $ENV{DEBUG};
-        $c->redirect_to($default_url);
+        my $url = $default_url->clone();
+        $url->query($c->req->url->query);
+        say "redirecting to $url" if $ENV{DEBUG};
+        $c->redirect_to($url);
     }
 }
 
