@@ -3,6 +3,21 @@ $(function() {
     var initialising = true;
     var current_channel = $('#channel').data('name');
 
+    // keyboard shortcuts
+
+    $('body')
+        .keyup(function(e) {
+            if (e.which === 27) {
+                // esc --> toggle sidebar
+                if ($('#settings-dialog').is(':visible')) {
+                    $('#settings-close').click();
+                } else {
+                    $('#collapse-sidebar').click();
+                }
+            }
+            console.log(e.which);
+        });
+
     // collapse sidebar
 
     function set_sidebar_cookie(value) {
@@ -12,7 +27,7 @@ $(function() {
     function set_sidebar_collapse_title() {
         $('#collapse-sidebar').attr('title',
             $('body').hasClass('menu-c')
-            ? 'Show Channels' : 'Hide Channels'
+            ? 'Show Channels (Esc)' : 'Hide Channels (Esc)'
         );
     }
 
