@@ -15,7 +15,6 @@ $(function() {
                     $('#collapse-sidebar').click();
                 }
             }
-            console.log(e.which);
         });
 
     // collapse sidebar
