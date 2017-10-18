@@ -179,6 +179,7 @@ $pid && die "logbot-irc (" . $config->{name} . ") is already running\n";
 logbot_init($config);
 
 # consts
+use constant INITIAL_PING_DELAY     => 3 * 60;
 use constant MAX_RECONNECT_INTERVAL => 3 * 60;
 use constant PING_INTERVAL          => 60;
 use constant PING_TIMEOUT           => 30;
@@ -204,7 +205,7 @@ while (1) {
             # connected, setup initial state
             delete $state->{backoff};
             $state->{reload}        = 1;
-            $state->{next_ping}     = time() + PING_INTERVAL;
+            $state->{next_ping}     = time() + INITIAL_PING_DELAY;
             $state->{pong_timeouts} = 0;
         }
         catch {
