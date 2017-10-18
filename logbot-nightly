@@ -33,7 +33,7 @@ if (@ARGV && $ARGV[0] eq '--all') {
 @configs || die "syntax: syntax: logbot-nightly <config file|--all>\n";
 
 foreach my $config (@configs) {
-    logbot_init($config, quiet => 1);
+    logbot_init($config, name => 'logbot-nightly', quiet => 1);
 
     foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
         next if $config->{channels}->{$channel}->{no_logs};

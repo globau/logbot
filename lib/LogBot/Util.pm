@@ -39,7 +39,8 @@ sub logbot_init {
     $Data::Dumper::Terse    = 1;
     $Data::Dumper::Sortkeys = 1;
 
-    $0 = basename($0);
+    my $name = $params{name} // basename($0);
+    $0 = $name;
     $pid_file = file_for($config, 'pid', $0);
     spurt($pid_file, "$$\n");
     $0 .= ' (' . $config->{name} . ')';
