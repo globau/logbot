@@ -136,6 +136,7 @@ sub load_all_configs {
         $all_configs_hash = $hash;
     }
 
+    $all_configs // die "failed to find any configs\n";
     return $all_configs;
 }
 

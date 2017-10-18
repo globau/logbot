@@ -26,7 +26,7 @@ use constant ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
 my @configs;
 if (@ARGV && $ARGV[0] eq '--all') {
     shift;
-    @configs = values %{ load_all_configs() // die "failed to find any configs" };
+    @configs = values %{ load_all_configs() };
 } else {
     push @configs, load_config(find_config(shift));
 }
