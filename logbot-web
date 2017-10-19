@@ -142,7 +142,7 @@ get '/' => sub {
 };
 
 # /channel => redirect to current date
-get '/:channel' => sub {
+get '/#channel' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
@@ -153,7 +153,7 @@ get '/:channel' => sub {
 };
 
 # /channel/date => show logs
-get '/:channel/:date' => [date => qr/\d{8}/] => sub {
+get '/#channel/:date' => [date => qr/\d{8}/] => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
@@ -182,7 +182,7 @@ get '/:channel/:date' => [date => qr/\d{8}/] => sub {
     LogBot::Web::Channel::logs($c);
 };
 
-get '/:channel/:date/raw' => [date => qr/\d{8}/] => sub {
+get '/#channel/:date/raw' => [date => qr/\d{8}/] => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
@@ -198,7 +198,7 @@ get '/:channel/:date/raw' => [date => qr/\d{8}/] => sub {
     LogBot::Web::Channel::raw($c);
 };
 
-get '/:channel/stats' => sub {
+get '/#channel/stats' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
@@ -206,21 +206,21 @@ get '/:channel/stats' => sub {
     LogBot::Web::Stats::render($c);
 };
 
-get '/:channel/stats/meta' => sub {
+get '/#channel/stats/meta' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
     $c->render(json => LogBot::Web::Stats::meta($c, $channel));
 };
 
-get '/:channel/stats/hours' => sub {
+get '/#channel/stats/hours' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
     $c->render(text => LogBot::Web::Stats::hours($c, $channel), format => 'json');
 };
 
-get '/:channel/stats/nicks' => sub {
+get '/#channel/stats/nicks' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
