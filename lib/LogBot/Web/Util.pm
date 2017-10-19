@@ -103,7 +103,7 @@ sub irc_host {
         $url = 'ircs://' . $url;
         $url =~ s/:6697$//;
     } elsif ($params{url}) {
-        $url = 'irc://' . $url;
+        $url = ($url =~ /:6697$/ ? 'ircs' : 'irc') . '://' . $url;
         $url =~ s/:6667$//;
     }
 
