@@ -3,6 +3,14 @@ $(function() {
     var initialising = true;
     var current_channel = $('#channel').data('name');
 
+    // always collapse the sidebar on tiny screens
+
+    var is_tiny_screen = !$('#not-tiny-screen').is(':visible');
+    if (is_tiny_screen) {
+        $('body').addClass('menu-c');
+        set_sidebar_cookie(true);
+    }
+
     // keyboard shortcuts
 
     $('body')
@@ -34,7 +42,7 @@ $(function() {
         .click(function() {
             $('body').toggleClass('menu-c');
             set_sidebar_collapse_title();
-            set_sidebar_cookie($('body').hasClass('menu-c'));
+            set_sidebar_cookie(is_tiny_screen || $('body').hasClass('menu-c'));
         });
 
     set_sidebar_collapse_title();

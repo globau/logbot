@@ -735,7 +735,36 @@ body
 
 // small screens
 
+@media (max-width: 479px)
+  body
+    &:not(.font-s), &.font-s
+      #logs
+        .time
+          display: inline-block
+          position: static
+
+        .nick
+          display: inline
+          font-weight: bold
+          margin-left: 0
+          position: static
+
+        .action
+          display: inline
+          margin-left: 0
+
+        .text
+          display: inline
+          margin-left: 1em
+
+      &:not(.menu-c)
+        #reload-container, #stats-container, #search-container
+          display: none
+
 @media (max-width: 640px)
+  #not-tiny-screen
+    display: none
+
   #nav
     #search-nav, #loc-container, #raw-container, #end-container
       display: none

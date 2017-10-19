@@ -234,6 +234,8 @@
   </div>
   </form>
 
+  <div id="not-tiny-screen"></div>
+
   <script src="<%= static('logbot.min.js') %>"></script>
 </body>
 </html>
