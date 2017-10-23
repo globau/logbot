@@ -83,7 +83,7 @@ $(function() {
     $('#channel-end')
         .click(function(e) {
             e.preventDefault();
-            $('html, body').animate({ scrollTop: document.body.scrollHeight || document.documentElement.scrollHeight }, 50);
+            $('html, body').scrollTop($('#logs').height() - $(window).height() + $('#nav').height() + 8);
         });
     $(document).on('setting:hide-b', function(e, enabled) {
         if ($('.no-events:visible').length) {
