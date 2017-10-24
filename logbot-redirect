@@ -29,8 +29,10 @@ sub redirect {
 
         # redirect to default network
     } else {
-        my $url = $default_url->clone();
-        $url->query($c->req->url->query);
+        my $req_url = $c->req->url;
+        my $url     = $default_url->clone();
+        $url->path($req_url->path);
+        $url->query($req_url->query);
         say "redirecting to $url" if $ENV{DEBUG};
         $c->redirect_to($url);
     }
