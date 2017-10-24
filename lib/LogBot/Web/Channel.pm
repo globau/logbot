@@ -23,13 +23,11 @@ sub _get_logs {
         "FROM logs\n" .
         "WHERE (channel = ?) AND (time >= " . $start_time . ") AND (time < " . $end_time . ")\n" .
         "ORDER BY time ASC";
-    #<<<
+    #>>>
 
     my $logs = execute_with_timeout($dbh, $sql, [$c->stash('channel')], 5);
     unless (defined $logs) {
-        $c->stash(
-            error           => 'Request took too long to process and has been cancelled.',
-        );
+        $c->stash(error => 'Request took too long to process and has been cancelled.',);
         $c->render('channel');
         return undef;
     }
@@ -52,6 +50,8 @@ sub logs {
     $c->stash(
         logs      => undef,
         last_date => undef,
+        skip_prev => undef,
+        skip_next => undef,
     );
 
     my $dbh = dbh($config, cached => 1);
@@ -78,6 +78,25 @@ sub logs {
         my $last = DateTime->from_epoch(epoch => $last_time);
         if ($last->clone->truncate(to => 'day') <= $c->stash('date')->truncate(to => 'day')) {
             $last_date = $last;
+        }
+    }
+
+    # provide next/prev for skipping empty spans
+    if (!$last_date && !@$logs) {
+        my $time = $c->stash('date')->epoch;
+
+        my $skip_prev_time = $dbh->selectrow_array(
+            "SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1",
+            undef, $c->stash('channel'), $time);
+        if ($skip_prev_time) {
+            $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
+        }
+
+        my $skip_next_time = $dbh->selectrow_array(
+            "SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1",
+            undef, $c->stash('channel'), $time);
+        if ($skip_next_time) {
+            $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));
         }
     }
 

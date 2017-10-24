@@ -3,7 +3,7 @@
 % use DateTime ();
 % use LogBot::Util qw( time_to_ymd time_to_datestr );
 % use LogBot::Web::Util qw( url_for_channel );
-% use Time::Duration qw( ago );
+% use Time::Duration qw( ago earlier later );
 
 <div id="logs" data-url="<%= $config->{url} %>">
 
@@ -30,6 +30,21 @@
 % if ($event_count == 0) {
   <div class="notification no-events" id="no-events">
     No messages for <%= time_to_datestr($date->epoch) %>.
+  </div>
+  <div class="last-timestamp">
+    % if ($skip_prev) {
+      &laquo;
+      <a title="Skip empty days"
+         href="<%= url_for_channel( channel => $channel, date => $skip_prev )%>"><%= earlier($date->epoch - $skip_prev->epoch) %></a>
+    % }
+    % if ($skip_prev && $skip_next) {
+      &middot;
+    % }
+    % if ($skip_next) {
+      <a title="Skip empty days"
+         href="<%= url_for_channel( channel => $channel, date => $skip_next )%>"><%= later($skip_next->epoch - $date->epoch) %></a>
+      &raquo;
+    % }
   </div>
 % } elsif ($event_count == $bot_event_count) {
   <div class="notification no-events" id="no-filtered-events">
