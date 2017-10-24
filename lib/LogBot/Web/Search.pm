@@ -95,8 +95,8 @@ sub render {
                     'SELECT logs_fts.rowid ' .
                     'FROM logs_fts ' .
                     'WHERE logs_fts MATCH ? ' .
-                    'ORDER BY time ' .
-                    'DESC LIMIT ' . (SEARCH_LIMIT  + 1) . ')';
+                    'ORDER BY time)';
+                #>>>
                 push @values, $quoted_q;
             }
 
@@ -125,9 +125,9 @@ sub render {
         push @where, 'time >= ' . $today->subtract(months => 3)->epoch;
 
     } elsif ($c->stash('w') eq 'c') {
-        my $today = DateTime->today->epoch();
+        my $today     = DateTime->today->epoch();
         my $from_time = ymd_to_time($c->param('f')) // $today;
-        my $to_time = ymd_to_time($c->param('t')) // $today;
+        my $to_time   = ymd_to_time($c->param('t')) // $today;
 
         if ($to_time < $from_time) {
             ($from_time, $to_time) = ($to_time, $from_time);
@@ -135,7 +135,7 @@ sub render {
 
         $c->stash(
             f => time_to_ymd($from_time, '-'),
-            t => time_to_ymd($to_time, '-'),
+            t => time_to_ymd($to_time,   '-'),
         );
 
         push @where, 'time BETWEEN ' . $from_time . ' AND ' . $to_time;
@@ -143,7 +143,7 @@ sub render {
 
     # who
     if ($n ne '') {
-        push @where, 'nick = ? COLLATE NOCASE';
+        push @where,  'nick = ? COLLATE NOCASE';
         push @values, $n;
     }
 
