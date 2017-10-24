@@ -251,6 +251,20 @@ $(function() {
         return [start_id, end_id];
     }
 
+    function highlight_from_anchor(anchor) {
+        var hl_hash = anchor.match('^#(c[0-9]+)(-(c[0-9]+))?$');
+        if (!hl_hash) {
+            return;
+        }
+        var $li = $('#' + hl_hash[1]);
+        if ($li.length) {
+            var range = highlight($li, $('#' + hl_hash[3]));
+            var offset = $li.offset();
+            $hl_anchor = $('#' + range[0]);
+            $('html, body').animate({ scrollTop: $li.offset().top - 40 }, 50);
+        }
+    }
+
     var $hl_anchor = false;
     $('#logs .time')
         .click(function(e) {
@@ -282,16 +296,15 @@ $(function() {
             }
         });
 
-    var hl_hash = document.location.hash.match('^#(c[0-9]+)(-(c[0-9]+))?$');
-    if (hl_hash) {
-        var $li = $('#' + hl_hash[1]);
-        if ($li.length) {
-            var range = highlight($li, $('#' + hl_hash[3]));
-            var offset = $li.offset();
-            $hl_anchor = $('#' + range[0]);
-            $('html, body').animate({ scrollTop: $li.offset().top - 40 }, 50);
-        }
-    }
+    highlight_from_anchor(document.location.hash);
+
+    $('#logs a')
+        .click(function(e) {
+            if (this.hash && this.href.startsWith($('#logs').data('url')) && $(this.hash).length) {
+                e.preventDefault();
+                highlight_from_anchor(this.hash);
+            }
+        });
 
     // settings dialog
 

@@ -5,7 +5,7 @@
 % use LogBot::Web::Util qw( url_for_channel );
 % use Time::Duration qw( ago );
 
-<div id="logs">
+<div id="logs" data-url="<%= $config->{url} %>">
 
 <ul>
 % foreach my $event (@$logs) {
