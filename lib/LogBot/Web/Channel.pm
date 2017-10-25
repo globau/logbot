@@ -85,15 +85,15 @@ sub logs {
     if (!$last_date && !@$logs) {
         my $time = $c->stash('date')->epoch;
 
-        my $skip_prev_time = $dbh->selectrow_array(
-            "SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1",
+        my $skip_prev_time =
+            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1",
             undef, $c->stash('channel'), $time);
         if ($skip_prev_time) {
             $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
         }
 
-        my $skip_next_time = $dbh->selectrow_array(
-            "SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1",
+        my $skip_next_time =
+            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1",
             undef, $c->stash('channel'), $time);
         if ($skip_next_time) {
             $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));

@@ -253,16 +253,15 @@ hook after_render => sub {
     my ($c, $output, $format) = @_;
     my $headers = $c->res->headers;
 
-    # <<<
+    #<<<
     $headers->header(
-              'Content-Security-Policy' => "default-src 'self'; "
-            . "object-src 'none'; "
-            . "style-src 'self' 'unsafe-inline'; "
-            .                       # unsafe-inline for chosen
-            "img-src 'self' data:"  # data: for pikaday
+        'Content-Security-Policy' => "default-src 'self'; " .
+                                     "object-src 'none'; " .
+                                     "style-src 'self' 'unsafe-inline'; " . # unsafe-inline for chosen
+                                     "img-src 'self' data:"                 # data: for pikaday
     );
 
-    # >>>
+    #>>>
 
     # no need to expose this info
     $headers->remove('Server');
