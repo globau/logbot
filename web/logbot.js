@@ -298,7 +298,7 @@ $(function() {
 
     highlight_from_anchor(document.location.hash);
 
-    $('#logs a')
+    $('#logs .text a, #logs .action a')
         .click(function(e) {
             if (this.hash && this.href.startsWith($('#logs').data('url')) && $(this.hash).length) {
                 e.preventDefault();
