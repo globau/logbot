@@ -32,26 +32,30 @@ if (@ARGV && $ARGV[0] eq '--all') {
 }
 @configs || die "syntax: syntax: logbot-nightly <config file|--all>\n";
 
-foreach my $config (@configs) {
+my %configs = map { $_->{name} => $_ } @configs;
+
+foreach my $config_name (sort keys %configs) {
+    my $config = $configs{$config_name};
     logbot_init($config, name => 'logbot-nightly', quiet => 1);
 
     foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
         next if $config->{channels}->{$channel}->{no_logs};
-        say $config->{name}, ': ', $channel if $ENV{DEBUG};
+        say $config_name, ': ', $channel if $ENV{DEBUG};
 
         # generate data for about #channel
-        generate_meta($config, file_for($config, 'meta', $channel, 'meta'), $channel);
-        generate_hours($config, file_for($config, 'meta', $channel, 'hours'), $channel);
-        generate_nicks($config, file_for($config, 'meta', $channel, 'nicks'), $channel);
+        generate_meta($config_name, file_for($config, 'meta', $channel, 'meta'), $channel);
+        generate_hours($config_name, file_for($config, 'meta', $channel, 'hours'), $channel);
+        generate_nicks($config_name, file_for($config, 'meta', $channel, 'nicks'), $channel);
     }
 
     # stop logging and leave stale channels
-    archive_stale_channels($config);
+    archive_stale_channels($config_name);
 }
 
 sub generate_meta {
-    my ($config, $output_file, $channel) = @_;
-    my $dbh = dbh($config);
+    my ($config_name, $output_file, $channel) = @_;
+    my $config = $configs{$config_name};
+    my $dbh    = dbh($config);
 
     my $first_event =
         $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time ASC LIMIT 1", undef, $channel);
@@ -66,8 +70,9 @@ sub generate_meta {
 }
 
 sub generate_hours {
-    my ($config, $output_file, $channel) = @_;
-    my $dbh = dbh($config);
+    my ($config_name, $output_file, $channel) = @_;
+    my $config = $configs{$config_name};
+    my $dbh    = dbh($config);
 
     my $sql = '
         SELECT CAST(time % (24 * 3600) AS INT), COUNT(*)
@@ -101,8 +106,9 @@ sub generate_hours {
 }
 
 sub generate_nicks {
-    my ($config, $output_file, $channel) = @_;
-    my $dbh = dbh($config);
+    my ($config_name, $output_file, $channel) = @_;
+    my $config = $configs{$config_name};
+    my $dbh    = dbh($config);
 
     my $sql = '
         SELECT nick, COUNT(*) AS count
@@ -126,7 +132,8 @@ sub generate_nicks {
 }
 
 sub archive_stale_channels {
-    my ($config) = @_;
+    my ($config_name) = @_;
+    my $config = $configs{$config_name};
 
     my $now    = time();
     my $reload = 0;
@@ -143,8 +150,11 @@ sub archive_stale_channels {
         next unless $now - $last_time > ARCHIVE_TIME;
 
         say $config->{name}, ': archiving ', $channel if $ENV{DEBUG};
+
+        $config = reload_config($config);
         $config->{channels}->{$channel}->{archived} = 1;
         save_config($config);
+        $configs{$config_name} = $config;
     }
 
     if ($reload) {
