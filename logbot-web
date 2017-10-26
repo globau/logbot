@@ -141,6 +141,21 @@ get '/' => sub {
     }
 };
 
+# contribute.json
+get '/contribute.json' => sub {
+    my ($c) = @_;
+    $c->render(
+        json => {
+            name        => 'logbot.info',
+            description => 'IRC logging',
+            repository  => {
+                url     => 'https://github.com/globau/logbot',
+                license => 'MIT',
+            },
+        }
+    );
+};
+
 # /channel => redirect to current date
 get '/#channel' => sub {
     my ($c) = @_;
