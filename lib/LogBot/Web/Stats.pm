@@ -78,7 +78,7 @@ sub meta {
         last_ago    => $last_ago,
         event_count => $event_count,
         event_size  => $event_size,
-        activity    => $activity . ' events/day (last 6 months)',
+        activity    => $activity . ' event' . ($activity == 1 ? '' : 's') . '/day (last 6 months)',
     };
 }
 
