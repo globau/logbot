@@ -348,6 +348,53 @@ $(function() {
             }
         );
 
+    // relative time
+
+    function time_ago(ss) {
+        var mm = Math.round(ss / 60),
+            hh = Math.round(mm / 60),
+            dd = Math.round(hh / 24),
+            mo = Math.round(dd / 30),
+            yy = Math.round(mo / 12);
+        if (ss < 10) return 'just now';
+        if (ss < 45) return ss + ' seconds ago';
+        if (ss < 90) return 'a minute ago';
+        if (mm < 45) return mm + ' minutes ago';
+        if (mm < 90) return 'an hour ago';
+        if (hh < 24) return hh + ' hours ago';
+        if (hh < 36) return 'a day ago';
+        if (dd < 30) return dd + ' days ago';
+        if (dd < 45) return 'a month ago';
+        if (mo < 12) return mo + ' months ago';
+        if (mo < 18) return 'a year ago';
+        return yy + ' years ago';
+    }
+
+    function relative_timer() {
+        console.log('relative_timer');
+        var now = Math.floor(new Date().getTime() / 1000);
+        $('.rel-time').each(function() {
+            $(this).text(time_ago(now - $(this).data('time')));
+        });
+    }
+
+    if ($('.rel-time').length) {
+        var relative_timer_duration = 60000;
+        var relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
+        $(window)
+            .on('focus', function() {
+                relative_timer();
+                if (!relative_timer_id) {
+                    relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
+                }
+            })
+            .on('blur', function() {
+                window.clearInterval(relative_timer_id);
+                relative_timer_id = false;
+            })
+            .on('pageshow', relative_timer);
+    }
+
     // coloured nicks
 
     function colourise_nicks() {
@@ -400,11 +447,11 @@ $(function() {
             method: 'GET',
             dataType: 'json',
             success: function(series) {
-				var $container = $('#hours-plot');
+                var $container = $('#hours-plot');
 
-				$container
-				    .text('')
-				    .removeClass('loading');
+                $container
+                    .text('')
+                    .removeClass('loading');
 
                 var plot = $.plot(
                     $container,

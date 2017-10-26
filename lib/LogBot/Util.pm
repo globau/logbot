@@ -15,7 +15,7 @@ our @EXPORT_OK = qw(
     timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
     event_to_string event_to_short_string
-    commify pretty_size
+    commify pretty_size time_ago
 );
 use parent 'Exporter';
 
@@ -25,6 +25,7 @@ use File::Basename qw( basename dirname );
 use File::Path qw( make_path );
 use FindBin qw( $RealBin );
 use List::Util qw( any );
+use POSIX qw( ceil floor );
 use Time::Local qw( timelocal );
 
 my $pid_file;
@@ -226,6 +227,36 @@ sub pretty_size {
     $precision = 0 if $base == 0;
     $bytes = sprintf("%.${precision}f", $bytes);
     return $bytes . $base[$base];
+}
+
+# from Math::Round
+use constant ROUND_HALF => 0.50000000000008;
+
+sub round {
+    my @res = map { $_ >= 0 ? floor($_ + ROUND_HALF) : ceil($_ - ROUND_HALF); } @_;
+    return (wantarray) ? @res : $res[0];
+}
+
+sub time_ago {
+    my ($ss) = @_;
+    my $mm   = round($ss / 60);
+    my $hh   = round($mm / 60);
+    my $dd   = round($hh / 24);
+    my $mo   = round($dd / 30);
+    my $yy   = round($mo / 12);
+
+    return 'just now'           if $ss < 10;
+    return $ss . ' seconds ago' if $ss < 45;
+    return 'a minute ago'       if $ss < 90;
+    return $mm . ' minutes ago' if $mm < 45;
+    return 'an hour ago'        if $mm < 90;
+    return $hh . ' hours ago'   if $hh < 24;
+    return 'a day ago'          if $hh < 36;
+    return $dd . ' days ago'    if $dd < 30;
+    return 'a month ago'        if $dd < 45;
+    return $mo . ' months ago'  if $mo < 12;
+    return 'a year ago'         if $mo < 18;
+    return $yy . ' years ago';
 }
 
 1;
