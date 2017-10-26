@@ -47,16 +47,28 @@ sub meta {
         $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef, $channel));
     my $event_count = commify($dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel));
 
-    my ($first_time, $first_ago, $event_size);
+    my ($first_time, $first_ago, $event_size, $activity);
     my $meta_file = file_for($config, 'meta', $channel, 'meta');
     if (-e $meta_file) {
         my $meta = decode_json(slurp($meta_file));
+
         ($first_time, $first_ago) = event_time_to_str($meta->{first_time});
         $event_size = pretty_size($meta->{event_size});
+
+        $activity = $meta->{activity_count} / $meta->{activity_days};
+        if (sprintf('%.1f', $activity) eq '0.0') {
+            $activity = '0';
+        } elsif ($activity < 1) {
+            $activity = sprintf('%.1f', $activity);
+        } else {
+            $activity = sprintf('%.0f', $activity);
+        }
+
     } else {
         $first_time = '-';
         $first_ago  = '-';
         $event_size = '0b';
+        $activity   = '0';
     }
 
     return {
@@ -66,6 +78,7 @@ sub meta {
         last_ago    => $last_ago,
         event_count => $event_count,
         event_size  => $event_size,
+        activity    => $activity . ' events/day (last 6 months)',
     };
 }
 

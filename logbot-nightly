@@ -14,10 +14,11 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
+use DateTime ();
 use File::Path qw( make_path );
 use JSON ();
 use JSON::XS qw( encode_json );
-use LogBot::Config qw( find_config load_all_configs load_config save_config );
+use LogBot::Config qw( find_config load_all_configs load_config reload_config save_config );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( file_for logbot_init nick_hash nick_is_bot path_for spurt );
 
@@ -40,6 +41,7 @@ foreach my $config_name (sort keys %configs) {
 
     foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
         next if $config->{channels}->{$channel}->{no_logs};
+
         say $config_name, ': ', $channel if $ENV{DEBUG};
 
         # generate data for about #channel
@@ -47,6 +49,7 @@ foreach my $config_name (sort keys %configs) {
         generate_hours($config_name, file_for($config, 'meta', $channel, 'hours'), $channel);
         generate_nicks($config_name, file_for($config, 'meta', $channel, 'nicks'), $channel);
     }
+    delete $config->{channels}->{_empty};
 
     # stop logging and leave stale channels
     archive_stale_channels($config_name);
@@ -62,10 +65,20 @@ sub generate_meta {
     my $event_size =
         $dbh->selectrow_array("SELECT SUM(LENGTH(text) + LENGTH(nick)) FROM logs WHERE channel = ?", undef, $channel);
 
+    my $now   = DateTime->now();
+    my $since = $now->clone()->subtract(months => 6);
+    my $days  = $since->delta_days($now)->in_units('days');
+    my $activity_count =
+        $dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ? AND time >= " . $since->epoch,
+        undef, $channel);
+
     my $json = {
-        first_time => $first_event,
-        event_size => $event_size,
+        first_time     => $first_event,
+        event_size     => $event_size,
+        activity_count => $activity_count,
+        activity_days  => $days,
     };
+    say '  ', encode_json($json) if $ENV{DEBUG};
     spurt($output_file, encode_json($json));
 }
 

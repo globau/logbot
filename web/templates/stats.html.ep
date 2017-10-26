@@ -30,6 +30,12 @@
   <th>Event Size</th>
   <td id="event_size" class="loading">loading&hellip;</td>
 </tr>
+<tr>
+  <th></th>
+  <td></td>
+  <th>Activity</th>
+  <td id="activity" class="loading">loading&hellip;</td>
+</tr>
 </table>
 
 <h4>Channel activity by hour</h4>
