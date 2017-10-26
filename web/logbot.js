@@ -371,7 +371,6 @@ $(function() {
     }
 
     function relative_timer() {
-        console.log('relative_timer');
         var now = Math.floor(new Date().getTime() / 1000);
         $('.rel-time').each(function() {
             $(this).text(time_ago(now - $(this).data('time')));
@@ -381,18 +380,33 @@ $(function() {
     if ($('.rel-time').length) {
         var relative_timer_duration = 60000;
         var relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
-        $(window)
-            .on('focus', function() {
+
+        var hidden_event, visibility_change;
+
+        if (typeof document.hidden !== "undefined") {
+            hidden_event = "hidden";
+            visibility_change = "visibilitychange";
+        } else if (typeof document.webkitHidden !== "undefined") {
+            hidden_event = "webkitHidden";
+            visibility_change = "webkitvisibilitychange";
+        }
+
+        function handle_visibility_change() {
+            if (document[hidden_event]) {
                 relative_timer();
                 if (!relative_timer_id) {
                     relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
                 }
-            })
-            .on('blur', function() {
-                window.clearInterval(relative_timer_id);
-                relative_timer_id = false;
-            })
-            .on('pageshow', relative_timer);
+            } else {
+                relative_timer();
+                if (!relative_timer_id) {
+                    relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
+                }
+            }
+        }
+        if (hidden_event) {
+            document.addEventListener(visibility_change, handle_visibility_change);
+        }
     }
 
     // coloured nicks
