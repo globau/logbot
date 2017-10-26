@@ -146,7 +146,7 @@ get '/contribute.json' => sub {
     my ($c) = @_;
     $c->render(
         json => {
-            name        => 'logbot.info',
+            name        => 'LogBot',
             description => 'IRC logging',
             repository  => {
                 url     => 'https://github.com/globau/logbot',
