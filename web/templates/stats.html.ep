@@ -7,19 +7,19 @@
 
 <table id="events">
 <tr>
-	<th>Last Event</th>
+  <th>Last Event</th>
   <td>
     <div id="last_time" class="loading">loading&hellip;</div>
     <div id="last_ago" class="loading">&hellip;</div>
   </td>
-	<th>Logging started</th>
+  <th>Logging started</th>
   <td>
     <div id="first_time" class="loading">loading&hellip;</div>
     <div id="first_ago" class="loading">&hellip;</div>
   </td>
 </tr>
 <tr>
-	<th>It is currently</th>
+  <th>It is currently</th>
   <td><%= time_to_datetimestr($now->epoch) %></td>
   <th>Event count</th>
   <td id="event_count" class="loading">loading&hellip;</td>

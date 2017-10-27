@@ -12,6 +12,23 @@ use List::Util qw( any );
 use Mojo::File ();
 use Perl::Tidy ();
 
+# tabs
+
+find(
+    sub {
+        return unless -f $_ && -s $_;
+        my $file = substr($File::Find::name, 2);
+        return if $file =~ m#/# && $file !~ m#^(?:lib|web)/#;
+        return if basename($file) =~ m#^\.# || $file =~ m#\.(bak|swp|png|ttf)$#;
+        return if $file eq 'makefile';
+
+        my $content = Mojo::File->new("$RealBin/$file")->slurp();
+        return unless $content =~ /\t/;
+        say "\033[31m$file contains tabs\033[0m";
+    },
+    '.'
+);
+
 # tidy sass (sort selectors)
 
 foreach my $file (glob('web/*.sass')) {
