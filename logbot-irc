@@ -67,14 +67,15 @@ sub irc_send {
 
 # connect to irc server
 sub irc_connect {
-    my $ssl = $config->{irc}->{host} =~ s/^ssl:// || $config->{irc}->{host} =~ /:6697$/;
-    say timestamp(), ' -- connecting to irc on ', $config->{irc}->{host}, ($ssl ? ' (ssl)' : '');
+    my $irc_host = $config->{irc}->{host};
+    my $ssl = $irc_host =~ s/^ssl:// || $irc_host =~ /:6697$/;
+    say timestamp(), ' -- connecting to irc on ', $irc_host, ($ssl ? ' (ssl)' : '');
     if ($ssl) {
-        $connection = IO::Socket::SSL->new($config->{irc}->{host})
-            or die "connection to " . $config->{irc}->{host} . " failed: $! $SSL_ERROR\n";
+        $connection = IO::Socket::SSL->new($irc_host)
+            or die "connection to " . $irc_host . " failed: $! $SSL_ERROR\n";
     } else {
-        $connection = IO::Socket::INET->new($config->{irc}->{host})
-            or die "connection to " . $config->{irc}->{host} . " failed: $@\n";
+        $connection = IO::Socket::INET->new($irc_host)
+            or die "connection to " . $irc_host . " failed: $@\n";
     }
     IO::Socket::Timeout->enable_timeouts_on($connection);
     $connection->read_timeout(0.5);
