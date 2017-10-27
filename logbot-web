@@ -27,6 +27,7 @@ use LogBot::Web::Stats   ();
 use LogBot::Web::Util qw( channel_from_param date_from_param rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::File       ();
+use Mojo::Util qw( dumper );
 use Mojolicious::Lite qw( app );
 
 # load networks
@@ -155,6 +156,15 @@ get '/contribute.json' => sub {
         }
     );
 };
+
+# debugging
+if (!$is_production) {
+    get '/_stash' => sub {
+        my ($c) = @_;
+        $c->stash(today => $c->stash('today')->ymd());
+        $c->render(text => dumper($c->stash), format => 'txt');
+    };
+}
 
 # /channel => redirect to current date
 get '/#channel' => sub {
