@@ -15,6 +15,7 @@ use Data::Dumper qw( Dumper );
 use Encode qw( decode );
 use Encode::Guess;
 use Errno qw( ETIMEDOUT EWOULDBLOCK );
+use IO::Handle       ();
 use IO::Socket::INET ();
 use IO::Socket::SSL qw( $SSL_ERROR );
 use IO::Socket::Timeout ();
@@ -178,6 +179,7 @@ if (@ARGV) {
 }
 
 # init
+STDOUT->autoflush(1);
 $pid && die "logbot-irc (" . $config->{name} . ") is already running\n";
 logbot_init($config);
 $log = Mojo::Log->new(path => $RealBin . '/log/irc-' . $config->{name} . '.log', level => 'info');
