@@ -151,7 +151,7 @@ sub linkify {
     my $finder = URI::Find->new(
         sub {
             my ($uri, $orig_uri) = @_;
-            return '<a href="' . $uri . '">' . shorten_url($orig_uri) . '</a>';
+            return '<a href="' . $uri . '" rel="nofollow">' . shorten_url($orig_uri) . '</a>';
         }
     );
     $finder->find(\$value, \&xml_escape);
