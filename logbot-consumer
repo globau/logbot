@@ -15,7 +15,7 @@ use Data::Dumper qw( Dumper );
 use DateTime ();
 use Encode qw( encode );
 use LogBot::Config qw( find_config load_config reload_config );
-use LogBot::Database qw( dbh dbh_disconnect );
+use LogBot::Database qw( dbh dbh_disconnect execute_with_retry );
 use LogBot::JobQueue qw( delete_job fetch_job );
 use LogBot::Util qw( event_to_string logbot_init squash_error timestamp );
 use Time::HiRes qw( sleep );
@@ -70,24 +70,19 @@ while (!$quit) {
     }
 
     # insert into db
-    my $attempts = 0;
-    while ($job && !$quit) {
-        $attempts++;
-        $quit = 1 if $attempts > 20;
+    $quit = !execute_with_retry(
+        $config,
+        sub {
+            my ($dbh) = @_;
+            return 0 if $quit;
 
-        try {
-            my $dbh = dbh($config, read_write => 1, cached => 1);
             $dbh->do("INSERT INTO logs(time,channel,nick,type,text) VALUES (?,?,?,?,?)",
                 undef, $event->{time}, $event->{channel}, $event->{nick}, $event->{type}, $event->{text});
             delete_job($config, $job);
             undef $job;
 
             $tally{ $event->{channel} }++;
+            return 1;
         }
-        catch {
-            say timestamp(), ' !! ', squash_error($_);
-            dbh_disconnect($config);
-            sleep(0.5);
-        };
-    }
+    );
 }

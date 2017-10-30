@@ -10,12 +10,14 @@ use lib "$RealBin/lib";
 use DBD::SQLite ();
 use DBD::SQLite::Constants qw( :file_open );
 use DBI ();
-use LogBot::Util qw( file_for );
+use LogBot::Util qw( file_for squash_error timestamp );
+use Time::HiRes qw( sleep );
 use Try::Tiny qw( catch finally try );
 
 our @EXPORT_OK = qw(
     dbh dbh_disconnect
     execute_with_timeout
+    execute_with_retry
     replace_sql_placeholders
     like_value
 );
@@ -152,6 +154,27 @@ sub execute_with_timeout {
     };
 
     return $timed_out ? undef : $rows;
+}
+
+sub execute_with_retry {
+    my ($config, $callback, $attempts) = @_;
+
+    $attempts //= 20;
+    my $result = 0;
+    while ($attempts && !$result) {
+        try {
+            my $dbh = dbh($config, read_write => 1, cached => 1);
+            $result = $callback->($dbh);
+        }
+        catch {
+            say timestamp(), ' !! ', squash_error($_);
+            dbh_disconnect($config);
+            sleep(0.5);
+        };
+
+        $attempts--;
+    }
+    return $result;
 }
 
 sub replace_sql_placeholders {

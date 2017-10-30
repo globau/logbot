@@ -11,7 +11,7 @@ use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
 use LogBot::Config qw( find_config load_config );
-use LogBot::Database qw( dbh like_value replace_sql_placeholders );
+use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
 use LogBot::Util qw( event_to_string logbot_init );
 use Mojo::Util qw( trim );
 use Term::ReadKey qw( ReadKey ReadMode );
@@ -72,8 +72,15 @@ while (my $event = $sth->fetchrow_hashref) {
     }
 
     if ($key eq 'y') {
+        execute_with_retry(
+            $config,
+            sub {
+                my ($dbh) = @_;
+                $dbh->do("DELETE FROM logs WHERE id = ?", undef, $event->{id});
+                return 1;
+            }
+        ) // die;
         print "deleted\n";
-        $dbh->do("DELETE FROM logs WHERE id = ?", undef, $event->{id});
     } elsif ($key eq 'n') {
         print "\r\033[K";
     } else {

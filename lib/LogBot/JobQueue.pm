@@ -9,7 +9,7 @@ use lib "$RealBin/lib";
 
 use File::Basename qw( basename );
 use JSON::XS qw( decode_json encode_json );
-use LogBot::Util qw( path_for slurp spurt );
+use LogBot::Util qw( path_for slurp spurt timestamp );
 use Time::HiRes qw( time );
 
 our @EXPORT_OK = qw(
