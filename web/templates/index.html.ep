@@ -49,7 +49,7 @@
 
     <h3>How does LogBot know which nicks are bots?</h3>
     <p>
-      There's a configured list of bots for each network.
+      There's a <a href="/_config">configured list of bots</a> for each network.
       <a href="https://github.com/globau/logbot/issues/new">File an issue</a>
       to add to this list.
     </p>

@@ -1,0 +1,28 @@
+% layout 'logbot';
+% use LogBot::Web::Util qw( irc_host );
+
+<div id="config">
+  <h3>IRC</h3>
+  <div class="section">
+    <div>
+      <div class="label">Network</div>
+      <div class="value"><%= $config->{title} || $config->{name} %></div>
+    </div>
+    <div>
+      <div class="label">Server</div>
+      <div class="value"><a href="<%= irc_host($config, url => 1) %>"><%= irc_host($config, url => 1) %></a></div>
+    </div>
+    <div>
+      <div class="label">Nick</div>
+      <div class="value"><%= $config->{irc}->{nick} %></div>
+    </div>
+  </div>
+  <h3>Bots</h3>
+  <div class="section">
+    <ul>
+    % foreach my $nick (@{ $config->{bots} }) {
+      <li><%= lc($nick) %></li>
+    % }
+    </ul>
+  </div>
+</div>

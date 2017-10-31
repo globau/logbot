@@ -157,6 +157,12 @@ get '/contribute.json' => sub {
     );
 };
 
+# config
+get '/_config' => sub {
+    my ($c) = @_;
+    $c->render('config');
+};
+
 # debugging
 if (!$is_production) {
     get '/_stash' => sub {
