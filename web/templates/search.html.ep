@@ -96,7 +96,7 @@
   <div id="search-count" class="notification">
     Found <%= 'more than' if $limited %> <%= $log_count %>
     <%= 'recent' if $w eq 'r' %>
-    result<%= 's' unless $log_count == 1 %>.
+    result<%= 's' unless $log_count == 1 %><%= ' in ' . $ch if $ch ne '' %>.
   </div>
 % }
 
