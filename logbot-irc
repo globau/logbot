@@ -23,7 +23,7 @@ use List::MoreUtils qw( natatime );
 use List::Util qw( any min );
 use LogBot::Config qw( find_config load_config reload_config save_config );
 use LogBot::JobQueue qw( publish_job );
-use LogBot::Util qw( file_for logbot_init normalise_channel slurp squash_error timestamp );
+use LogBot::Util qw( file_for logbot_init normalise_channel slurp squash_error timestamp touch );
 use Mojo::Log   ();
 use Time::HiRes ();
 use Try::Tiny qw( catch try );
@@ -214,6 +214,8 @@ while (1) {
             $state->{reload}        = 1;
             $state->{next_ping}     = time() + INITIAL_PING_DELAY;
             $state->{pong_timeouts} = 0;
+            $state->{touch_file}    = file_for($config, 'connected');
+            touch($state->{touch_file});
         }
         catch {
             # connection failed, retry with backoff
@@ -289,6 +291,7 @@ while (1) {
         delete $state->{pong_timeout};
         $state->{pong_timeouts} = 0;
         $state->{next_ping}     = $time + PING_INTERVAL;
+        touch($state->{touch_file});
         next;
     }
 

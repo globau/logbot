@@ -45,7 +45,7 @@ sub _dbh_read_write {
 
     # connect
     my $dbh = DBI->connect(
-        'DBI:SQLite:' . file_for($config, 'db'),
+        'DBI:SQLite:' . file_for($config, 'store'),
         '', '', {
             PrintError                       => 0,
             RaiseError                       => 1,
@@ -98,7 +98,7 @@ sub _dbh_read_only {
     my ($config) = @_;
 
     # init
-    my $file = file_for($config, 'db');
+    my $file = file_for($config, 'store');
     _dbh_read_write($config) if !-e $file;
 
     # connect

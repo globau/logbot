@@ -10,7 +10,7 @@ our @EXPORT_OK = qw(
     logbot_init
     nick_hash nick_is_bot
     normalise_channel
-    slurp spurt
+    slurp spurt touch
     squash_error
     timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
@@ -136,11 +136,21 @@ sub spurt {
         or die "write $file: $!\n";
 }
 
+sub touch {
+    my ($file) = @_;
+    if (-e $file) {
+        utime(undef, undef, $file) or die "touch $file: $!\n";
+    } else {
+        open(my $fh, '>', $file) or die "create $file: $!\n";
+        close($file) or die "close $file: $!\n";
+    }
+}
+
 sub file_for {
     my ($config, $type, @params) = @_;
 
-    if ($type eq 'db') {
-        return path_for($config, 'db') . '/logs.sqlite';
+    if ($type eq 'store') {
+        return path_for($config, 'store') . '/logs.sqlite';
 
     } elsif ($type eq 'meta') {
         my ($channel, $filename) = @params;
@@ -149,6 +159,9 @@ sub file_for {
     } elsif ($type eq 'pid') {
         my ($executable) = @params;
         return $config->{_internal}->{root} . '/' . $executable . '.pid';
+
+    } elsif ($type eq 'connected') {
+        return path_for($config, 'store') . '/connected-' . $config->{name};
 
     } else {
         die $type;
@@ -168,7 +181,7 @@ sub path_for {
         make_path($path) unless -d $path;
         return $path;
 
-    } elsif ($type eq 'db') {
+    } elsif ($type eq 'store') {
         my $path = $config->{_internal}->{root};
         make_path($path) unless -d $path;
         return $path;

@@ -98,7 +98,7 @@ foreach my $network (@networks) {
     my $config = load_config($network->{config_file});
     my @channels = sort map { normalise_channel($_) } keys %{ $config->{channels} };
 
-    unlink(file_for($config, 'db'));
+    unlink(file_for($config, 'store'));
     my $dbh = dbh($config, read_write => 1);
 
     foreach my $channel (@channels) {
