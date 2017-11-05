@@ -12,7 +12,6 @@ $link-colour: #00e
 $link-invert: $primary-invert
 $link-visited-colour: #939
 
-$sidebar-gap: 8px
 $sidebar-width-closed: 36px
 $sidebar-width-open: 165px
 
@@ -207,7 +206,7 @@ a
       font-style: italic
 
 #debug
-  max-width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 32px})
+  max-width: calc(100% - #{$sidebar-width-open + 32px})
   overflow: scroll
 
 // settings
@@ -406,7 +405,7 @@ body
       margin-left: $sidebar-width-closed
       transition-duration: $transition-time
       transition-property: margin, width
-      width: calc(100vw - #{$sidebar-width-closed + $sidebar-gap + 1px})
+      width: calc(100% - #{$sidebar-width-closed + 1px})
 
   &:not(.menu-c)
     #sidebar-open
@@ -429,7 +428,7 @@ body
     #main
       transition-duration: $transition-time
       transition-property: margin, width
-      width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 1px})
+      width: calc(100% - #{$sidebar-width-open + 1px})
 
 #networks
   margin-top: $nav-height + 2px
@@ -578,7 +577,7 @@ body
 #main
   border-left: 1px solid #eee
   margin-left: $sidebar-width-open
-  min-width: calc(100vw - #{$sidebar-width-open + $sidebar-gap + 1px})
+  min-width: calc(100% - #{$sidebar-width-open + 1px})
   padding-bottom: 1rem
   padding-top: 4px
   position: absolute
