@@ -142,7 +142,7 @@ sub touch {
         utime(undef, undef, $file) or die "touch $file: $!\n";
     } else {
         open(my $fh, '>', $file) or die "create $file: $!\n";
-        close($file) or die "close $file: $!\n";
+        close($fh) or die "close $file: $!\n";
     }
 }
 
