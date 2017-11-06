@@ -3,42 +3,44 @@
 % use LogBot::Util qw( time_to_datetimestr );;
 % my $now = DateTime->now();
 
-<h4><a href="<%= $url %>"><%= $channel %></a></h4>
+<div id="stats">
+  <h4><a href="<%= $url %>"><%= $channel %></a></h4>
 
-<table id="events">
-<tr>
-  <th>Last Event</th>
-  <td>
-    <div id="last_time" class="loading">loading&hellip;</div>
-    <div id="last_ago" class="loading">&hellip;</div>
-  </td>
-  <th>Logging started</th>
-  <td>
-    <div id="first_time" class="loading">loading&hellip;</div>
-    <div id="first_ago" class="loading">&hellip;</div>
-  </td>
-</tr>
-<tr>
-  <th>It is currently</th>
-  <td><%= time_to_datetimestr($now->epoch) %></td>
-  <th>Event count</th>
-  <td id="event_count" class="loading">loading&hellip;</td>
-</tr>
-<tr>
-  <th></th>
-  <td>All times are UTC.</td>
-  <th>Activity</th>
-  <td>
-    <span id="active_events" class="loading">loading&hellip;</span>
-    <span class="loading-hide">&middot;</span>
-    <span id="active_nicks"></span>
-    <span class="loading-hide">(last 6 months)</span>
-  </td>
-</tr>
-</table>
+  <table id="events">
+  <tr>
+    <th>Last Event</th>
+    <td>
+      <div id="last_time" class="loading">loading&hellip;</div>
+      <div id="last_ago" class="loading">&hellip;</div>
+    </td>
+    <th>Logging started</th>
+    <td>
+      <div id="first_time" class="loading">loading&hellip;</div>
+      <div id="first_ago" class="loading">&hellip;</div>
+    </td>
+  </tr>
+  <tr>
+    <th>It is currently</th>
+    <td><%= time_to_datetimestr($now->epoch) %></td>
+    <th>Event count</th>
+    <td id="event_count" class="loading">loading&hellip;</td>
+  </tr>
+  <tr>
+    <th></th>
+    <td>All times are UTC.</td>
+    <th>Activity</th>
+    <td>
+      <span id="active_events" class="loading">loading&hellip;</span>
+      <span class="loading-hide">&middot;</span>
+      <span id="active_nicks"></span>
+      <span class="loading-hide">(last 6 months)</span>
+    </td>
+  </tr>
+  </table>
 
-<h4>Channel activity by hour</h4>
-<div id="hours-plot" class="loading" data-hh="<%= $now->strftime('%H') %>" data-mm="<%= $now->strftime('%M') %>">loading&hellip;</div>
+  <h4>Channel activity by hour</h4>
+  <div id="hours-plot" class="loading" data-hh="<%= $now->strftime('%H') %>" data-mm="<%= $now->strftime('%M') %>">loading&hellip;</div>
 
-<h4>Top Users (by number of messages)</h4>
-<div id="nicks-plot" class="loading">loading&hellip;</div>
+  <h4>Top Users (by number of messages)</h4>
+  <div id="nicks-plot" class="loading">loading&hellip;</div>
+</div>

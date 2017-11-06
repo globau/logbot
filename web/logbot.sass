@@ -659,81 +659,80 @@ body
 
 // channel stats
 
-body
-  &.stats
+#stats
+  padding-left: 8px
 
-    .loading
-      color: #ccc
+  .loading
+    color: #ccc
 
-    .loading-hide
-      display: none
+  .loading-hide
+    display: none
 
-    h4
-      margin-top: 8px
+  h4
+    margin-top: 8px
 
-      a
-        color: #000
-        font-weight: bold
+    a
+      color: #000
+      font-weight: bold
 
-    #main
-      min-width: 800px
-      padding-left: 8px
+  #main
+    min-width: 800px
 
-    #events
-      border-spacing: 0
-      margin: 1em 0
+  #events
+    border-spacing: 0
+    margin: 1em 0
 
-      th
-        font-weight: 500
-        padding: 0 1em 0 0
-        text-align: right
-        vertical-align: top
-        white-space: nowrap
+    th
+      font-weight: 500
+      padding: 0 1em 0 0
+      text-align: right
+      vertical-align: top
+      white-space: nowrap
 
-      td
-        min-width: 11em
-        padding: 0 3em 0 0
+    td
+      min-width: 11em
+      padding: 0 3em 0 0
 
-    #hours-plot
-      height: 150px
-      margin-top: 2em
-      width: 800px
+  #hours-plot
+    height: 150px
+    margin-top: 2em
+    width: 800px
 
-    #hours-now
-      border-left: 2px solid #444
-      filter: drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff)
-      font-size: small
-      padding-left: 1px
-      position: absolute
+  #hours-now
+    border-left: 2px solid #444
+    filter: drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff)
+    font-size: small
+    padding-left: 1px
+    position: absolute
 
-    #nicks-plot
-      width: 800px
+  #nicks-plot
+    width: 800px
 
-      tr
-        &.bot
-          .nick
-            color: #999 !important
-          .bar
-            div
-              background-color: #ccc !important
+    tr
+      &.bot
+        .nick
+          color: #999 !important
+        .bar
+          div
+            background-color: #ccc !important
 
-      .nick
-        color: #844
-        font-weight: 500
-        padding-right: 8px
-        white-space: nowrap
+    .nick
+      color: #844
+      font-weight: 500
+      padding-right: 8px
+      white-space: nowrap
 
-      .count
-        padding-right: 8px
-        text-align: right
+    .count
+      padding-right: 8px
+      text-align: right
 
-      .bar
-        width: 100%
+    .bar
+      width: 100%
 
-        div
-          background-color: #b4b4b4
-          border: 1px solid #444
-          height: 1em
+      div
+        background-color: #b4b4b4
+        border: 1px solid #444
+        height: 1em
 
 // config
 
