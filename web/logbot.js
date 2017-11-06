@@ -513,6 +513,7 @@ $(function() {
                         var $row = $('<tr/>');
                         if (entry.bot) {
                             $row.addClass('bot');
+                            entry.nick = entry.nick + ' (bot)';
                         }
                         $row.append($('<td class="nick nc"/>').text(entry.nick).attr('data-hash', entry.hash));
                         $row.append($('<td class="count"/>').text(count.toLocaleString()));
