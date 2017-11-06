@@ -55,7 +55,9 @@ sub meta {
         ($first_time, $first_ago) = event_time_to_str($meta->{first_time});
         $event_size = pretty_size($meta->{event_size});
 
-        $activity = $meta->{activity_count} / $meta->{activity_days};
+        $activity = $meta->{activity_days}
+            ? $meta->{activity_count} / $meta->{activity_days}
+            : 0;
         if (sprintf('%.1f', $activity) eq '0.0') {
             $activity = '0';
         } elsif ($activity < 1) {
