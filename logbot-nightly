@@ -98,12 +98,6 @@ sub generate_meta {
             order   => 'time ASC',
         ),
 
-        event_size => query(
-            dbh     => $dbh,
-            channel => $channel,
-            select  => 'COALESCE(SUM(LENGTH(text) + LENGTH(nick)), 0)',
-        ),
-
         activity_count => query(
             dbh     => $dbh,
             channel => $channel,
