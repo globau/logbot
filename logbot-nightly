@@ -88,7 +88,7 @@ sub generate_meta {
     my $now    = DateTime->now();
 
     my $six_months = $now->clone()->subtract(months => 6);
-    my $one_week   = $now->clone()->subtract(days   => 7);
+    my $one_month  = $now->clone()->subtract(months => 1);
 
     my $json = {
         first_time => query(
@@ -98,21 +98,21 @@ sub generate_meta {
             order   => 'time ASC',
         ),
 
-        activity_count => query(
+        active_events => query(
             dbh     => $dbh,
             channel => $channel,
             select  => 'COUNT(*)',
             where   => 'time >= ' . $six_months->epoch,
         ),
 
-        activity_days => $six_months->delta_days($now)->in_units('days'),
+        active_events_days => $six_months->delta_days($now)->in_units('days'),
 
         active_nicks => query(
             dbh       => $dbh,
             channel   => $channel,
             row_count => 1,
             select    => 'DISTINCT nick',
-            where     => 'time >= ' . $one_week->epoch,
+            where     => 'time >= ' . $six_months->epoch,
         ),
     };
     say '  ', encode_json($json) if $ENV{DEBUG};

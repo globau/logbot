@@ -28,7 +28,12 @@
   <th></th>
   <td>All times are UTC.</td>
   <th>Activity</th>
-  <td id="activity" class="loading">loading&hellip;</td>
+  <td>
+    <span id="active_events" class="loading">loading&hellip;</span>
+    <span class="loading-hide">&middot;</span>
+    <span id="active_nicks"></span>
+    <span class="loading-hide">(last 6 months)</span>
+  </td>
 </tr>
 </table>
 

@@ -47,29 +47,32 @@ sub meta {
         $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef, $channel));
     my $event_count = commify($dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel));
 
-    my ($first_time, $first_ago, $activity);
+    my ($first_time, $first_ago, $active_events, $active_nicks);
     my $meta_file = file_for($config, 'meta', $channel, 'meta');
     if (-e $meta_file) {
         my $meta = decode_json(slurp($meta_file));
 
         ($first_time, $first_ago) = event_time_to_str($meta->{first_time});
 
-        $activity =
-              $meta->{activity_days}
-            ? $meta->{activity_count} / $meta->{activity_days}
+        $active_events =
+              $meta->{active_events_days}
+            ? $meta->{active_events} / $meta->{active_events_days}
             : 0;
-        if (sprintf('%.1f', $activity) eq '0.0') {
-            $activity = '0';
-        } elsif ($activity < 1) {
-            $activity = sprintf('%.1f', $activity);
+        if (sprintf('%.1f', $active_events) eq '0.0') {
+            $active_events = '0';
+        } elsif ($active_events < 1) {
+            $active_events = sprintf('%.1f', $active_events);
         } else {
-            $activity = sprintf('%.0f', $activity);
+            $active_events = sprintf('%.0f', $active_events);
         }
+
+        $active_nicks = $meta->{active_nicks};
 
     } else {
         $first_time = '-';
         $first_ago  = '-';
-        $activity   = '0';
+        $active_events = '0';
+        $active_nicks = '0';
     }
 
     return {
@@ -78,7 +81,8 @@ sub meta {
         last_time   => $last_time,
         last_ago    => $last_ago,
         event_count => $event_count,
-        activity    => $activity . ' event' . ($activity == 1 ? '' : 's') . '/day (last 6 months)',
+        active_events => $active_events . ' event' . ($active_events == 1 ? '' : 's') . '/day',
+        active_nicks => $active_nicks . ' active user' . ($active_nicks == 1 ? '' : 's'),
     };
 }
 

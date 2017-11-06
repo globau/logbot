@@ -454,6 +454,7 @@ $(function() {
                     .text(value)
                     .removeClass('loading');
             });
+            $('.loading-hide').removeClass('loading-hide');
         });
 
         $.ajax({
