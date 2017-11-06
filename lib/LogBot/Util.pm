@@ -161,7 +161,7 @@ sub file_for {
         return $config->{_internal}->{root} . '/' . $executable . '.pid';
 
     } elsif ($type eq 'connected') {
-        return path_for($config, 'store') . '/connected-' . $config->{name};
+        return path_for($config, 'store') . '/connected';
 
     } else {
         die $type;
