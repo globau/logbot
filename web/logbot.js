@@ -448,7 +448,9 @@ $(function() {
 
     if ($('body').hasClass('stats')) {
 
-        $.getJSON('stats/meta', function(data) {
+        var base = $('#stats').data('channel') ? 'stats/' : '_stats/';
+
+        $.getJSON(base + 'meta', function(data) {
             $.each(data, function(name, value) {
                 $('#' + name)
                     .text(value)
@@ -458,7 +460,7 @@ $(function() {
         });
 
         $.ajax({
-            url: 'stats/hours',
+            url: base + 'hours',
             method: 'GET',
             dataType: 'json',
             success: function(series) {
@@ -502,7 +504,7 @@ $(function() {
         });
 
         $.ajax({
-            url: 'stats/nicks',
+            url: base + 'nicks',
             method: 'GET',
             dataType: 'json',
             success: function(data) {

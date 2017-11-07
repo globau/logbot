@@ -39,6 +39,10 @@ foreach my $config_name (sort keys %configs) {
     my $config = $configs{$config_name};
     logbot_init($config, name => 'logbot-nightly', quiet => 1);
 
+    # generate network meta
+    generate_meta($config_name, file_for($config, 'meta', undef, 'meta'));
+    generate_hours($config_name, file_for($config, 'meta', undef, 'hours'));
+
     foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
         next if $config->{channels}->{$channel}->{no_logs};
 
@@ -68,7 +72,8 @@ sub query {
         push @values, $params{channel};
     }
 
-    my $sql = "SELECT " . $params{select} . " FROM logs WHERE " . join(' AND ', @where);
+    my $sql = 'SELECT ' . $params{select} . ' FROM logs';
+    $sql .= ' WHERE ' . join(' AND ', @where) if @where;
     $sql .= ' ORDER BY ' . $params{order} if $params{order};
 
     if ($params{row_count}) {
@@ -124,15 +129,15 @@ sub generate_hours {
     my $config = $configs{$config_name};
     my $dbh    = dbh($config);
 
-    my $sql = '
-        SELECT CAST(time % (24 * 3600) AS INT), COUNT(*)
-          FROM logs
-         WHERE channel = ?
-         GROUP BY CAST(time % (24 * 3600) AS INT)
-    ';
+    my $sql = 'SELECT CAST(time % (24 * 3600) AS INT), COUNT(*) FROM logs';
+    $sql .= ' WHERE channel = ?' if $channel;
+    $sql .= ' GROUP BY CAST(time % (24 * 3600) AS INT)';
+    my @values;
+    push @values, $channel if $channel;
+    say '  ', replace_sql_placeholders($dbh, $sql, \@values) if $ENV{DEBUG};
 
     my %values;
-    foreach my $row (@{ $dbh->selectall_arrayref($sql, undef, $channel) }) {
+    foreach my $row (@{ $dbh->selectall_arrayref($sql, undef, @values) }) {
         my ($ss, $value) = @$row;
         my $hh = sprintf("%.1f", $ss / (60 * 60));
         $hh = "0.0" if $hh == 24;
@@ -160,16 +165,16 @@ sub generate_nicks {
     my $config = $configs{$config_name};
     my $dbh    = dbh($config);
 
-    my $sql = '
-        SELECT nick, COUNT(*) AS count
-          FROM logs
-         WHERE channel = ?
-         GROUP BY nick
-         ORDER BY COUNT(*) DESC, nick ASC
-         LIMIT 20
-    ';
+    my $sql = 'SELECT nick, COUNT(*) AS count FROM logs';
+    $sql .= ' WHERE channel = ?' if $channel;
+    $sql .= ' GROUP BY nick';
+    $sql .= ' ORDER BY COUNT(*) DESC, nick ASC';
+    $sql .= ' LIMIT 20';
+    my @values;
+    push @values, $channel if $channel;
+    say '  ', replace_sql_placeholders($dbh, $sql, \@values) if $ENV{DEBUG};
 
-    my $data = $dbh->selectall_arrayref($sql, { Slice => {} }, $channel);
+    my $data = $dbh->selectall_arrayref($sql, { Slice => {} }, @values);
 
     my $json = [];
     foreach my $event (@$data) {

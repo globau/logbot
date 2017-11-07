@@ -43,9 +43,18 @@ sub meta {
 
     my $dbh = dbh($config, cached => 1);
 
-    my ($last_time, $last_ago) = event_time_to_str(
-        $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef, $channel));
-    my $event_count = commify($dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel));
+    my ($last_time, $last_ago, $event_count);
+    if ($channel) {
+        $last_time =
+            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef,
+            $channel);
+        $event_count = $dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel);
+    } else {
+        $last_time   = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time DESC LIMIT 1");
+        $event_count = $dbh->selectrow_array("SELECT COUNT(*) FROM logs");
+    }
+
+    ($last_time, $last_ago) = event_time_to_str($last_time);
 
     my ($first_time, $first_ago, $active_events, $active_nicks);
     my $meta_file = file_for($config, 'meta', $channel, 'meta');
@@ -69,20 +78,20 @@ sub meta {
         $active_nicks = $meta->{active_nicks};
 
     } else {
-        $first_time = '-';
-        $first_ago  = '-';
+        $first_time    = '-';
+        $first_ago     = '-';
         $active_events = '0';
-        $active_nicks = '0';
+        $active_nicks  = '0';
     }
 
     return {
-        first_time  => $first_time,
-        first_ago   => $first_ago,
-        last_time   => $last_time,
-        last_ago    => $last_ago,
-        event_count => $event_count,
-        active_events => $active_events . ' event' . ($active_events == 1 ? '' : 's') . '/day',
-        active_nicks => $active_nicks . ' active user' . ($active_nicks == 1 ? '' : 's'),
+        first_time    => $first_time,
+        first_ago     => $first_ago,
+        last_time     => $last_time,
+        last_ago      => $last_ago,
+        event_count   => commify($event_count),
+        active_events => commify($active_events) . ' event' . ($active_events == 1 ? '' : 's') . '/day',
+        active_nicks  => commify($active_nicks) . ' active user' . ($active_nicks == 1 ? '' : 's'),
     };
 }
 

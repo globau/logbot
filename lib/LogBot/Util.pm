@@ -176,8 +176,11 @@ sub path_for {
 
     } elsif ($type eq 'meta') {
         my ($channel) = @params;
-        $channel =~ s/^#//;
-        my $path = $config->{_internal}->{root} . '/meta/' . $channel;
+        my $path = $config->{_internal}->{root} . '/meta';
+        if ($channel) {
+            $channel =~ s/^#//;
+            $path .= '/' . $channel;
+        }
         make_path($path) unless -d $path;
         return $path;
 

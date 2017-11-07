@@ -3,8 +3,14 @@
 % use LogBot::Util qw( time_to_datetimestr );;
 % my $now = DateTime->now();
 
-<div id="stats">
-  <h4><a href="<%= $url %>"><%= $channel %></a></h4>
+<div id="stats" data-channel="<%= $channel %>">
+  <h4>
+    % if ($channel) {
+      <a href="<%= $url %>"><%= $channel %></a>
+    % } else {
+      <%= $config->{title} || $config->{name} %> IRC Network
+    % }
+  </h4>
 
   <table id="events">
   <tr>
@@ -27,7 +33,7 @@
   </tr>
   <tr>
     <th></th>
-    <td>All times are UTC.</td>
+    <td>All times are UTC</td>
     <th>Activity</th>
     <td>
       <span id="active_events" class="loading">loading&hellip;</span>
@@ -38,9 +44,11 @@
   </tr>
   </table>
 
-  <h4>Channel activity by hour</h4>
+  <h4><%= $channel ? 'Channel' : 'Network' %> Activity by Hour</h4>
   <div id="hours-plot" class="loading" data-hh="<%= $now->strftime('%H') %>" data-mm="<%= $now->strftime('%M') %>">loading&hellip;</div>
 
-  <h4>Top Users (by number of messages)</h4>
-  <div id="nicks-plot" class="loading">loading&hellip;</div>
+  % if ($channel) {
+    <h4>Top Users (by number of messages, all time)</h4>
+    <div id="nicks-plot" class="loading">loading&hellip;</div>
+  % }
 </div>

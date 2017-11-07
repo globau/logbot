@@ -163,6 +163,22 @@ get '/_config' => sub {
     $c->render('config');
 };
 
+# network stats
+get '/_stats' => sub {
+    my ($c) = @_;
+    LogBot::Web::Stats::render($c);
+};
+
+get '/_stats/meta' => sub {
+    my ($c) = @_;
+    $c->render(json => LogBot::Web::Stats::meta($c));
+};
+
+get '/_stats/hours' => sub {
+    my ($c) = @_;
+    $c->render(text => LogBot::Web::Stats::hours($c), format => 'json');
+};
+
 # debugging
 if (!$is_production) {
     get '/_stash' => sub {
