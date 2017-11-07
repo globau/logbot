@@ -50,8 +50,7 @@ sub meta {
             $channel);
         $event_count = $dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel);
     } else {
-        $last_time   = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time DESC LIMIT 1");
-        $event_count = $dbh->selectrow_array("SELECT COUNT(*) FROM logs");
+        $last_time = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time DESC LIMIT 1");
     }
 
     ($last_time, $last_ago) = event_time_to_str($last_time);
@@ -77,11 +76,14 @@ sub meta {
 
         $active_nicks = $meta->{active_nicks};
 
+        $event_count //= $meta->{event_count};
+
     } else {
         $first_time    = '-';
         $first_ago     = '-';
         $active_events = '0';
         $active_nicks  = '0';
+        $event_count //= '0';
     }
 
     return {

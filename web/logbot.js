@@ -447,8 +447,8 @@ $(function() {
     // channel stats
 
     if ($('body').hasClass('stats')) {
-
-        var base = $('#stats').data('channel') ? 'stats/' : '_stats/';
+        var channel = $('#stats').data('channel');
+        var base = channel ? 'stats/' : '_stats/';
 
         $.getJSON(base + 'meta', function(data) {
             $.each(data, function(name, value) {
@@ -503,36 +503,38 @@ $(function() {
             }
         });
 
-        $.ajax({
-            url: base + 'nicks',
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                var $table = $('<table id="top-nicks"/>');
-                if (data.length) {
-                    var top_count = data[0].count * 1;
-                    $.each(data, function(i, entry) {
-                        var count = entry.count * 1;
-                        var $row = $('<tr/>');
-                        if (entry.bot) {
-                            $row.addClass('bot');
-                            entry.nick = entry.nick + ' (bot)';
-                        }
-                        $row.append($('<td class="nick nc"/>').text(entry.nick).attr('data-hash', entry.hash));
-                        $row.append($('<td class="count"/>').text(count.toLocaleString()));
-                        $row.append($('<td class="bar"/>').append($('<div>&nbsp;</div>').css('width', (count / top_count * 100) + '%')));
-                        $table.append($row);
-                    });
-                } else {
-                    $table.append('<tr><td>no data</td></tr>');
+        if (channel) {
+            $.ajax({
+                url: base + 'nicks',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var $table = $('<table id="top-nicks"/>');
+                    if (data.length) {
+                        var top_count = data[0].count * 1;
+                        $.each(data, function(i, entry) {
+                            var count = entry.count * 1;
+                            var $row = $('<tr/>');
+                            if (entry.bot) {
+                                $row.addClass('bot');
+                                entry.nick = entry.nick + ' (bot)';
+                            }
+                            $row.append($('<td class="nick nc"/>').text(entry.nick).attr('data-hash', entry.hash));
+                            $row.append($('<td class="count"/>').text(count.toLocaleString()));
+                            $row.append($('<td class="bar"/>').append($('<div>&nbsp;</div>').css('width', (count / top_count * 100) + '%')));
+                            $table.append($row);
+                        });
+                    } else {
+                        $table.append('<tr><td>no data</td></tr>');
+                    }
+                    $('#nicks-plot')
+                        .text('')
+                        .removeClass('loading')
+                        .append($table);
+                    colourise_nicks();
                 }
-                $('#nicks-plot')
-                    .text('')
-                    .removeClass('loading')
-                    .append($table);
-                colourise_nicks();
-            }
-        });
+            });
+        }
     }
 
     $('.setting').each(function() {

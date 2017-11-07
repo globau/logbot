@@ -119,6 +119,12 @@ sub generate_meta {
             select    => 'DISTINCT nick',
             where     => 'time >= ' . $six_months->epoch,
         ),
+
+        event_count => query(
+            dbh     => $dbh,
+            channel => $channel,
+            select  => 'COUNT(*)',
+        ),
     };
     say '  ', encode_json($json) if $ENV{DEBUG};
     spurt($output_file, encode_json($json));
