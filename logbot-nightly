@@ -20,7 +20,7 @@ use JSON ();
 use JSON::XS qw( encode_json );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config save_config );
 use LogBot::Database qw( dbh replace_sql_placeholders );
-use LogBot::Util qw( file_for logbot_init nick_hash nick_is_bot path_for spurt );
+use LogBot::Util qw( file_for logbot_init nick_hash nick_is_bot path_for round spurt );
 
 use constant ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
 
@@ -126,6 +126,13 @@ sub generate_meta {
             select  => 'COUNT(*)',
         ),
     };
+
+    # because we calculate the event count nightly for the network-wide stats,
+    # round to nearest 1000 to make it clear it's an approximation
+    unless ($channel) {
+        $json->{event_count} = round($json->{event_count} / 1000) * 1000;
+    }
+
     say '  ', encode_json($json) if $ENV{DEBUG};
     spurt($output_file, encode_json($json));
 }

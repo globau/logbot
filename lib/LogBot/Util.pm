@@ -15,7 +15,7 @@ our @EXPORT_OK = qw(
     timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
     event_to_string event_to_short_string
-    commify pretty_size time_ago
+    commify pretty_size time_ago round
 );
 use parent 'Exporter';
 

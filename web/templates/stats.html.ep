@@ -29,7 +29,10 @@
     <th>It is currently</th>
     <td><%= time_to_datetimestr($now->epoch) %></td>
     <th>Event count</th>
-    <td id="event_count" class="loading">loading&hellip;</td>
+    <td>
+      <span id="event_count" class="loading">loading&hellip;</span>
+      <span class="loading-hide">(approximation)</span>
+    </td>
   </tr>
   <tr>
     <th></th>
