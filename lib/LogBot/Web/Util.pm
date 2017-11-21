@@ -7,6 +7,7 @@ use warnings;
 use Date::Parse qw( str2time );
 use DateTime ();
 use List::Util qw( any );
+use LogBot::Database qw( dbh );
 use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
 use Mojo::Path ();
 use Mojo::Util qw( html_unescape xml_escape );
@@ -54,6 +55,19 @@ sub rewrite_old_urls {
 
     if ($a eq 'browse') {
 
+        # check for redirects that require a date lookup
+        if (my $comment_id = $req_query->param('cid')) {
+            if ($comment_id =~ s/^c(\d+)$/$1/) {
+                my $dbh = dbh($c->stash('config'), cached => 1);
+                my $time = $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND old_id = ? LIMIT 1",
+                    undef, $channel, $comment_id);
+                if ($time) {
+                    $req_query->param('s', time_to_ymd($time));
+                    $url->fragment($req_query->param('cid'));
+                }
+            }
+        }
+
         # c=mozilla%23developers&s=8+Jul+2017&e=8+Jul+2017
         # note: multi-date ranges are no longer supported
         push @$path, substr($channel, 1);
@@ -82,7 +96,7 @@ sub rewrite_old_urls {
     }
 
     $url->path($path);
-    return $url;
+    return $url->to_string;
 }
 
 sub url_for_channel {

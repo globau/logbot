@@ -123,6 +123,12 @@ get '/' => sub {
 
     # redirect old urls
     if (my $url = rewrite_old_urls($c)) {
+
+        # url was formed server-side, no need to bounce through js redirect
+        if ($url =~ /#/) {
+            return $c->redirect_to($url);
+        }
+
         $c->stash(redirect_to => $url);
         return $c->render('redirect');
     }

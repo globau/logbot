@@ -19,6 +19,8 @@ endef
 
 EXT_JS=web/build/jquery.min.js web/build/pikaday.min.js web/build/chosen.min.js web/build/flot.min.js
 EXT_CSS=web/build/pikaday.min.css web/build/hind.min.css web/build/chosen.min.css
+REDIR_EXT_JS=web/build/url.min.js
+
 SVG_LIB=font-awesome
 
 all: \
@@ -36,11 +38,14 @@ clean:
 
 # redirect
 
-web/public/static/redirect.min.js: web/build/redirect.min.js
-	cp web/build/redirect.min.js web/public/static/redirect.min.js
+web/public/static/redirect.min.js: web/build/redirect.min.js $(REDIR_EXT_JS)
+	cat $(REDIR_EXT_JS) web/build/redirect.min.js > web/public/static/redirect.min.js
 
 web/build/redirect.min.js: web/redirect.js
 	$(call js,redirect,redirect)
+
+web/build/url.min.js: web/URL/url.js
+	$(call js,URL/url,url)
 
 web/public/static/redirect.min.css: web/build/redirect.min.css
 	cp web/build/redirect.min.css web/public/static/redirect.min.css

@@ -21,14 +21,16 @@ $default_url = Mojo::URL->new($default_url);
 sub redirect {
     my ($c) = @_;
 
-    # redirect old urls
     if (my $url = rewrite_old_urls($c)) {
+
+        # redirect old urls
         say "redirecting old url to $url" if $ENV{DEBUG};
         $c->stash(redirect_to => $url);
         $c->render('redirect');
 
-        # redirect to default network
     } else {
+
+        # redirect to default network
         my $req_url = $c->req->url;
         my $url     = $default_url->clone();
         $url->path($req_url->path);
