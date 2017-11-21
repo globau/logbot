@@ -10,6 +10,7 @@ use List::Util qw( any );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
 use Mojo::Path ();
+use Mojo::URL  ();
 use Mojo::Util qw( html_unescape xml_escape );
 use URI::Find ();
 
@@ -48,6 +49,10 @@ sub rewrite_old_urls {
         $url->host($network . '.' . $url->host);
     }
 
+    # map port
+    my $default_url = Mojo::URL->new($c->stash('config')->{url});
+    $url->port($default_url->port);
+
     # find action
     my $req_query = $c->req->query_params;
     my $a         = $req_query->param('a') // 'browse';
@@ -63,9 +68,10 @@ sub rewrite_old_urls {
                     undef, $channel, $comment_id);
                 if ($time) {
                     $req_query->param('s', time_to_ymd($time));
-                    $url->fragment($req_query->param('cid'));
                 }
             }
+            $url->fragment($req_query->param('cid'));
+            $req_query->param('cid', undef);
         }
 
         # c=mozilla%23developers&s=8+Jul+2017&e=8+Jul+2017
