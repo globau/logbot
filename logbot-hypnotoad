@@ -15,7 +15,7 @@ use Mojo::Util qw( getopt );
 #<<<
 getopt
     'redirector'    => \$ENV{LOGBOT_REDIRECT},
-    'default=s'     => \$ENV{LOGBOT_DEFAULT_URL},
+    'default=s'     => \$ENV{LOGBOT_DEFAULT_NETWORK},
     'pid-file=s'    => \$ENV{LOGBOT_PID_FILE},
     'listen-port=i' => \$ENV{LOGBOT_PORT},
     'stop'          => \$ENV{HYPNOTOAD_STOP};
