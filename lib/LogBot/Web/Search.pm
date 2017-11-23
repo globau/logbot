@@ -77,7 +77,17 @@ sub render {
     # text
     if ($q ne '') {
         if ($c->stash('ft') eq 'y') {
-            my $quoted_q = join(' ', map { '"' . $_ . '"' } quotewords('\s+', 0, $q));
+            my $quoted_q = $q;
+
+            # always treat apostrophe as literial
+            $quoted_q =~ s/'/\\'/g;
+
+            # fix unbalanced quotes
+            my $quote_count = $quoted_q =~ tr/"/"/;
+            $quoted_q .= '"' if $quote_count && ($quote_count % 2);
+
+            # wrap words in ", honouring user-supplied word groups
+            $quoted_q = join(' ', map { '"' . $_ . '"' } quotewords('\s+', 0, $quoted_q));
 
             my $count = $dbh->selectrow_array('SELECT COUNT(*) FROM logs_fts WHERE logs_fts MATCH ?', undef, $quoted_q);
 
