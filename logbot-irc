@@ -105,7 +105,7 @@ sub irc_connect {
 
     # identify
     if ($config->{irc}->{password}) {
-        irc_send('PRIVMSG NickServ identify ' . $config->{irc}->{password});
+        irc_send('PRIVMSG NickServ :identify ' . $config->{irc}->{password});
     }
 }
 
@@ -380,7 +380,7 @@ while (1) {
     # private message
     if ($message =~ /^:([^!]+)!\S+ PRIVMSG \S+ :.+/) {
         my $who = $1;
-        irc_send('PRIVMSG ' . $who . ' ' . $config->{help})
+        irc_send('PRIVMSG ' . $who . ' :' . $config->{help})
             if $config->{help};
     }
 
