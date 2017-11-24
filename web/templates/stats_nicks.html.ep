@@ -1,0 +1,24 @@
+<table id="top-nicks">
+% use List::Util qw( uniq );
+% use LogBot::Util qw( commify );
+% use LogBot::Web::Util qw( nick_colour );
+
+% if (@$nicks) {
+  % my $top_count = $nicks->[0]->{count};
+  % foreach my $entry (@$nicks) {
+    <tr class="<%= 'bot' if $entry->{bot} %>">
+      <td class="nick nc" data-hash="<%= $entry->{hash} %>"><%= $entry->{nick} %><%= ' (bot)' if $entry->{bot} %></td>
+      <td class="count"><%= commify($entry->{count}) %></td>
+      <td class="bar"><div style="width:<%= $entry->{count} / $top_count * 100 %>%">&nbsp;</div></td>
+    </tr>
+  % }
+% } else {
+  <tr><td>no data</td></tr>
+% }
+</table>
+
+<style>
+% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$nicks) {
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+% }
+</style>

@@ -24,7 +24,7 @@ use LogBot::Web::Channel ();
 use LogBot::Web::Index   ();
 use LogBot::Web::Search  ();
 use LogBot::Web::Stats   ();
-use LogBot::Web::Util qw( channel_from_param date_from_param rewrite_old_urls );
+use LogBot::Web::Util qw( channel_from_param date_from_param nick_colour_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::File       ();
 use Mojo::Util qw( dumper );
@@ -89,6 +89,8 @@ under sub {
     # reload config, regenerating channel list if required
     $networks->[$config_index] = reload_config($networks->[$config_index]);
     build_channel_list($networks->[$config_index]);
+
+    nick_colour_init();
 
     $c->stash(
         config          => $networks->[$config_index],
@@ -277,7 +279,7 @@ get '/#channel/stats/nicks' => sub {
     my ($c) = @_;
     my $channel = channel_from_param($c) // return;
 
-    $c->render(text => LogBot::Web::Stats::nicks($c, $channel), format => 'json');
+    LogBot::Web::Stats::render_nicks($c);
 };
 
 # 404 handler
@@ -310,7 +312,7 @@ hook after_render => sub {
     $headers->header(
         'Content-Security-Policy' => "default-src 'self'; " .
                                      "object-src 'none'; " .
-                                     "style-src 'self' 'unsafe-inline'; " . # unsafe-inline for chosen
+                                     "style-src 'self' 'unsafe-inline'; " . # unsafe-inline for chosen, top-nick graph
                                      "img-src 'self' data:"                 # data: for pikaday
     );
 

@@ -74,7 +74,7 @@ sub meta {
             $active_events = sprintf('%.0f', $active_events);
         }
 
-        $active_nicks = $meta->{active_nicks};
+        $active_nicks = $meta->{active_nicks} // '0';
 
         $event_count //= $meta->{event_count};
 
@@ -105,12 +105,22 @@ sub hours {
     return -e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'hours'));
 }
 
-sub nicks {
-    my ($c, $channel) = @_;
+sub render_nicks {
+    my ($c, $params) = @_;
     my $config = $c->stash('config');
 
-    my $file = file_for($config, 'meta', $channel, 'nicks');
-    return -e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'nicks'));
+    if (my $error = $params->{error}) {
+        $c->stash(
+            channel => '',
+            error   => $error,
+        );
+    }
+
+    my $file = file_for($config, 'meta', $c->stash('channel'), 'nicks');
+    my $data = decode_json(-e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'nicks')));
+
+    $c->stash(nicks => $data);
+    return $c->render('stats_nicks');
 }
 
 1;

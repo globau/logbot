@@ -8,7 +8,7 @@ BEGIN { $ENV{TZ} = 'UTC' }
 
 our @EXPORT_OK = qw(
     logbot_init
-    nick_hash nick_is_bot
+    nick_is_bot
     normalise_channel
     slurp spurt touch
     squash_error
@@ -49,18 +49,6 @@ sub logbot_init {
     unless ($params{quiet}) {
         say timestamp(), ' -- starting ', $0;
     }
-}
-
-sub nick_hash {
-    my ($nick) = @_;
-    $nick = lc($nick);
-    $nick =~ s/[`_]+$//;
-    $nick =~ s/\|.*$//;
-    my $hash = 0;
-    for (my $i = 0; $i < length($nick); $i++) {
-        $hash = ord(substr($nick, $i, 1)) + ($hash << 6) + ($hash << 16) - $hash;
-    }
-    return $hash;
 }
 
 sub nick_is_bot {

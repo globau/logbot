@@ -8,8 +8,8 @@ use DateTime ();
 use Encode qw( decode );
 use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout replace_sql_placeholders );
-use LogBot::Util qw( event_to_short_string nick_hash nick_is_bot normalise_channel time_to_ymd );
-use LogBot::Web::Util qw( linkify );
+use LogBot::Util qw( event_to_short_string nick_is_bot normalise_channel time_to_ymd );
+use LogBot::Web::Util qw( linkify nick_hash );
 
 sub _get_logs {
     my ($c, $dbh) = @_;
