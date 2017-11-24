@@ -100,9 +100,23 @@
   </div>
 % }
 
+% my @hashes;
+% foreach my $date_block (@$logs) {
+  % my $channels = $date_block->{channels};
+  % foreach my $channel (sort keys %$channels) {
+    % foreach my $event (@{ $channels->{$channel} }) {
+      % push @hashes, $event->{hash};
+    % }
+  % }
+% }
+<style>
+% foreach my $hash (uniq grep { $_ } @hashes) {
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+% }
+</style>
+
 <div id="search-logs">
 
-% my @hashes;
 % foreach my $date_block (@$logs) {
   % my $date = time_to_ymd($date_block->{date});
   % my $channels = $date_block->{channels};
@@ -111,7 +125,6 @@
     % foreach my $channel (sort keys %$channels) {
       <li class="channel"><%= $channel %></li>
       % foreach my $event (@{ $channels->{$channel} }) {
-        % push @hashes, $event->{hash};
 <li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
 <div class="time"><a href="<%= url_for_channel(channel => $channel, date => $date) %>#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
 <div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
@@ -128,9 +141,3 @@
   </div>
 % }
 </div>
-
-<style>
-% foreach my $hash (uniq grep { $_ } @hashes) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
-% }
-</style>

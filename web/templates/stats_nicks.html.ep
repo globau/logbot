@@ -3,6 +3,12 @@
 % use LogBot::Util qw( commify );
 % use LogBot::Web::Util qw( nick_colour );
 
+<style>
+% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$nicks) {
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+% }
+</style>
+
 % if (@$nicks) {
   % my $top_count = $nicks->[0]->{count};
   % foreach my $entry (@$nicks) {
@@ -16,9 +22,3 @@
   <tr><td>no data</td></tr>
 % }
 </table>
-
-<style>
-% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$nicks) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
-% }
-</style>

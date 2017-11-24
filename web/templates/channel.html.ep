@@ -6,6 +6,12 @@
 % use LogBot::Web::Util qw( nick_colour url_for_channel );
 % use Time::Duration qw( earlier later );
 
+<style>
+% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$logs) {
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+% }
+</style>
+
 <div id="logs" data-url="<%= $config->{url} %>">
 
 <ul>
@@ -69,11 +75,3 @@
     % }
   </div>
 % }
-
-</div>
-
-<style>
-% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$logs) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
-% }
-</style>
