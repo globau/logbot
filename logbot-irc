@@ -232,13 +232,9 @@ while (1) {
     my $time    = time();
 
     # ping timer
-    if (exists $state->{next_ping} && $state->{next_ping} <= $time) {
-        delete $state->{next_ping};
-        $state->{pong_timeout} = $time + PING_TIMEOUT;
-        irc_send('PING :' . $state->{server});
-    }
     if (exists $state->{pong_timeout} && $state->{pong_timeout} <= $time) {
         $state->{pong_timeouts}++;
+        $state->{next_ping} = $time;
         say timestamp(), ' !! PING timeout (', $state->{pong_timeouts}, ')';
         $log->error('PING timeout (' . $state->{pong_timeouts} . ')');
 
@@ -247,6 +243,12 @@ while (1) {
             undef($connection);
             next;
         }
+
+    }
+    if (exists $state->{next_ping} && $state->{next_ping} <= $time) {
+        delete $state->{next_ping};
+        $state->{pong_timeout} = $time + PING_TIMEOUT;
+        irc_send('PING :' . $state->{server});
     }
 
     # reload timer
