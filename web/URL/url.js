@@ -45,7 +45,6 @@
     if ('' == h) {
       invalid.call(this)
     }
-    // XXX
     return h.toLowerCase()
   }
 
@@ -62,7 +61,7 @@
   }
 
   function percentEscapeQuery(c) {
-    // XXX This actually needs to encode c using encoding and then
+    // This actually needs to encode c using encoding and then
     // convert the bytes one-by-one.
 
     var unicode = c.charCodeAt(0);
@@ -151,7 +150,7 @@
             this._fragment = '#';
             state = 'fragment';
           } else {
-            // XXX error handling
+            // needs error handling
             if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
               this._schemeData += percentEscape(c);
             }
@@ -292,7 +291,7 @@
                 err('Invalid whitespace in authority.');
                 continue;
               }
-              // XXX check URL code points
+              // needs to check URL code points
               if (':' == cp && null === this._password) {
                 this._password = '';
                 continue;
@@ -333,7 +332,7 @@
         case 'host':
         case 'hostname':
           if (':' == c && !seenBracket) {
-            // XXX host parsing
+            // needs host parsing
             this._host = IDNAToASCII.call(this, buffer);
             buffer = '';
             state = 'port';
