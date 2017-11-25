@@ -56,7 +56,7 @@ sub irc_read {
     return $message;
 }
 
-# send irc message to server
+# send raw irc command to server
 sub irc_send {
     my ($message) = @_;
 
@@ -64,6 +64,12 @@ sub irc_send {
     say timestamp(), ' >> ', $message
         if substr($message, 0, 5) ne 'PING ' || $ENV{DEBUG};
     $connection->print($message . "\r\n");
+}
+
+# send private message
+sub irc_send_message {
+    my ($target, $message) = @_;
+    irc_send('PRIVMSG ' . $target . ' :' . $message);
 }
 
 # connect to irc server
@@ -105,7 +111,7 @@ sub irc_connect {
 
     # identify
     if ($config->{irc}->{password}) {
-        irc_send('PRIVMSG NickServ :identify ' . $config->{irc}->{password});
+        irc_send_message('NickServ', 'identify ' . $config->{irc}->{password});
     }
 }
 
@@ -382,8 +388,7 @@ while (1) {
     # private message
     if ($message =~ /^:([^!]+)!\S+ PRIVMSG \S+ :.+/) {
         my $who = $1;
-        irc_send('PRIVMSG ' . $who . ' :' . $config->{help})
-            if $config->{help};
+        irc_send_message($who, $config->{help}) if $config->{help};
     }
 
     # channel reconciliation RPL_WHOISCHANNELS
