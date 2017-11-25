@@ -36,7 +36,7 @@ while (!$quit) {
 
     # print daily status
     my $now = DateTime->now();
-    if ($now->ymd ne $last_status || $ENV{DEBUG}) {
+    if ($now->ymd ne $last_status) {
         say $now->ymd('-') if scalar(keys %tally);
         foreach my $channel (sort { $tally{$b} <=> $tally{$b} } keys %tally) {
             printf "%7s %s\n", $tally{$channel}, $channel;

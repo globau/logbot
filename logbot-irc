@@ -121,6 +121,7 @@ sub irc_connect {
 sub publish {
     my ($type, $nick, $channel, $text) = @_;
 
+    return unless exists $config->{channels}->{$channel};
     return if $config->{channels}->{$channel}->{no_logs};
 
     try {
@@ -202,6 +203,7 @@ use constant RELOAD_INTERVAL        => 60 * 60;
 $SIG{HUP}  = sub { $state->{reload} = 1 };
 $SIG{USR1} = sub { $state->{dump}   = 1 };
 $SIG{INT}  = sub { $state->{quit}   = 1 };
+$state->{pending_invites} = {};
 
 # event loop
 while (1) {
@@ -229,7 +231,7 @@ while (1) {
             $log->error(squash_error($_));
             undef($connection);
             $state->{backoff} = min(($state->{backoff} // 1) * 2, MAX_RECONNECT_INTERVAL);
-            say 'sleeping for ', $state->{backoff} if $ENV{DEBUG};
+            say timestamp(), ' ** sleeping for ', $state->{backoff} if $ENV{DEBUG};
             sleep($state->{backoff});
         };
     }
@@ -303,21 +305,27 @@ while (1) {
         next;
     }
 
-    # invite
+    # invited
     if ($message =~ /^:([^!]+)!\S+ INVITE \S+ :(#.+)/) {
         my ($who, $channel) = ($1, normalise_channel($2));
+
         if (any { $_ eq $channel } @{ $config->{blocked} }) {
-            say timestamp(), ' -- ignoring invite to ', $channel, ' from ', $who;
-            $log->info('ignoring invite to ' . $channel . ' from ' . $who);
+            say timestamp(), ' -- ignoring invite to blocked ', $channel, ' from ', $who;
+            $log->info('ignoring invite to blocked ' . $channel . ' from ' . $who);
             next;
         }
-        say timestamp(), ' -- invited to ', $channel, ' by ', $who;
-        $log->info('invited to ' . $channel . ' by ' . $who);
-        $config->{channels}->{$channel}->{invite} = timestamp() . ' <' . $who . '>';
-        delete $config->{channels}->{$channel}->{disabled};
-        delete $config->{channels}->{$channel}->{archived};
-        save_config($config);
-        $state->{reload} = 1;
+
+        if ($state->{channels_in}->{$channel}) {
+            say timestamp(), ' -- ignoring invite to already-in ', $channel, ' from ', $who;
+            $log->info('ignoring invite to already-in ' . $channel . ' from ' . $who);
+            next;
+        }
+
+        $state->{pending_invites}->{$channel} = {
+            who => lc($who),
+            ops => [],
+        };
+        irc_send('JOIN ' . $channel);
         next;
     }
 
@@ -325,8 +333,67 @@ while (1) {
     if ($message =~ /^:([^!]+)!\S+ JOIN :(#.+)/) {
         my ($who, $channel) = ($1, normalise_channel($2));
         next unless $who eq $config->{irc}->{nick};
+
+        # if we're joining due to an invite, check the requester is an op
+        if (exists $state->{pending_invites}->{$channel}) {
+            say timestamp(), ' ** found pending-invite for ', $channel if $ENV{DEBUG};
+            irc_send('NAMES ' . $channel);
+            next;
+        }
+
         $state->{channels_in}->{$channel} = 1;
-        irc_send("MODE $channel");  # trigger mode to grab channel password
+        irc_send('MODE ' . $channel);  # trigger mode to grab channel password
+        next;
+    }
+
+    # RPL_NAMREPLY (pending-invites)
+    if ($message =~ /^:\S+ 353 (\S+) . (#\S+) :(.+)$/) {
+        my ($who, $channel, $nicks) = ($1, normalise_channel($2), $3);
+        next unless $who eq $config->{irc}->{nick};
+        next unless exists $state->{pending_invites}->{$channel};
+
+        # ~owners, &admins, and @ops (note this excludes %half-ops)
+        push @{ $state->{pending_invites}->{$channel}->{ops} }, map {lc} grep {s/^[~&@]//} split(' ', $nicks);
+        next;
+    }
+
+    # RPL_ENDOFNAMES (pending-invites)
+    if ($message =~ /^:\S+ 366 (\S+) (#\S+) :/) {
+        my ($who, $channel) = ($1, normalise_channel($2));
+        next unless $who eq $config->{irc}->{nick};
+        next unless exists $state->{pending_invites}->{$channel};
+
+        my $invite = delete $state->{pending_invites}->{$channel};
+        if ($ENV{DEBUG}) {
+            say timestamp(), ' ** ', $channel, ' invited by: ', $invite->{who};
+            say timestamp(), ' ** ', $channel, ' ops: ', join(' ', @{ $invite->{ops} });
+        }
+
+        if (any { $_ eq $invite->{who} } @{ $invite->{ops} }) {
+            say timestamp(), ' -- joined ', $channel, ' via invite from ', $invite->{who};
+            $log->info('joined ' . $channel . ' via invite from ' . $invite->{who});
+
+            $config->{channels}->{$channel}->{invite} = timestamp() . ' <' . $invite->{who} . '>';
+            delete $config->{channels}->{$channel}->{disabled};
+            delete $config->{channels}->{$channel}->{archived};
+            save_config($config);
+
+            $state->{channels_in}->{$channel} = 1;
+            irc_send('MODE ' . $channel);  # trigger mode to grab channel password
+
+            my $url = $config->{url} . substr($channel, 1);
+            my $announcement = 'channel logging requested by ' . $invite->{who} . ': ' . $url;
+            irc_send_message($channel, $announcement);
+            publish(0, $config->{irc}->{nick}, $channel, $announcement);
+
+        } else {
+            say timestamp(), ' -- join ', $channel, ' rejected - non-op invite from ', $who;
+            $log->info('join ' . $channel . ' rejected - non-op invite from ' . $who);
+
+            irc_send('PART ' . $channel);
+            irc_send_message($invite->{who}, 'unable to join ' . $channel . ': you are not a channel op');
+
+        }
         next;
     }
 
