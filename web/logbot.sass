@@ -40,6 +40,25 @@ $transition-time: 50ms
 .menu-list a
   border-radius: 0
 
+.button
+  display: inline-block
+  height: 1rem
+
+  &.is-white:hover, &.is-white.is-hovered
+    background-color: #dbdbdb
+
+.icon
+  svg
+    height: 18px
+    width: 18px
+
+.notification
+  margin-right: 18px
+  padding: .25rem 1.5rem .25rem .5rem
+
+.modal-content
+  margin: 0
+
 // pika
 
 .pika-button
@@ -68,22 +87,6 @@ a
     outline: none
   &:visited
     color: $link-visited-colour
-
-.button
-  display: inline-block
-  height: 1rem
-
-  &.is-white:hover, &.is-white.is-hovered
-    background-color: #dbdbdb
-
-.icon
-  svg
-    height: 18px
-    width: 18px
-
-.notification
-  margin-right: 18px
-  padding: .25rem 1.5rem .25rem .5rem
 
 .hidden
   visibility: hidden
