@@ -1,6 +1,6 @@
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .
 requires 'DBD::SQLite', '1.54';
-requires 'DBI', '1.636',
+requires 'DBI', '1.636';
 requires 'Date::Parse', '2.30';
 requires 'DateTime', '1.43';
 requires 'Digest::xxHash', '2.03';
