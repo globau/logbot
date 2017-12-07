@@ -185,11 +185,10 @@ sub channel_from_param {
     if (!exists $config->{channels}->{$channel}
         || ($config->{channels}->{$channel}->{disabled} && !$config->{channels}->{$channel}->{web_only}))
     {
-        LogBot::Web::Index::render(
-            $c, {
-                error => "The channel $channel is not logged.",
-            }
-        );
+        my $message = "The channel $channel is not logged.";
+        $c->res->code(404);
+        $c->res->message($message);
+        LogBot::Web::Index::render($c, { error => $message });
         return undef;
     }
 
