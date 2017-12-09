@@ -14,6 +14,7 @@ requires 'List::MoreUtils', '0.419';
 requires 'List::Util', '1.33';
 requires 'Mojolicious', >= '7.33';
 requires 'Net::DNS::Native', '0.15';
+requires 'Readonly', '2.05';
 requires 'Term::ReadKey', '2.37';
 requires 'Time::Duration', '1.20';
 requires 'Try::Tiny', '0.28';
@@ -23,5 +24,6 @@ requires 'YAML::Tiny', '1.70';
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps . --with-develop
 on 'develop' => sub {
     requires 'Config::General', '2.63';
-    requires 'Perl::Tidy', '20170521',
+    requires 'Perl::Tidy', '20170521';
+    requires 'Perl::Critic';
 };

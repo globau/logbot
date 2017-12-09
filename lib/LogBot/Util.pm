@@ -26,6 +26,7 @@ use File::Path qw( make_path );
 use FindBin qw( $RealBin );
 use List::Util qw( any );
 use POSIX qw( ceil floor );
+use Readonly;
 use Time::Local qw( timelocal );
 
 my $pid_file;
@@ -114,6 +115,7 @@ sub slurp {
         $content .= $buffer;
     }
     die "read $file: $!\n" unless defined $ret;
+    close($fh);
     return $content;
 }
 
@@ -122,6 +124,7 @@ sub spurt {
     open(my $fh, '>', $file) or die "create $file: $!\n";
     ($fh->syswrite($content) // -1) == length($content)
         or die "write $file: $!\n";
+    close($fh);
 }
 
 sub touch {
@@ -233,12 +236,11 @@ sub pretty_size {
     return $bytes . $base[$base];
 }
 
-# from Math::Round
-use constant ROUND_HALF => 0.50000000000008;
+Readonly::Scalar my $ROUND_HALF => 0.50000000000008;
 
 sub round {
-    my @res = map { $_ >= 0 ? floor($_ + ROUND_HALF) : ceil($_ - ROUND_HALF); } @_;
-    return (wantarray) ? @res : $res[0];
+    my ($value) = @_;
+    return $value >= 0 ? floor($value + $ROUND_HALF) : ceil($value - $ROUND_HALF);
 }
 
 sub time_ago {

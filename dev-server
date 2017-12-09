@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-$| = 1;
 use local::lib;
 use strict;
 use warnings;
@@ -10,6 +9,7 @@ use Mojo::File          ();
 use Mojo::Server::Morbo ();
 use Time::HiRes qw( sleep );
 
+$| = 1;
 $ENV{DEBUG} = 1;
 $ENV{LOGBOT_CONFIG} = join(',', @ARGV) || '_development';
 

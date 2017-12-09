@@ -1,6 +1,4 @@
 #!/usr/bin/perl
-BEGIN { $ENV{TZ} = 'UTC' }
-
 use local::lib;
 use v5.10;
 use strict;
@@ -8,6 +6,8 @@ use warnings;
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN { $ENV{TZ} = 'UTC' }
 
 use File::Path qw( make_path );
 use LogBot::Config qw( find_config load_all_configs load_config );

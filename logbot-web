@@ -6,8 +6,6 @@
 # for static assets (web/public/static)
 #
 # use `make` to build static assets
-BEGIN { $ENV{TZ} = 'UTC' }
-
 use local::lib;
 use v5.10;
 use strict;
@@ -15,6 +13,8 @@ use warnings;
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN { $ENV{TZ} = 'UTC' }
 
 use DateTime ();
 use IO::Compress::Gzip qw( gzip );
@@ -80,7 +80,6 @@ under sub {
             for (my $i = 0; $i < scalar(@$networks); $i++) {
                 next unless $networks->[$i]->{name} eq $host;
                 $config_index = $i;
-                last;
                 last;
             }
         }

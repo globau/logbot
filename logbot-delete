@@ -1,7 +1,4 @@
 #!/usr/bin/perl
-BEGIN { $ENV{TZ} = 'UTC' }
-
-$| = 1;
 use local::lib;
 use v5.10;
 use strict;
@@ -10,12 +7,16 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
+BEGIN { $ENV{TZ} = 'UTC' }
+
 use LogBot::Config qw( find_config load_config );
 use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
 use LogBot::Util qw( event_to_string logbot_init );
 use Mojo::Util qw( trim );
 use Term::ReadKey qw( ReadKey ReadMode );
 use Text::ParseWords qw( quotewords );
+
+$| = 1;
 
 END {
     ReadMode(0);

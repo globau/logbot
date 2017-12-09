@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 # migrate config and logs from old logbot version
-BEGIN { $ENV{TZ} = 'UTC' }
 
 use local::lib;
 use v5.10;
@@ -9,6 +8,8 @@ use warnings FATAL => 'all';
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN { $ENV{TZ} = 'UTC' }
 
 use Config::General ();
 use DBD::SQLite::Constants qw( :file_open );

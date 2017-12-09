@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 # import event json files created by logbot-irc and inserts into network
 # database
-BEGIN { $ENV{TZ} = 'UTC' }
 
 use local::lib;
 use v5.10;
@@ -10,6 +9,8 @@ use warnings;
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN { $ENV{TZ} = 'UTC' }
 
 use Data::Dumper qw( Dumper );
 use DateTime ();

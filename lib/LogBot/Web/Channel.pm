@@ -29,7 +29,7 @@ sub _get_logs {
     unless (defined $logs) {
         $c->stash(error => 'Request took too long to process and has been cancelled.',);
         $c->render('channel');
-        return undef;
+        return;
     }
 
     return ($logs, $sql);

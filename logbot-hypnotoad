@@ -1,6 +1,4 @@
 #!/usr/bin/perl
-BEGIN { $ENV{TZ} = 'UTC' }
-
 use local::lib;
 use v5.10;
 use strict;
@@ -8,6 +6,8 @@ use warnings;
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN { $ENV{TZ} = 'UTC' }
 
 use Mojo::Server::Hypnotoad ();
 use Mojo::Util qw( getopt );

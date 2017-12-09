@@ -13,6 +13,7 @@ use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
 use Mojo::Path ();
 use Mojo::URL  ();
 use Mojo::Util qw( html_unescape xml_escape );
+use Readonly;
 use URI::Find ();
 
 our @EXPORT_OK = qw(
@@ -34,14 +35,14 @@ sub nick_hash {
 }
 
 my $nick_colour_cache = {};
-use constant MAX_NICK_CACHE_COUNT => 1_000;
+Readonly::Scalar my $MAX_NICK_CACHE_COUNT => 1_000;
 
 # don't let the cache grow above a specified size
 sub nick_colour_init {
     my $count = scalar keys %$nick_colour_cache;
-    return if $count < MAX_NICK_CACHE_COUNT;
+    return if $count < $MAX_NICK_CACHE_COUNT;
     my @hashes = sort { $nick_colour_cache->{$a}->[0] <=> $nick_colour_cache->{$b}->[0] } keys %$nick_colour_cache;
-    splice(@hashes, 0, MAX_NICK_CACHE_COUNT);
+    splice(@hashes, 0, $MAX_NICK_CACHE_COUNT);
     foreach my $hash (@hashes) {
         delete $nick_colour_cache->{$hash};
     }
@@ -189,7 +190,7 @@ sub channel_from_param {
         $c->res->code(404);
         $c->res->message($message);
         LogBot::Web::Index::render($c, { error => $message });
-        return undef;
+        return;
     }
 
     return $channel;

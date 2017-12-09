@@ -1,11 +1,5 @@
 #!/usr/bin/perl
 # update channel metadata, etc
-
-BEGIN {
-    $ENV{TZ}   = 'UTC';
-    $ENV{CRON} = !$ENV{DEBUG};
-}
-
 use local::lib;
 use v5.10;
 use strict;
@@ -13,6 +7,11 @@ use warnings;
 
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
+
+BEGIN {
+    $ENV{TZ}   = 'UTC';
+    $ENV{CRON} = !$ENV{DEBUG};
+}
 
 use DateTime ();
 use File::Path qw( make_path );
@@ -22,8 +21,9 @@ use LogBot::Config qw( find_config load_all_configs load_config reload_config sa
 use LogBot::Database qw( dbh replace_sql_placeholders );
 use LogBot::Util qw( file_for logbot_init nick_is_bot path_for round spurt );
 use LogBot::Web::Util qw( nick_hash );
+use Readonly;
 
-use constant ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
+Readonly::Scalar my $ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
 
 my @configs;
 if (@ARGV && $ARGV[0] eq '--all') {
@@ -216,7 +216,7 @@ sub archive_stale_channels {
             $channel);
 
         next unless $last_time;
-        next unless $now - $last_time > ARCHIVE_TIME;
+        next unless $now - $last_time > $ARCHIVE_TIME;
 
         say $config->{name}, ': archiving ', $channel if $ENV{DEBUG};
 

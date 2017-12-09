@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-$| = 1;
 use strict;
 use warnings;
 use local::lib;
@@ -9,6 +8,8 @@ use Cwd qw( abs_path );
 use File::Find qw( find );
 use FindBin qw( $RealBin );
 use Mojo::File ();
+
+$| = 1;
 
 # inlines svg images into templates
 # to use, create an svg element with a class name "svg-filename"

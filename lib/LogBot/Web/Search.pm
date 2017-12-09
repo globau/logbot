@@ -13,11 +13,12 @@ use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
 use LogBot::Web::Channel ();
 use LogBot::Web::Util qw( linkify nick_hash url_for_channel );
 use Mojo::Util qw( trim );
+use Readonly;
 use Text::ParseWords qw( quotewords );
 use Time::HiRes ();
 
-use constant SEARCH_FTS_LIMIT => 100_000;
-use constant SEARCH_LIMIT     => 200;
+Readonly::Scalar my $SEARCH_FTS_LIMIT => 100_000;
+Readonly::Scalar my $SEARCH_LIMIT     => 200;
 
 sub render {
     my ($c, $q) = @_;
@@ -95,7 +96,7 @@ sub render {
             # sqlite can be slow at ordering.  if there are more than an
             # arbitrary amount of hits, switch to a substring search, which
             # will execute much faster.
-            if ($count > SEARCH_FTS_LIMIT) {
+            if ($count > $SEARCH_FTS_LIMIT) {
                 push @where,  'text LIKE ?';
                 push @values, like_value($q);
 
@@ -170,7 +171,7 @@ sub render {
         "FROM logs\n" .
         "WHERE (" . join(")\nAND (", @where) . ")\n" .
         "ORDER BY time DESC\n" .
-        "LIMIT " . (SEARCH_LIMIT + 1) . "\n";
+        "LIMIT " . ($SEARCH_LIMIT + 1) . "\n";
     #>>>
 
     # execute
@@ -195,7 +196,7 @@ sub render {
 
     # deal with hitting search limit
     my $limited = 0;
-    if (scalar(@$logs) == SEARCH_LIMIT + 1) {
+    if (scalar(@$logs) == $SEARCH_LIMIT + 1) {
         pop @$logs;
         $limited = 1;
     }
@@ -248,7 +249,7 @@ sub render {
 
     $c->stash(
         logs      => \@collated,
-        limit     => SEARCH_LIMIT,
+        limit     => $SEARCH_LIMIT,
         limited   => $limited,
         log_count => scalar(@$logs),
         searched  => 1,
@@ -259,7 +260,7 @@ sub render {
 
 sub date_string_to_ymd {
     my ($value) = @_;
-    my $time = str2time($value, 'UTC') // return undef;
+    my $time = str2time($value, 'UTC') // return;
     return DateTime->from_epoch(epoch => $time)->truncate(to => 'day')->ymd('-');
 }
 

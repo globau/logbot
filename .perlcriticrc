@@ -1,0 +1,10 @@
+# stern
+severity = 4
+
+# http://search.cpan.org/~petdance/Perl-Critic/lib/Perl/Critic/PolicySummary.pod
+
+# don't require localised magic vars
+[-Variables::RequireLocalizedPunctuationVars]
+
+# don't require sub returns
+[-Subroutines::RequireFinalReturn]
