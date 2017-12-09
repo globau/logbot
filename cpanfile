@@ -23,7 +23,6 @@ requires 'YAML::Tiny', '1.70';
 
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps . --with-develop
 on 'develop' => sub {
-    requires 'Config::General', '2.63';
     requires 'Perl::Tidy', '20170521';
     requires 'Perl::Critic';
 };
