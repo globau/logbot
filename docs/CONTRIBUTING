@@ -15,5 +15,5 @@ the very high level install steps for a development setup are:
 if `dev-server` is not running you must run `make` manually.  some changes
 require a full rebuild of the resources with `make -B`.
 
-run `dev-tidy` before creating any pull requests; this will auto-format
-perl and sass.
+run `dev-precommit` before creating any pull requests; this will auto-format
+perl and sass, and report possible perl issues.
