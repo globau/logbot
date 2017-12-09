@@ -27,8 +27,8 @@ die "failed to find $lib_path\n" unless -d $lib_path;
 my @files;
 find(
     sub {
-        return unless -f $_ && -s $_;
         my $file = $File::Find::name;
+        return unless -f $file && -s $file;
         return unless $file =~ m#\.html\.ep$#;
 
         push @files, $file;

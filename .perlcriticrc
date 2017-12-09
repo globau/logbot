@@ -18,14 +18,28 @@ severity = 3
 # die is fine
 [-ErrorHandling::RequireCarping]
 
+# packages don't need $VERSION
+[-Modules::RequireVersionVar]
+
+# imho q{} and qq{} is uglier than '' and ""
+[-ValuesAndExpressions::ProhibitEmptyQuotes]
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
+
+# whitelist more punctuation vars
+[Variables::ProhibitPunctuationVars]
+allow = $| $? $!
+
 # regexs are fine
 [-RegularExpressions::ProhibitComplexRegexes]
+[-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireExtendedFormatting]
+[-RegularExpressions::RequireLineBoundaryMatching]
 
 # complex code is fine
 [-BuiltinFunctions::RequireSimpleSortBlock]
 [-ControlStructures::ProhibitCascadingIfElse]
 [-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+[-ControlStructures::ProhibitPostfixControls]
 [-Modules::ProhibitExcessMainComplexity]
 [-NamingConventions::ProhibitAmbiguousNames]
 [-Subroutines::ProhibitExcessComplexity]
