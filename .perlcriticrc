@@ -1,5 +1,5 @@
 # stern
-severity = 4
+severity = 3
 
 # http://search.cpan.org/~petdance/Perl-Critic/lib/Perl/Critic/PolicySummary.pod
 
@@ -8,3 +8,25 @@ severity = 4
 
 # don't require sub returns
 [-Subroutines::RequireFinalReturn]
+
+# 'return' != 'return undef'
+[-Subroutines::ProhibitExplicitReturnUndef]
+
+# version strings are nice
+[-ValuesAndExpressions::ProhibitVersionStrings]
+
+# die is fine
+[-ErrorHandling::RequireCarping]
+
+# regexs are fine
+[-RegularExpressions::ProhibitComplexRegexes]
+[-RegularExpressions::RequireExtendedFormatting]
+
+# complex code is fine
+[-BuiltinFunctions::RequireSimpleSortBlock]
+[-ControlStructures::ProhibitCascadingIfElse]
+[-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+[-Modules::ProhibitExcessMainComplexity]
+[-NamingConventions::ProhibitAmbiguousNames]
+[-Subroutines::ProhibitExcessComplexity]
+[-ValuesAndExpressions::ProhibitImplicitNewlines]

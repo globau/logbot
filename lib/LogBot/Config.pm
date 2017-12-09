@@ -38,7 +38,7 @@ sub config_for {
     foreach my $file (keys %$configs) {
         return $configs->{$file} if $configs->{$file}->{name} eq $network;
     }
-    return;
+    return undef;
 }
 
 sub load_config {

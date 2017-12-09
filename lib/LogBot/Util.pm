@@ -189,11 +189,11 @@ sub event_to_string {
     my ($event) = @_;
 
     my $time = DateTime->from_epoch(epoch => $event->{time})->iso8601();
-    if ($event->{type} eq 0) {
+    if ($event->{type} == 0) {
         return $time . ' ' . $event->{channel} . ' <' . $event->{nick} . '> ' . $event->{text};
-    } elsif ($event->{type} eq 1) {
+    } elsif ($event->{type} == 1) {
         return $time . ' ' . $event->{channel} . ' * ' . $event->{nick} . ' ' . $event->{text};
-    } elsif ($event->{type} eq 2) {
+    } elsif ($event->{type} == 2) {
         return $time . ' ' . $event->{channel} . ' -' . $event->{nick} . '- ' . $event->{text};
     } else {
         die "unsupported event: " . Dumper($event);
@@ -204,11 +204,11 @@ sub event_to_short_string {
     my ($event) = @_;
 
     my $time = DateTime->from_epoch(epoch => $event->{time})->format_cldr('hh:mm:ss');
-    if ($event->{type} eq 0) {
+    if ($event->{type} == 0) {
         return $time . ' <' . $event->{nick} . '> ' . $event->{text};
-    } elsif ($event->{type} eq 1) {
+    } elsif ($event->{type} == 1) {
         return $time . ' * ' . $event->{nick} . ' ' . $event->{text};
-    } elsif ($event->{type} eq 2) {
+    } elsif ($event->{type} == 2) {
         return $time . ' -' . $event->{nick} . '- ' . $event->{text};
     } else {
         die "unsupported event: " . Dumper($event);

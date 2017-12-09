@@ -190,7 +190,7 @@ sub channel_from_param {
         $c->res->code(404);
         $c->res->message($message);
         LogBot::Web::Index::render($c, { error => $message });
-        return;
+        return undef;
     }
 
     return $channel;
@@ -269,7 +269,7 @@ sub shorten_url {
     # need to unescape string to avoid splitting enties
     $value = html_unescape($value);
     my $diff = length($value) - 70;
-    substr($value, (length($value) / 2) - ($diff / 2), $diff) = "\0";
+    substr($value, (length($value) / 2) - ($diff / 2), $diff, "\0");
     $value = xml_escape($value);
     $value =~ s/\0/&hellip;/;
     return $value;

@@ -38,7 +38,7 @@ sub fetch_job {
         }
         sleep(1);
     }
-    return;
+    return undef;
 }
 
 sub delete_job {

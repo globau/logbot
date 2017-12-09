@@ -36,18 +36,18 @@ my ($config, $state, $connection, $log);
 
 # read message from irc server, or undef if no message ready or disconnected
 sub irc_read {
-    return unless $connection;
+    return undef unless $connection;
     my $message = $connection->getline();
 
     # timeout
     if (!$message && (0 + $! == ETIMEDOUT || 0 + $! == EWOULDBLOCK)) {
-        return;
+        return undef;
     }
 
     # disconnect
     unless (defined $message) {
         undef $connection;
-        return;
+        return undef;
     }
     $message =~ s/[\r\n]+$//;
 
@@ -403,13 +403,13 @@ while (1) {
 
     # bad channel key --> archive channel
     if ($message =~ /^:\S+ 475 (\S+) (#\S+) :(.+)/) {
-        my ($who, $channel, $message) = ($1, normalise_channel($2), $3);
+        my ($who, $channel, $text) = ($1, normalise_channel($2), $3);
         next unless $who eq $config->{irc}->{nick};
-        say timestamp(), ' -- join ', $channel, ' failed: ', $message;
-        $log->error('join ' . $channel . ' failed: ' . $message);
+        say timestamp(), ' -- join ', $channel, ' failed: ', $text;
+        $log->error('join ' . $channel . ' failed: ' . $text);
         $state->{channels_in}->{$channel}           = 0;
         $config->{channels}->{$channel}->{archived} = 1;
-        $config->{channels}->{$channel}->{error}    = timestamp() . ' ' . $message;
+        $config->{channels}->{$channel}->{error}    = timestamp() . ' ' . $text;
         save_config($config);
         next;
     }
@@ -426,14 +426,14 @@ while (1) {
 
     # when kicked track why, and don't try to rejoin
     if ($message =~ /^:([^!]+)!\S+ KICK (#\S+) (\S+) :(.*)/) {
-        my ($who, $channel, $kicked, $message) = ($1, normalise_channel($2), $3, $4);
+        my ($who, $channel, $kicked, $text) = ($1, normalise_channel($2), $3, $4);
         next unless $kicked eq $config->{irc}->{nick};
-        $message = 'kicked' if ($message // '') eq '';
-        say timestamp(), ' -- kicked from ', $channel, ' by ', $who, ': ', $message;
-        $log->info('kicked from ' . $channel . ' by ' . $who . ': ' . $message);
+        $text = 'kicked' if ($text // '') eq '';
+        say timestamp(), ' -- kicked from ', $channel, ' by ', $who, ': ', $text;
+        $log->info('kicked from ' . $channel . ' by ' . $who . ': ' . $text);
         $state->{channels_in}->{$channel}           = 0;
         $config->{channels}->{$channel}->{disabled} = 1;
-        $config->{channels}->{$channel}->{kick}     = timestamp() . ' <' . $who . '> ' . $message;
+        $config->{channels}->{$channel}->{kick}     = timestamp() . ' <' . $who . '> ' . $text;
         save_config($config);
         next;
     }

@@ -24,7 +24,7 @@ sub render {
     my ($c, $q) = @_;
     my $config = $c->stash('config');
 
-    my $today = DateTime->now->truncate(to => 'day');
+    my $today = DateTime->today();
     $q = trim($q);
 
     # searching for a channel name redirects to the log
@@ -41,7 +41,9 @@ sub render {
     }
 
     my $n = trim($c->param('n') // '');
-    $n = $1 if $q =~ s/<([^>]+)>\s*//;
+    if ($q =~ s/<([^>]+)>\s*//) {
+        $n = $1;
+    }
     $n =~ s/(?:^<|>$)//g;
 
     $c->stash(
@@ -132,11 +134,10 @@ sub render {
     }
 
     if ($c->stash('w') eq 'r') {
-        my $date = DateTime->now();
-        push @where, 'time >= ' . $today->subtract(months => 3)->epoch;
+        my $date = DateTime->today();
+        push @where, 'time >= ' . $date->subtract(months => 3)->epoch;
 
     } elsif ($c->stash('w') eq 'c') {
-        my $today     = DateTime->today->epoch();
         my $from_time = ymd_to_time($c->param('f')) // $today;
         my $to_time   = ymd_to_time($c->param('t')) // $today;
 
@@ -260,7 +261,7 @@ sub render {
 
 sub date_string_to_ymd {
     my ($value) = @_;
-    my $time = str2time($value, 'UTC') // return;
+    my $time = str2time($value, 'UTC') // return undef;
     return DateTime->from_epoch(epoch => $time)->truncate(to => 'day')->ymd('-');
 }
 

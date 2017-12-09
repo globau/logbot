@@ -76,8 +76,8 @@ while (my $event = $sth->fetchrow_hashref) {
         execute_with_retry(
             $config,
             sub {
-                my ($dbh) = @_;
-                $dbh->do("DELETE FROM logs WHERE id = ?", undef, $event->{id});
+                my ($_dbh) = @_;
+                $_dbh->do("DELETE FROM logs WHERE id = ?", undef, $event->{id});
                 return 1;
             }
         ) // die;

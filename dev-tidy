@@ -62,20 +62,20 @@ foreach my $file (glob('web/*.sass')) {
     push @output, process_chunk($chunk);
 
     sub reset_chunk {
-        my ($chunk) = @_;
-        $chunk->{indent} = -1;
-        $chunk->{lines}  = [];
+        my ($ch) = @_;
+        $ch->{indent} = -1;
+        $ch->{lines}  = [];
     }
 
     sub process_chunk {
-        my ($chunk) = @_;
+        my ($ch) = @_;
         my @lines =
             sort {
             return -1 if $a =~ m#^\s*//#;
             return 1  if $b =~ m#^\s*//#;
             return $a cmp $b;
-            } @{ $chunk->{lines} };
-        reset_chunk($chunk);
+            } @{ $ch->{lines} };
+        reset_chunk($ch);
         return @lines;
     }
 

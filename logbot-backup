@@ -41,5 +41,6 @@ foreach my $config (@configs) {
     unlink($backup_file . '.bz2');
     system('bzip2', $backup_file);
 
-    say timestamp(), " compressed (" . pretty_size(-s $backup_file . '.bz2') . ")" if $ENV{DEBUG};
+    $backup_file .= '.bz2';
+    say timestamp(), " compressed (" . pretty_size(-s $backup_file) . ")" if $ENV{DEBUG};
 }
