@@ -21,8 +21,6 @@ EXT_JS=web/build/jquery.min.js web/build/pikaday.min.js web/build/chosen.min.js 
 EXT_CSS=web/build/pikaday.min.css web/build/hind.min.css web/build/chosen.min.css
 REDIR_EXT_JS=web/build/url.min.js
 
-SVG_LIB=font-awesome
-
 all: \
 	web/public/static/logbot.min.js \
 	web/public/static/logbot.min.css \
@@ -95,8 +93,8 @@ web/build/hind.min.css: web/hind/hind.sass
 
 # templates
 
-web/build/inline-svg.updated: web/svg/*.svg web/svg/$(SVG_LIB)/*.svg web/templates/*.html.ep web/templates/layouts/*.html.ep
-	./dev-inline-svg $(SVG_LIB)
+web/build/inline-svg.updated: web/svg/*.svg web/svg/font-awesome/*.svg web/templates/*.html.ep web/templates/layouts/*.html.ep
+	./dev-inline-svg --inline
 	touch web/build/inline-svg.updated
 
 # svg

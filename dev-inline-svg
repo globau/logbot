@@ -8,57 +8,106 @@ use Cwd qw( abs_path );
 use File::Find qw( find );
 use FindBin qw( $RealBin );
 use Mojo::File ();
+use Mojo::Util qw( getopt );
+use YAML::Tiny ();
 
 $| = 1;
 
-# inlines svg images into templates
-# to use, create an svg element with a class name "svg-filename"
-# the filename will be loaded from web/svg and replace the svg element
-# only the svg-filename class will be carried over into the inline svg element,
-# other classes and ids will be lost
-# eg. <svg class="svg-sidebar-collapse"></svg>
+my ($inline, $import);
+#<<<
+getopt
+    'inline'   => \$inline,
+    'import:s' => \$import;
+#>>>
+die <<'EOF' unless $inline || $import;
+syntax:
+    dev-inline-svg --inline
+    dev-inline-svg --import <font-awesome pro path>
+EOF
 
 my $templates_path = "$RealBin/web/templates";
 
 my $svg_path = $RealBin . '/web/svg';
-my $lib_path = $svg_path . '/font-awesome';
-die "failed to find $lib_path\n" unless -d $lib_path;
+my $fa_path  = $svg_path . '/font-awesome';
+die "failed to find $fa_path\n" unless -d $fa_path;
 
-my @files;
-find(
-    sub {
-        my $file = $File::Find::name;
-        return unless -f $file && -s $file;
-        return unless $file =~ m#\.html\.ep$#;
-
-        push @files, $file;
-    },
-    $templates_path
-);
-
-foreach my $file (sort @files) {
-    my $orig = Mojo::File->new($file)->slurp();
-    (my $tmpl = $orig) =~ s{
-        <svg\sclass="svg-([^"]+)".+?</svg>
-    }{
-        svg($1)
-    }gxe;
-
-    next if $orig eq $tmpl;
-    say substr($file, length($templates_path) + 1);
-    Mojo::File->new($file)->spurt($tmpl);
-    say 'inline-svg: updated ', substr($file, length($RealBin) + 1);
+if ($inline) {
+    inline_svg();
+} else {
+    import_svg($import);
 }
 
-sub svg {
+sub inline_svg {
+
+    # inlines svg images into templates
+    # to use, create an svg element with a class name "svg-filename"
+    # the filename will be loaded from web/svg and replace the svg element
+    # only the svg-filename class will be carried over into the inline svg element,
+    # other classes and ids will be lost
+    # eg. <svg class="svg-sidebar-collapse"></svg>
+
+    my @files;
+    find(
+        sub {
+            my $file = $File::Find::name;
+            return unless -f $file && -s $file;
+            return unless $file =~ m#\.html\.ep$#;
+
+            push @files, $file;
+        },
+        $templates_path
+    );
+
+    foreach my $file (sort @files) {
+        my $orig = Mojo::File->new($file)->slurp();
+        (my $tmpl = $orig) =~ s{
+            <svg\sclass="svg-([^"]+)".+?</svg>
+        }{
+            load_svg($1)
+        }gxe;
+
+        next if $orig eq $tmpl;
+        say substr($file, length($templates_path) + 1);
+        Mojo::File->new($file)->spurt($tmpl);
+        say 'inline-svg: updated ', substr($file, length($RealBin) + 1);
+    }
+}
+
+sub load_svg {
     my ($name) = @_;
     my $file =
-        -e "$lib_path/$name.svg"
-        ? "$lib_path/$name.svg"
+        -e "$fa_path/$name.svg"
+        ? "$fa_path/$name.svg"
         : "$svg_path/$name.svg";
     die "failed to find $name.svg\n" unless -e $file;
     my $svg = Mojo::File->new($file)->slurp();
     $svg =~ s/^<svg /<svg class="svg-$name" /;
     $svg =~ s/\s+$//;
     return $svg;
+}
+
+sub import_svg {
+    my ($source_path) = @_;
+
+    # update svg icons from font-awesome pro
+
+    $source_path =~ s#/$##;
+    $source_path .= '/advanced-options/raw-svg';
+    die "failed to find font-awesome pro icons\n" unless -d "$source_path/solid";
+
+    my $mapping = YAML::Tiny->read("$fa_path/mapping.yaml")->[0];
+    foreach my $output_name (sort keys %$mapping) {
+        my $input_file  = "$source_path/" . $mapping->{$output_name} . '.svg';
+        my $output_file = "$fa_path/$output_name.svg";
+
+        my $input  = Mojo::File->new($input_file)->slurp;
+        my $output = Mojo::File->new($output_file)->slurp;
+
+        if ($input eq $output) {
+            say "inline-svg: $output_name unchanged";
+        } else {
+            Mojo::File->new($output_file)->spurt($input);
+            say "inline-svg: $output_name updated";
+        }
+    }
 }

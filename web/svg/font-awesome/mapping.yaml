@@ -1,0 +1,18 @@
+---
+channel-end: light/arrow-alt-to-bottom
+channel-logs: regular/comment
+channel-raw: light/file-alt
+channel-reload: regular/sync-alt
+channel-stats: regular/chart-bar
+channel-text: regular/file-alt
+date-next: solid/angle-right
+date-pick: regular/calendar-alt
+date-prev: solid/angle-left
+email: regular/envelope
+github: brands/github
+networks-close: light/angle-up
+networks-open: light/angle-down
+search: solid/search
+settings: regular/cog
+sidebar-collapse: solid/angle-double-left
+sidebar-open: solid/angle-double-right
