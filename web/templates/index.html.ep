@@ -19,7 +19,7 @@
       collected by the <b><%= $config->{irc}->{nick} %></b> bot.
     </p>
 
-    <h3>How to get LogBot to log your channel</h3>
+    <h3 id="how-to-log">How to get LogBot to log your channel</h3>
     <p>
       A channel OP can invite "<%= $config->{irc}->{nick} %>" into the channel
       using the IRC <b>/invite</b> command.
@@ -30,12 +30,12 @@
       channels, however the logs it collects will be publically visible.
     </p>
 
-    <h3>How to get LogBot to stop logging your channel and remove the public logs</h3>
+    <h3 id="how-to-no-log">How to get LogBot to stop logging your channel and remove the public logs</h3>
     <p>
       Kick "<%= $config->{irc}->{nick} %>" from your channel.
     </p>
 
-    <h3>How to get LogBot to stop logging your channel but retain the public logs</h3>
+    <h3 id="how-to-stop-retain">How to get LogBot to stop logging your channel but retain the public logs</h3>
     <p>
       <a href="https://github.com/globau/logbot/issues/new">File an issue</a>,
       or <a href="mailto:byron@glob.com.au">send me an email</a>.
@@ -47,17 +47,17 @@
       the list of channels.
     </p>
 
-    <h3>How does LogBot know which nicks are bots?</h3>
+    <h3 id="how-bot-nicks">How does LogBot know which nicks are bots?</h3>
     <p>
       There's a <a href="/_config">configured list of bots</a> for each network.
       <a href="https://github.com/globau/logbot/issues/new">File an issue</a>
       to add to this list.
     </p>
 
-    <h3>How to request removal of logged information</h3>
+    <h3 id="how-to-scrub">How to request removal of logged information</h3>
     <p>
       <a href="mailto:byron@glob.com.au">Send me an email</a> or message
       me on IRC ("glob" on irc.mozilla.org) if there's data that you feel
-      should be scrubbed (eg. spam, accidential leakage of passwords, etc).
+      should be scrubbed (e.g. spam, accidental leakage of passwords, etc).
     </p>
 </div>
