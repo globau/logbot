@@ -51,7 +51,7 @@ sub inline_svg {
         sub {
             my $file = $File::Find::name;
             return unless -f $file && -s $file;
-            return unless $file =~ m#\.html\.ep$#;
+            return unless $file =~ /\.html\.ep$/;
 
             push @files, $file;
         },
@@ -91,7 +91,7 @@ sub import_svg {
 
     # update svg icons from font-awesome pro
 
-    $source_path =~ s#/$##;
+    $source_path =~ s{/$}{};
     $source_path .= '/advanced-options/raw-svg';
     die "failed to find font-awesome pro icons\n" unless -d "$source_path/solid";
 

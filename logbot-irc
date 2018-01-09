@@ -80,10 +80,10 @@ sub irc_connect {
     say timestamp(), ' -- connecting to irc on ', $irc_host, ($ssl ? ' (ssl)' : '');
     if ($ssl) {
         $connection = IO::Socket::SSL->new($irc_host)
-            or die "connection to " . $irc_host . " failed: $! $SSL_ERROR\n";
+            or die "connection to $irc_host failed: $! $SSL_ERROR\n";
     } else {
         $connection = IO::Socket::INET->new($irc_host)
-            or die "connection to " . $irc_host . " failed: $@\n";
+            or die "connection to $irc_host failed: $@\n";
     }
     IO::Socket::Timeout->enable_timeouts_on($connection);
     $connection->read_timeout(0.5);
@@ -95,7 +95,7 @@ sub irc_connect {
     # wait for connect (end of motd)
     while (1) {
         my $message = irc_read();
-        die "Disconnected" . ($ssl ? '' : ' (possible SSL mismatch)') . "\n" unless $connection;
+        die 'Disconnected' . ($ssl ? '' : ' (possible SSL mismatch)') . "\n" unless $connection;
         next unless $message;
         if (substr($message, 0, 5) eq 'PING ') {
             irc_send('PONG ' . substr($message, 5));
@@ -131,11 +131,13 @@ sub publish {
         $text = $utf8 ? decode('utf8', $text) : decode('cp1252', $text);
 
         # strip colours, formatting
+        ## no critic (ProhibitEnumeratedClasses)
         $text =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;  # mirc
-        $text =~ s/\x04[0-9a-fA-F]{0,6}//ig;                   # rgb
+        $text =~ s/\x04[0-9a-fA-F]{0,6}//g;                    # rgb
         $text =~ s/\x1B\[.*?[\x00-\x1F\x40-\x7E]//g;           # ecma-84
         $text =~ s/[\x02\x1f\x16\x1d\x11\x06]//g;              # formatting
         $text =~ s/\x0f//g;                                    # cancellation
+        ## use critic
 
         publish_job(
             $config, {
@@ -169,15 +171,15 @@ if (-e $pid_file) {
 # commands / signals
 if (@ARGV) {
     if ($ARGV[0] eq '--reload') {
-        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
         kill('HUP', $pid);
         say "reload request sent to pid $pid";
     } elsif ($ARGV[0] eq '--debug') {
-        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
         kill('USR1', $pid);
         say "debug-dump request sent to pid $pid";
     } elsif ($ARGV[0] eq '--quit') {
-        $pid || die "logbot-irc (" . $config->{name} . ") is not running\n";
+        $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
         kill('INT', $pid);
         say "quit request sent to pid $pid";
     } else {
@@ -188,7 +190,7 @@ if (@ARGV) {
 
 # init
 STDOUT->autoflush(1);
-$pid && die "logbot-irc (" . $config->{name} . ") is already running\n";
+$pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
 $log = Mojo::Log->new(path => $RealBin . '/log/irc-' . $config->{name} . '.log', level => 'info');
 

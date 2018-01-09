@@ -1,5 +1,5 @@
 # stern
-severity = 2
+severity = 1
 
 # http://search.cpan.org/~petdance/Perl-Critic/lib/Perl/Critic/PolicySummary.pod
 
@@ -29,13 +29,22 @@ severity = 2
 [Variables::ProhibitPunctuationVars]
 allow = $| $? $! $@
 
+# no need to check all syscalls
+[InputOutput::RequireCheckedSyscalls]
+exclude_functions = print say
+
+# functions should look like functions
+[-CodeLayout::ProhibitParensWithBuiltins]
+
 # regexs are fine
 [-RegularExpressions::ProhibitComplexRegexes]
+[-RegularExpressions::ProhibitEscapedMetacharacters]
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireExtendedFormatting]
 [-RegularExpressions::RequireLineBoundaryMatching]
 
 # complex code is fine
+[-BuiltinFunctions::ProhibitReverseSortBlock]
 [-BuiltinFunctions::RequireSimpleSortBlock]
 [-ControlStructures::ProhibitCStyleForLoops]
 [-ControlStructures::ProhibitCascadingIfElse]

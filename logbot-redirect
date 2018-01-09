@@ -15,7 +15,7 @@ use Mojo::URL ();
 use Mojolicious::Lite qw( app );
 
 # build default url
-my $default_network = $ENV{LOGBOT_DEFAULT_NETWORK} // die "LOGBOT_DEFAULT_NETWORK not set";
+my $default_network = $ENV{LOGBOT_DEFAULT_NETWORK} // die 'LOGBOT_DEFAULT_NETWORK not set';
 my $default_config = load_config(find_config($default_network), web => 1);
 my $default_url = Mojo::URL->new($default_config->{url});
 

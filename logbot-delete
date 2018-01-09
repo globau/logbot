@@ -77,15 +77,15 @@ while (my $event = $sth->fetchrow_hashref) {
             $config,
             sub {
                 my ($_dbh) = @_;
-                $_dbh->do("DELETE FROM logs WHERE id = ?", undef, $event->{id});
+                $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
                 return 1;
             }
         ) // die;
-        print "deleted\n";
+        say 'deleted';
     } elsif ($key eq 'n') {
         print "\r\e[K";
     } else {
-        print "\n";
+        say '';
         exit;
     }
 }
@@ -96,7 +96,7 @@ sub confirm {
     do {
         $key = ReadKey();
         if (ord($key) == 3 || ord($key) == 27) {
-            print "^C\n";
+            say '^C';
             ReadMode(0);
             exit;
         }

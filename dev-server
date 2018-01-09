@@ -100,7 +100,7 @@ sub run {
     if (WIFEXITED($error)) {
         my $exit_val = WEXITSTATUS($error);
         return if $exit_val == 0;
-        print "\7";
+        print chr(7);
     } elsif (WIFSIGNALED($error)) {
         my $signal_no   = WTERMSIG($error);
         my @sig_names   = split(' ', $Config{sig_name});

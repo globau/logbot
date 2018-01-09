@@ -271,7 +271,7 @@ any '*' => sub {
     my ($c) = @_;
     $c->res->code(404);
     $c->res->message('Not Found');
-    LogBot::Web::Index::render($c, { error => "Not Found." });
+    LogBot::Web::Index::render($c, { error => 'Not Found.' });
 };
 
 my %cache;
@@ -293,6 +293,7 @@ hook after_render => sub {
     my $headers = $c->res->headers;
 
     #<<<
+    ## no critic (ProhibitInterpolationOfLiterals)
     $headers->header(
         'Content-Security-Policy' => "default-src 'self'; " .
                                      "object-src 'none'; " .
@@ -301,6 +302,7 @@ hook after_render => sub {
                                      "style-src 'self' 'unsafe-inline'; " . # unsafe-inline for chosen, top-nick graph
                                      "img-src 'self' data:"                 # data: for pikaday
     );
+    ## use critic
     #>>>
 
     # no need to expose this info

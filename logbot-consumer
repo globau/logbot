@@ -77,7 +77,7 @@ while (!$quit) {
             my ($dbh) = @_;
             return 0 if $quit;
 
-            $dbh->do("INSERT INTO logs(time,channel,nick,type,text) VALUES (?,?,?,?,?)",
+            $dbh->do('INSERT INTO logs(time,channel,nick,type,text) VALUES (?,?,?,?,?)',
                 undef, $event->{time}, $event->{channel}, $event->{nick}, $event->{type}, $event->{text});
             delete_job($config, $job);
             undef $job;

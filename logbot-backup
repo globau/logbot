@@ -25,7 +25,7 @@ if (@ARGV && $ARGV[0] eq '--all') {
 
 my $backup_path = shift;
 (scalar(@configs) && $backup_path) || die "syntax: logbot-backup <config file|--all> <backup path>\n";
-$backup_path =~ s#/$##;
+$backup_path =~ s{/$}{};
 
 foreach my $config (@configs) {
     logbot_init($config, quiet => 1);
@@ -37,10 +37,10 @@ foreach my $config (@configs) {
     my $dbh = dbh($config);
     $dbh->sqlite_backup_to_file($backup_file);
 
-    say timestamp(), " compressing $backup_file (" . pretty_size(-s $backup_file) . ")" if $ENV{DEBUG};
+    say timestamp(), " compressing $backup_file (" . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
     unlink($backup_file . '.bz2');
     system('bzip2', $backup_file);
 
     $backup_file .= '.bz2';
-    say timestamp(), " compressed (" . pretty_size(-s $backup_file) . ")" if $ENV{DEBUG};
+    say timestamp(), ' compressed (' . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
 }
