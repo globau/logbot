@@ -1,5 +1,5 @@
 # stern
-severity = 3
+severity = 2
 
 # http://search.cpan.org/~petdance/Perl-Critic/lib/Perl/Critic/PolicySummary.pod
 
@@ -27,7 +27,7 @@ severity = 3
 
 # whitelist more punctuation vars
 [Variables::ProhibitPunctuationVars]
-allow = $| $? $!
+allow = $| $? $! $@
 
 # regexs are fine
 [-RegularExpressions::ProhibitComplexRegexes]
@@ -37,10 +37,14 @@ allow = $| $? $!
 
 # complex code is fine
 [-BuiltinFunctions::RequireSimpleSortBlock]
+[-ControlStructures::ProhibitCStyleForLoops]
 [-ControlStructures::ProhibitCascadingIfElse]
 [-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
 [-ControlStructures::ProhibitPostfixControls]
+[-InputOutput::RequireCheckedClose]
 [-Modules::ProhibitExcessMainComplexity]
 [-NamingConventions::ProhibitAmbiguousNames]
 [-Subroutines::ProhibitExcessComplexity]
 [-ValuesAndExpressions::ProhibitImplicitNewlines]
+[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
+[-ValuesAndExpressions::ProhibitMagicNumbers]

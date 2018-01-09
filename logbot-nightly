@@ -130,7 +130,7 @@ sub generate_meta {
 
     # because we calculate the event count nightly for the network-wide stats,
     # round to nearest 1000 to make it clear it's an approximation
-    unless ($channel) {
+    if (!$channel) {
         $json->{event_count} = round($json->{event_count} / 1000) * 1000;
     }
 
@@ -152,7 +152,7 @@ sub generate_hours {
 
     my %values;
     foreach my $row (@{ $dbh->selectall_arrayref($sql, undef, @values) }) {
-        my ($ss, $value) = @$row;
+        my ($ss, $value) = @{$row};
         my $hh = sprintf("%.1f", $ss / (60 * 60));
         $hh = "0.0" if $hh == 24;
         $values{$hh} += $value;
@@ -191,10 +191,10 @@ sub generate_nicks {
     my $data = $dbh->selectall_arrayref($sql, { Slice => {} }, @values);
 
     my $json = [];
-    foreach my $event (@$data) {
+    foreach my $event (@{$data}) {
         $event->{hash} = nick_hash($event->{nick});
         $event->{bot} = nick_is_bot($config, $event->{nick});
-        push @$json, $event;
+        push @{$json}, $event;
     }
 
     spurt($output_file, encode_json($json));

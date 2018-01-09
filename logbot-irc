@@ -45,7 +45,7 @@ sub irc_read {
     }
 
     # disconnect
-    unless (defined $message) {
+    if (!defined $message) {
         undef $connection;
         return undef;
     }

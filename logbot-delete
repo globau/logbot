@@ -83,7 +83,7 @@ while (my $event = $sth->fetchrow_hashref) {
         ) // die;
         print "deleted\n";
     } elsif ($key eq 'n') {
-        print "\r\033[K";
+        print "\r\e[K";
     } else {
         print "\n";
         exit;

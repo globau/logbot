@@ -18,7 +18,7 @@ $| = 1;
 
 find(
     sub {
-        return unless -f $_ && -s $_;
+        return unless -f $File::Find::name && -s $File::Find::name;
         my $file = substr($File::Find::name, 2);
         return if $file =~ m#/# && $file !~ m#^(?:lib|web)/#;
         return if basename($file) =~ m#^\.# || $file =~ m#\.(bak|swp|png|ttf)$#;
@@ -26,7 +26,7 @@ find(
 
         my $content = Mojo::File->new("$RealBin/$file")->slurp();
         return unless $content =~ /\t/;
-        say "\033[31m$file contains tabs\033[0m";
+        say "\e[31m$file contains tabs\e[0m";
     },
     '.'
 );
@@ -35,7 +35,7 @@ find(
 
 foreach my $file (glob('web/*.sass')) {
     print $file;
-    my @original = split("\n", Mojo::File->new($file)->slurp());
+    my @original = split(/\n/, Mojo::File->new($file)->slurp());
     my @output;
     my $chunk = {};
 
@@ -82,7 +82,7 @@ foreach my $file (glob('web/*.sass')) {
     my $original = join("\n", @original) . "\n";
     my $output   = join("\n", @output) . "\n";
     if ($original ne $output) {
-        print " \033[34mupdated\033[0m";
+        print " \e[34mupdated\e[0m";
         Mojo::File->new($file)->spurt($output);
     } else {
         print " unchanged";
@@ -96,7 +96,7 @@ my $critic = Perl::Critic->new(-profile => $RealBin . '/.perlcriticrc');
 find(
     sub {
         # look for files in . and under lib/
-        return unless -f $_ && -s $_;
+        return unless -f $File::Find::name && -s $File::Find::name;
         my $filename = substr($File::Find::name, 2);
         return if $filename =~ m#/# && $filename !~ m#^lib/#;
         return if basename($filename) =~ m#^\.# || $filename =~ m#\.(bak|swp)$#;
@@ -133,14 +133,15 @@ find(
         # apply changes
         if ($original ne $output) {
             Mojo::File->new($file)->spurt($output);
-            say " \033[34mupdated\033[0m";
+            say " \e[34mupdated\e[0m";
         } else {
             say " unchanged";
         }
 
         # critic
         foreach my $issue ($critic->critique($file)) {
-            say "\033[33m", $filename, ':', $issue->line_number, ' ', $issue->description, "\033[0m";
+            (my $policy = $issue->policy) =~ s/^Perl::Critic::Policy:://;
+            say "\e[33m", $filename, ':', $issue->line_number, ' ', $issue->description, ' (', $policy, ")\e[0m";
         }
     },
     '.'
@@ -148,7 +149,7 @@ find(
 
 sub sort_use {
     my ($input) = @_;
-    my @input = split("\n", $input);
+    my @input = split(/\n/, $input);
     my @output;
 
     # find use blocks, assumes they are always followed by a blank line

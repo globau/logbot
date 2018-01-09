@@ -96,7 +96,7 @@ sub import_svg {
     die "failed to find font-awesome pro icons\n" unless -d "$source_path/solid";
 
     my $mapping = YAML::Tiny->read("$fa_path/mapping.yaml")->[0];
-    foreach my $output_name (sort keys %$mapping) {
+    foreach my $output_name (sort keys %{$mapping}) {
         my $input_file  = "$source_path/" . $mapping->{$output_name} . '.svg';
         my $output_file = "$fa_path/$output_name.svg";
 

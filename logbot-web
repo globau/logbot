@@ -37,21 +37,21 @@ my $networks = [];
 
         # load specific networks (mostly for dev)
         foreach my $network (split(/,/, $config)) {
-            push @$networks, load_config(find_config($network), web => 1);
+            push @{$networks}, load_config(find_config($network), web => 1);
         }
 
     } else {
 
         # load all networks
         foreach my $network (values %{ load_all_configs(web => 1) }) {
-            push @$networks, $network;
+            push @{$networks}, $network;
         }
     }
 
-    foreach my $config (@$networks) {
+    foreach my $config (@{$networks}) {
         build_channel_list($config);
     }
-    $networks = [sort { $a->{name} cmp $b->{name} } @$networks];
+    $networks = [sort { $a->{name} cmp $b->{name} } @{$networks}];
 }
 
 # configure mojo
@@ -72,12 +72,12 @@ under sub {
 
     # determine current config
     my $config_index = 0;
-    if (scalar(@$networks) > 1) {
+    if (scalar(@{$networks}) > 1) {
         my $host = lc($c->req->url->to_abs->host);
         my $dot_posn = index($host, '.');
         if ($dot_posn != -1) {
             $host = substr($host, 0, $dot_posn);
-            for (my $i = 0; $i < scalar(@$networks); $i++) {
+            for (my $i = 0; $i < scalar(@{$networks}); $i++) {
                 next unless $networks->[$i]->{name} eq $host;
                 $config_index = $i;
                 last;
@@ -311,7 +311,7 @@ hook after_render => sub {
         $headers->append(Vary => 'Accept-Encoding');
         $headers->content_encoding('gzip');
         gzip $output, \my $compressed;
-        $$output = $compressed;
+        ${$output} = $compressed;
     }
 };
 
