@@ -24,7 +24,7 @@ sub render {
     my ($c, $q) = @_;
     my $config = $c->stash('config');
 
-    my $today = DateTime->today();
+    my $today = DateTime->today()->epoch();
     $q = trim($q);
 
     # searching for a channel name redirects to the log
