@@ -131,13 +131,11 @@ sub publish {
         $text = $utf8 ? decode('utf8', $text) : decode('cp1252', $text);
 
         # strip colours, formatting
-        ## no critic (ProhibitEnumeratedClasses)
         $text =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;  # mirc
         $text =~ s/\x04[0-9a-fA-F]{0,6}//g;                    # rgb
         $text =~ s/\x1B\[.*?[\x00-\x1F\x40-\x7E]//g;           # ecma-84
         $text =~ s/[\x02\x1f\x16\x1d\x11\x06]//g;              # formatting
         $text =~ s/\x0f//g;                                    # cancellation
-        ## use critic
 
         publish_job(
             $config, {
@@ -194,13 +192,13 @@ $pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
 $log = Mojo::Log->new(path => $RealBin . '/log/irc-' . $config->{name} . '.log', level => 'info');
 
-# consts
-Readonly::Scalar my $INITIAL_PING_DELAY     => 3 * 60;
-Readonly::Scalar my $MAX_RECONNECT_INTERVAL => 3 * 60;
-Readonly::Scalar my $PING_INTERVAL          => 60;
-Readonly::Scalar my $PING_TIMEOUT           => 30;
-Readonly::Scalar my $PING_TIMEOUT_ATTEMPTS  => 3;
-Readonly::Scalar my $RELOAD_INTERVAL        => 60 * 60;
+# default timings
+$config->{timing}->{initial_ping_delay}     ||= 3 * 60;
+$config->{timing}->{max_reconnect_interval} ||= 3 * 60;
+$config->{timing}->{ping_interval}          ||= 60;
+$config->{timing}->{ping_timeout}           ||= 30;
+$config->{timing}->{ping_timeout_attempts}  ||= 5;
+$config->{timing}->{reload_interval}        ||= 60 * 60;
 
 # init signals and state
 $SIG{HUP}  = sub { $state->{reload} = 1 };
@@ -223,7 +221,7 @@ while (1) {
             $log->info('connected to ' . $config->{irc}->{host});
             delete $state->{backoff};
             $state->{reload}        = 1;
-            $state->{next_ping}     = time() + $INITIAL_PING_DELAY;
+            $state->{next_ping}     = time() + $config->{timing}->{initial_ping_delay};
             $state->{pong_timeouts} = 0;
             $state->{touch_file}    = file_for($config, 'connected');
             touch($state->{touch_file});
@@ -233,7 +231,7 @@ while (1) {
             say timestamp(), ' !! ', squash_error($_);
             $log->error(squash_error($_));
             undef($connection);
-            $state->{backoff} = min(($state->{backoff} // 1) * 2, $MAX_RECONNECT_INTERVAL);
+            $state->{backoff} = min(($state->{backoff} // 1) * 2, $config->{timing}->{max_reconnect_interval});
             say timestamp(), ' ** sleeping for ', $state->{backoff} if $ENV{DEBUG};
             sleep($state->{backoff});
         };
@@ -250,7 +248,7 @@ while (1) {
         $log->error('PING timeout (' . $state->{pong_timeouts} . ')');
 
         # server not responding to our pings, reconnect
-        if ($state->{pong_timeouts} == $PING_TIMEOUT_ATTEMPTS) {
+        if ($state->{pong_timeouts} == $config->{timing}->{ping_timeout_attempts}) {
             undef($connection);
             next;
         }
@@ -258,7 +256,7 @@ while (1) {
     }
     if (exists $state->{next_ping} && $state->{next_ping} <= $time) {
         delete $state->{next_ping};
-        $state->{pong_timeout} = $time + $PING_TIMEOUT;
+        $state->{pong_timeout} = $time + $config->{timing}->{ping_timeout};
         irc_send('PING :' . $state->{server});
     }
 
@@ -303,7 +301,7 @@ while (1) {
     if ($message =~ /^:\S+ PONG /) {
         delete $state->{pong_timeout};
         $state->{pong_timeouts} = 0;
-        $state->{next_ping}     = $time + $PING_INTERVAL;
+        $state->{next_ping}     = $time + $config->{timing}->{ping_interval};
         touch($state->{touch_file});
         next;
     }
@@ -514,7 +512,7 @@ while (1) {
             $log->info('parting ' . join(' ', @part_channels));
         }
 
-        $state->{next_reload} = time() + $RELOAD_INTERVAL;
+        $state->{next_reload} = time() + $config->{timing}->{reload_interval};
         next;
     }
 }
