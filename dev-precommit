@@ -96,25 +96,25 @@ my $critic = Perl::Critic->new(-profile => $RealBin . '/.perlcriticrc');
 find(
     sub {
         # look for files in . and under lib/
-        return unless -f $File::Find::name && -s $File::Find::name;
-        my $filename = substr($File::Find::name, 2);
-        return if $filename =~ m{/} && $filename !~ m{^lib/};
-        return if basename($filename) =~ /^\./ || $filename =~ /\.(bak|swp)$/;
+        my $file = $File::Find::name;
+        return unless -f $file && -s $file;
+        my $rel_file = substr($file, length($RealBin) + 1);
+        return if $rel_file =~ m{/} && $rel_file !~ m{^lib/};
+        return if basename($rel_file) =~ /^\./ || $rel_file =~ /\.(bak|swp)$/;
 
         # detect perl by file extension or #!
         my $is_perl = 0;
-        if ($filename =~ /\.p[ml]$/) {
+        if ($file =~ /\.p[ml]$/) {
             $is_perl = 1;
         } else {
-            open(my $fh, '<', $filename) or die "open $filename $!\n";
+            open(my $fh, '<', $file) or die "open $file $!\n";
             my ($first_line) = <$fh>;
             close($fh) or die $!;
             $is_perl = $first_line =~ m{\#!/usr/bin/perl};
         }
         return unless $is_perl;
 
-        print $filename;
-        my $file = $RealBin . '/' . $filename;
+        print $rel_file;
 
         # init
         my $original = Mojo::File->new($file)->slurp();
@@ -141,10 +141,10 @@ find(
         # critic
         foreach my $issue ($critic->critique($file)) {
             (my $policy = $issue->policy) =~ s/^Perl::Critic::Policy:://;
-            say "\e[33m", $filename, ':', $issue->line_number, ' ', $issue->description, ' (', $policy, ")\e[0m";
+            say "\e[33m", $rel_file, ':', $issue->line_number, ' ', $issue->description, ' (', $policy, ")\e[0m";
         }
     },
-    '.'
+    $RealBin
 );
 
 sub sort_use {
