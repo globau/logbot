@@ -159,9 +159,8 @@ sub sort_use {
         if ($in_use_block) {
             if ($line eq '') {
                 $in_use_block = 0;
-                push @output, sort_uses(@uses);
+                push @output, sort_uses(@uses), '';
                 @uses = ();
-                push @output, '';
                 next;
             }
         }
@@ -174,6 +173,7 @@ sub sort_use {
 
         push @output, $line;
     }
+    push @output, sort_uses(@uses) if @uses;
 
     return join("\n", @output) . "\n";
 }
@@ -182,7 +182,7 @@ sub sort_uses {
     my @uses = @_;
 
     # skip setup / lib blocks
-    if (any { /^use local::lib/ || /^use lib / } @uses) {
+    if (any { /^use local::lib/ || /^use lib / || /^use base / } @uses) {
         return @uses;
     }
 

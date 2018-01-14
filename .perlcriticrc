@@ -27,7 +27,7 @@ severity = 1
 
 # whitelist more punctuation vars
 [Variables::ProhibitPunctuationVars]
-allow = $| $? $! $@
+allow = $| $? $! $@ $0 $^O
 
 # no need to check all syscalls
 [InputOutput::RequireCheckedSyscalls]
@@ -50,8 +50,11 @@ exclude_functions = print say
 [-ControlStructures::ProhibitCascadingIfElse]
 [-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
 [-ControlStructures::ProhibitPostfixControls]
+[-ControlStructures::ProhibitUnlessBlocks]
+[-InputOutput::RequireBracedFileHandleWithPrint]
 [-InputOutput::RequireCheckedClose]
 [-Modules::ProhibitExcessMainComplexity]
+[-Modules::ProhibitMultiplePackages]
 [-NamingConventions::ProhibitAmbiguousNames]
 [-Subroutines::ProhibitExcessComplexity]
 [-ValuesAndExpressions::ProhibitImplicitNewlines]
