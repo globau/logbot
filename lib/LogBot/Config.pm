@@ -35,7 +35,7 @@ sub find_config {
 
 sub config_for {
     my ($configs, $network) = @_;
-    foreach my $file (keys %$configs) {
+    foreach my $file (keys %{$configs}) {
         return $configs->{$file} if $configs->{$file}->{name} eq $network;
     }
     return undef;
@@ -50,7 +50,7 @@ sub load_config {
 
     # normalise channel keys
     my $channels = delete $config->{channels};
-    foreach my $channel (keys %$channels) {
+    foreach my $channel (keys %{$channels}) {
         if ($params{web}) {
             next if $channels->{$channel}->{no_logs};
             next if $channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only};
@@ -62,12 +62,12 @@ sub load_config {
     $config->{blocked} = [sort map { normalise_channel($_) } @{ $config->{blocked} // [] }];
 
     # normalise bot names
-    $config->{bots} = [sort map { lc($_) } @{ $config->{bots} }];
+    $config->{bots} = [sort map {lc} @{ $config->{bots} }];
 
     # internal values that don't need to be persisted
     $config->{_internal} = {
         file     => $config_file,
-        root     => glob("'" . $config->{path} . "'"),  # expand ~
+        root     => glob(q{'} . $config->{path} . q{'}),  # expand ~
         time     => (stat($config_file))[9],
         web      => $params{web},
         readonly => $params{web},
@@ -90,7 +90,7 @@ sub reload_config {
 sub save_config {
     my ($config) = @_;
 
-    die "cannot save to readonly config" if $config->{_internal}->{readonly};
+    die 'cannot save to readonly config' if $config->{_internal}->{readonly};
 
     my $internal = delete $config->{_internal};
     my $config_file = $internal->{file} // die;

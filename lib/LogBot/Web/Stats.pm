@@ -46,11 +46,11 @@ sub meta {
     my ($last_time, $last_ago, $event_count);
     if ($channel) {
         $last_time =
-            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1", undef,
+            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1', undef,
             $channel);
-        $event_count = $dbh->selectrow_array("SELECT COUNT(*) FROM logs WHERE channel = ?", undef, $channel);
+        $event_count = $dbh->selectrow_array('SELECT COUNT(*) FROM logs WHERE channel = ?', undef, $channel);
     } else {
-        $last_time = $dbh->selectrow_array("SELECT time FROM logs ORDER BY time DESC LIMIT 1");
+        $last_time = $dbh->selectrow_array('SELECT time FROM logs ORDER BY time DESC LIMIT 1');
     }
 
     ($last_time, $last_ago) = event_time_to_str($last_time);

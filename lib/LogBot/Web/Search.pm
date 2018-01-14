@@ -170,9 +170,9 @@ sub render {
     my $sql =
         "SELECT COALESCE(old_id, id) AS id, time, channel, nick, type, text\n" .
         "FROM logs\n" .
-        "WHERE (" . join(")\nAND (", @where) . ")\n" .
+        'WHERE (' . join(")\nAND (", @where) . ")\n" .
         "ORDER BY time DESC\n" .
-        "LIMIT " . ($SEARCH_LIMIT + 1) . "\n";
+        'LIMIT ' . ($SEARCH_LIMIT + 1) . "\n";
     #>>>
 
     # execute
@@ -184,21 +184,21 @@ sub render {
     if ($c->param('debug')) {
         my $debug = replace_sql_placeholders($dbh, $sql, \@values) . "\n";
         foreach my $row (@{ $dbh->selectall_arrayref("EXPLAIN QUERY PLAN $debug") }) {
-            $debug .= join(' ', @$row) . "\n";
+            $debug .= join(' ', @{$row}) . "\n";
         }
         $debug .= sprintf("\n%.2fs", $end_time - $start_time);
         $c->stash(debug => $debug);
     }
 
     unless (defined $logs) {
-        $c->stash(error => "Search took too long to process and has been cancelled.");
+        $c->stash(error => 'Search took too long to process and has been cancelled.');
         return $c->render('search');
     }
 
     # deal with hitting search limit
     my $limited = 0;
-    if (scalar(@$logs) == $SEARCH_LIMIT + 1) {
-        pop @$logs;
+    if (scalar(@{$logs}) == $SEARCH_LIMIT + 1) {
+        pop @{$logs};
         $limited = 1;
     }
 
@@ -217,7 +217,7 @@ sub render {
     my $current_channel = '';
     my $current_date    = '';
     my ($date_channels, $channel_events);
-    foreach my $event (@$logs) {
+    foreach my $event (@{$logs}) {
         my $date    = time_to_ymd($event->{time});
         my $channel = $event->{channel};
 
@@ -234,7 +234,7 @@ sub render {
             $date_channels->{$channel} = $channel_events;
         }
 
-        push @$channel_events, $event;
+        push @{$channel_events}, $event;
 
         $event->{bot} = nick_is_bot($config, $event->{nick});
         $event->{hash} = $event->{bot} ? '0' : nick_hash($event->{nick});
@@ -252,7 +252,7 @@ sub render {
         logs      => \@collated,
         limit     => $SEARCH_LIMIT,
         limited   => $limited,
-        log_count => scalar(@$logs),
+        log_count => scalar(@{$logs}),
         searched  => 1,
     );
 

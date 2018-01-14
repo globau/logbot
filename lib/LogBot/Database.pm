@@ -40,6 +40,7 @@ sub dbh {
     }
 }
 
+## no critic (ProhibitInterpolationOfLiterals)
 sub _dbh_read_write {
     my ($config) = @_;
 
@@ -54,9 +55,9 @@ sub _dbh_read_write {
     );
 
     # schema check
-    my $schema_version = $dbh->selectrow_array("PRAGMA user_version");
-    die "schema from the future" if $schema_version > 1;
-    $dbh->do("PRAGMA user_version=1") if $schema_version != 1;
+    my $schema_version = $dbh->selectrow_array('PRAGMA user_version');
+    die 'schema from the future' if $schema_version > 1;
+    $dbh->do('PRAGMA user_version=1') if $schema_version != 1;
 
     # initialise db
     _do_multi(
@@ -93,6 +94,7 @@ sub _dbh_read_write {
 
     return $dbh;
 }
+## use critic
 
 sub _dbh_read_only {
     my ($config) = @_;
@@ -112,7 +114,7 @@ sub _dbh_read_only {
     );
 
     # schema check
-    die "schema from the future" if $dbh->selectrow_array("PRAGMA user_version") > 1;
+    die 'schema from the future' if $dbh->selectrow_array('PRAGMA user_version') > 1;
 
     return $dbh;
 }
@@ -140,7 +142,7 @@ sub execute_with_timeout {
     $dbh->sqlite_progress_handler(5_000, sub { return time() - $start_time > $timeout });
 
     try {
-        $rows = $dbh->selectall_arrayref($sql, { Slice => {} }, @$values);
+        $rows = $dbh->selectall_arrayref($sql, { Slice => {} }, @{$values});
     }
     catch {
         if (/selectall_arrayref failed: interrupted/) {
@@ -180,7 +182,7 @@ sub execute_with_retry {
 sub replace_sql_placeholders {
     my ($dbh, $sql, $values) = @_;
 
-    foreach my $param (@$values) {
+    foreach my $param (@{$values}) {
         $sql =~ s/\?/$dbh->quote($param)/e;
     }
 

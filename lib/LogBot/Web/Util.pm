@@ -39,9 +39,9 @@ Readonly::Scalar my $MAX_NICK_CACHE_COUNT => 1_000;
 
 # don't let the cache grow above a specified size
 sub nick_colour_init {
-    my $count = scalar keys %$nick_colour_cache;
+    my $count = scalar keys %{$nick_colour_cache};
     return if $count < $MAX_NICK_CACHE_COUNT;
-    my @hashes = sort { $nick_colour_cache->{$a}->[0] <=> $nick_colour_cache->{$b}->[0] } keys %$nick_colour_cache;
+    my @hashes = sort { $nick_colour_cache->{$a}->[0] <=> $nick_colour_cache->{$b}->[0] } keys %{$nick_colour_cache};
     splice(@hashes, 0, $MAX_NICK_CACHE_COUNT);
     foreach my $hash (@hashes) {
         delete $nick_colour_cache->{$hash};
@@ -82,7 +82,7 @@ sub rewrite_old_urls {
     my $url  = $c->req->url->to_abs();
 
     # remove network subdomain
-    my @host = split('\.', $url->host);
+    my @host = split(/\./, $url->host);
     if (any { $_ eq 'logs' } @host) {
         shift @host while $host[0] ne 'logs';
         $url->host(join('.', @host));
@@ -108,7 +108,7 @@ sub rewrite_old_urls {
         if (my $comment_id = $req_query->param('cid')) {
             if ($comment_id =~ s/^c(\d+)$/$1/) {
                 my $dbh = dbh($c->stash('config'), cached => 1);
-                my $time = $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND old_id = ? LIMIT 1",
+                my $time = $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND old_id = ? LIMIT 1',
                     undef, $channel, $comment_id);
                 if ($time) {
                     $req_query->param('s', time_to_ymd($time));
@@ -120,9 +120,9 @@ sub rewrite_old_urls {
 
         # c=mozilla%23developers&s=8+Jul+2017&e=8+Jul+2017
         # note: multi-date ranges are no longer supported
-        push @$path, substr($channel, 1);
+        push @{$path}, substr($channel, 1);
         if (my $time = str2time($req_query->param('s') // '')) {
-            push @$path, time_to_ymd($time);
+            push @{$path}, time_to_ymd($time);
         }
 
         $url->query('');
@@ -220,13 +220,13 @@ sub linkify {
     $finder->find(\$value, \&xml_escape);
 
     # munge email addresses
-    $value =~ s#([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)#$1&odot;$2#g;
+    $value =~ s{([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)}{$1&odot;$2}g;
 
     # linkify "bug NNN"
-    $value =~ s#(\bbug\s+(\d+))#<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2">$1</a>#gi;
+    $value =~ s{(\bbug\s+(\d+))}{<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2">$1</a>}gi;
 
     # linkify "servo: merge #NNN"
-    $value =~ s#(\bservo: Merge \#(\d+))#<a href="https://github.com/servo/servo/pull/$2">$1</a>#gi;
+    $value =~ s{(\bservo: Merge \#(\d+))}{<a href="https://github.com/servo/servo/pull/$2">$1</a>}gi;
 
     return $value;
 }
@@ -252,7 +252,7 @@ sub shorten_url {
     # github
     $value =~ s{^github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)}{$1 #$2}
         && return $value;
-    $value =~ s#^github\.com/([^/]+/[^/]+)/commit/([a-z0-9]{7})(?:[a-z0-9]{33})?#$1 $2#
+    $value =~ s{^github\.com/([^/]+/[^/]+)/commit/([a-z0-9]{7})(?:[a-z0-9]{33})?}{$1 $2}
         && return $value;
 
     # treeherder

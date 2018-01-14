@@ -111,11 +111,11 @@ sub slurp {
     my ($file) = @_;
     open(my $fh, '<', $file) or die "open $file: $!\n";
     my $ret = my $content = '';
-    while ($ret = $fh->sysread(my $buffer, 131072, 0)) {
+    while ($ret = $fh->sysread(my $buffer, 131_072, 0)) {
         $content .= $buffer;
     }
     die "read $file: $!\n" unless defined $ret;
-    close($fh);
+    close($fh) or die "close $file: $!\n";
     return $content;
 }
 
@@ -124,7 +124,7 @@ sub spurt {
     open(my $fh, '>', $file) or die "create $file: $!\n";
     ($fh->syswrite($content) // -1) == length($content)
         or die "write $file: $!\n";
-    close($fh);
+    close($fh) or die "write $file: $!\n";
 }
 
 sub touch {
@@ -196,7 +196,7 @@ sub event_to_string {
     } elsif ($event->{type} == 2) {
         return $time . ' ' . $event->{channel} . ' -' . $event->{nick} . '- ' . $event->{text};
     } else {
-        die "unsupported event: " . Dumper($event);
+        die 'unsupported event: ' . Dumper($event);
     }
 }
 
@@ -211,7 +211,7 @@ sub event_to_short_string {
     } elsif ($event->{type} == 2) {
         return $time . ' -' . $event->{nick} . '- ' . $event->{text};
     } else {
-        die "unsupported event: " . Dumper($event);
+        die 'unsupported event: ' . Dumper($event);
     }
 }
 
@@ -225,7 +225,7 @@ sub pretty_size {
     my ($bytes, $precision) = @_;
     $bytes     //= 0;
     $precision //= 1;
-    my @base = ('b', 'k', 'm', 'g');
+    my @base = qw( b k m g );
     my $base = 0;
     while ($bytes / 1024 >= 1) {
         $base++;

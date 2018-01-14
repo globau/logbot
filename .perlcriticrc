@@ -27,7 +27,7 @@ severity = 1
 
 # whitelist more punctuation vars
 [Variables::ProhibitPunctuationVars]
-allow = $| $? $! $@ $0 $^O
+allow = $| $? $! $@ $0 $^O $$
 
 # no need to check all syscalls
 [InputOutput::RequireCheckedSyscalls]
@@ -38,6 +38,7 @@ exclude_functions = print say
 
 # regexs are fine
 [-RegularExpressions::ProhibitComplexRegexes]
+[-RegularExpressions::ProhibitEnumeratedClasses]
 [-RegularExpressions::ProhibitEscapedMetacharacters]
 [-RegularExpressions::RequireDotMatchAnything]
 [-RegularExpressions::RequireExtendedFormatting]

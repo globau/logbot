@@ -17,6 +17,7 @@ sub _get_logs {
     my $start_time = $c->stash('date')->epoch;
     my $end_time = $c->stash('date')->clone->add(days => 1)->epoch;
 
+    ## no critic (ProhibitInterpolationOfLiterals)
     #<<<
     my $sql =
         "SELECT COALESCE(old_id, id) AS id, time, channel, nick, type, text\n" .
@@ -24,6 +25,7 @@ sub _get_logs {
         "WHERE (channel = ?) AND (time >= " . $start_time . ") AND (time < " . $end_time . ")\n" .
         "ORDER BY time ASC";
     #>>>
+    ## use critic
 
     my $logs = execute_with_timeout($dbh, $sql, [$c->stash('channel')], 5);
     unless (defined $logs) {
@@ -60,7 +62,7 @@ sub logs {
 
     # process each event
     my $bot_event_count = 0;
-    foreach my $event (@$logs) {
+    foreach my $event (@{$logs}) {
         $event->{bot} = nick_is_bot($config, $event->{nick});
         $event->{hash} = $event->{bot} ? '0' : nick_hash($event->{nick});
         $event->{hhss} = sprintf('%02d:%02d', (localtime($event->{time}))[2, 1]);
@@ -71,7 +73,7 @@ sub logs {
     # calc last message date for channel
     my $last_date = '';
     my $last_time = $dbh->selectrow_array(
-        "SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1",
+        'SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1',
         undef, $c->stash('channel'),
     );
     if ($last_time) {
@@ -82,18 +84,18 @@ sub logs {
     }
 
     # provide next/prev for skipping empty spans
-    if (!$last_date && !@$logs) {
+    if (!$last_date && !@{$logs}) {
         my $time = $c->stash('date')->epoch;
 
         my $skip_prev_time =
-            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1",
+            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1',
             undef, $c->stash('channel'), $time);
         if ($skip_prev_time) {
             $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
         }
 
         my $skip_next_time =
-            $dbh->selectrow_array("SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1",
+            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1',
             undef, $c->stash('channel'), $time);
         if ($skip_next_time) {
             $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));
@@ -111,7 +113,7 @@ sub logs {
         sql             => $sql,
         logs            => $logs,
         last_date       => $last_date,
-        event_count     => scalar(@$logs),
+        event_count     => scalar(@{$logs}),
         bot_event_count => $bot_event_count,
     );
 
@@ -134,7 +136,7 @@ sub raw {
     my ($logs) = _get_logs($c, $dbh);
 
     my @lines;
-    foreach my $event (@$logs) {
+    foreach my $event (@{$logs}) {
         $event->{text} = decode('UTF-8', $event->{text});
         push @lines, event_to_short_string($event);
     }
