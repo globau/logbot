@@ -4,6 +4,7 @@ use warnings;
 use local::lib;
 use v5.10;
 
+use Cwd qw( abs_path );
 use File::Basename qw( basename );
 use File::Find qw( find );
 use FindBin qw( $RealBin );
@@ -35,6 +36,12 @@ find(
 
 foreach my $file (glob('web/*.sass')) {
     print $file;
+
+    if (!is_modified($file)) {
+        say ' unchanged';
+        next;
+    }
+
     my @original = split(/\n/, Mojo::File->new($file)->slurp());
     my @output;
     my $chunk = {};
@@ -82,12 +89,12 @@ foreach my $file (glob('web/*.sass')) {
     my $original = join("\n", @original) . "\n";
     my $output   = join("\n", @output) . "\n";
     if ($original ne $output) {
-        print " \e[34mupdated\e[0m";
+        say " \e[34mupdated\e[0m";
         Mojo::File->new($file)->spurt($output);
     } else {
-        print ' unchanged';
+        say ' unchanged';
     }
-    print "\n";
+    set_modified($file);
 }
 
 # tidy all the perl as per .perltidy
@@ -116,6 +123,11 @@ find(
 
         print $rel_file;
 
+        if (!is_modified($file)) {
+            say ' unchanged';
+            return;
+        }
+
         # init
         my $original = Mojo::File->new($file)->slurp();
         my $input    = $original;
@@ -139,9 +151,16 @@ find(
         }
 
         # critic
-        foreach my $issue ($critic->critique($file)) {
+        my @issues = $critic->critique($file);
+        foreach my $issue (@issues) {
             (my $policy = $issue->policy) =~ s/^Perl::Critic::Policy:://;
             say "\e[33m", $rel_file, ':', $issue->line_number, ' ', $issue->description, ' (', $policy, ")\e[0m";
+        }
+
+        if (@issues) {
+            clear_modified($file);
+        } else {
+            set_modified($file);
         }
     },
     $RealBin
@@ -198,4 +217,56 @@ sub sort_uses {
     # sort modules
     @uses = sort { lc($a) cmp lc($b) } @uses;
     return @uses;
+}
+
+# lastmod tracking
+
+my $lastmod;
+
+sub _init_modified {
+    return if defined $lastmod;
+
+    $lastmod = {};
+    if (open(my $fh, '<', "$RealBin/.dev-precommit")) {
+        while (<$fh>) {
+            next unless /^(.+)\t(\d+)$/;
+            $lastmod->{$1} = $2;
+        }
+        close($fh) || die $!;
+    }
+}
+
+sub _write_modified {
+    open(my $fh, '>', "$RealBin/.dev-precommit") or die $!;
+    foreach my $fn (sort keys %{$lastmod}) {
+        say {$fh} "$fn\t" . $lastmod->{$fn};
+    }
+    close($fh) or die $!;
+}
+
+sub is_modified {
+    my ($file) = @_;
+    _init_modified();
+
+    my $mtime    = (stat($file))[9];
+    my $abs_file = abs_path($file);
+    $lastmod->{$abs_file} //= 0;
+
+    return $lastmod->{$abs_file} != $mtime;
+}
+
+sub set_modified {
+    my ($file) = @_;
+    _init_modified();
+
+    $lastmod->{ abs_path($file) } = (stat($file))[9];
+    _write_modified();
+}
+
+sub clear_modified {
+    my ($file) = @_;
+    _init_modified();
+
+    delete $lastmod->{ abs_path($file) };
+    _write_modified();
 }
