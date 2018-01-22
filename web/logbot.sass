@@ -16,6 +16,7 @@ $sidebar-width-closed: 36px
 $sidebar-width-open: 165px
 
 $nav-height: 30px
+$network-height: 32px
 
 $nick-width-small: 7.0em
 $time-width-small: 3em
@@ -323,7 +324,7 @@ body
 #sidebar
   border-right: 1px solid #eee
   min-height: 100vh
-  position: absolute
+  position: fixed
   top: 0
   width: $sidebar-width-open
 
@@ -447,6 +448,7 @@ body
     border-top-right-radius: 3px
     border: 1px solid #dbdbdb
     color: #4a4a4a
+    height: 32px
     margin-bottom: 0
 
     &:hover
@@ -501,6 +503,13 @@ body
 #channels
   &.one-network
     margin-top: $nav-height + 2px
+
+    #channel-menu
+      height: calc(100vh - (#{$nav-height} + 2px))
+
+  &:not(.one-network)
+    #channel-menu
+      height: calc(100vh - (#{$nav-height} + 6px + #{$network-height}))
 
   ul
     list-style: none
