@@ -5,6 +5,7 @@
   <title><%= $channel ? $channel : 'LogBot' %></title>
   <link rel="shortcut icon" href="<%= static('logbot-favicon.svg') %>">
   <link rel="stylesheet" href="<%= static('logbot.min.css') %>">
+  <meta name="viewport" content="initial-scale=1">
 </head>
 <body class="<%= 'font-s ' if $font_s =%>
              <%= 'nick-u ' if $nick_u =%>
