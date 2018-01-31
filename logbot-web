@@ -180,6 +180,14 @@ if (!$is_production) {
     };
 }
 
+# robots.txt
+my $robots_txt = <<'EOF';
+EOF
+get '/robots.txt' => sub {
+    my ($c) = @_;
+    $c->render(text => $robots_txt, format => 'txt');
+};
+
 # /channel => redirect to current date
 get '/#channel' => sub {
     my ($c) = @_;
