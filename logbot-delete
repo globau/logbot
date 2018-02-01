@@ -50,12 +50,17 @@ if ($nick) {
 }
 die "query not provided\n" unless @where;
 
-my $sql = 'SELECT * FROM logs WHERE (' . join(') AND (', @where) . ') ORDER BY channel,time';
-say replace_sql_placeholders($dbh, $sql, \@values);
-my $sth = $dbh->prepare($sql);
-$sth->execute(@values);
+my $sql_filter = 'FROM logs WHERE (' . join(') AND (', @where) . ') ORDER BY channel,time';
+my $sql_select = "SELECT * $sql_filter";
+my $sql_count  = "SELECT COUNT(*) $sql_filter";
+say replace_sql_placeholders($dbh, $sql_select, \@values);
+
+my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
+say "found $count match", ($count == 1 ? '' : 'es');
 
 my $all = 0;
+my $sth = $dbh->prepare($sql_select);
+$sth->execute(@values);
 while (my $event = $sth->fetchrow_hashref) {
     say event_to_string($event);
 
