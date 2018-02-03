@@ -619,6 +619,10 @@ body
     padding: 5px 0
     width: calc(100% - 6rem)
 
+  .search-option
+    display: inline-block
+    white-space: nowrap
+
   input
     border: 1px solid #aaa
     font-size: 100%
@@ -800,6 +804,20 @@ body
       &:not(.menu-c)
         #reload-container, #stats-container, #search-container
           display: none
+
+  #search-form
+    .search-label
+      font-weight: 700
+      padding: 5px
+      text-align: left
+
+    .search-input
+      display: block
+      padding: 5px
+      width: calc(100% - 10px)
+
+    #search-when-from, #search-when-to
+      width: 6em
 
 @media (max-width: 640px)
   #not-tiny-screen

@@ -20,14 +20,20 @@
     <div class="search-label">Channels</div>
     <div class="search-input">
       <div>
-        <input type="radio" id="search-channel-all" name="ch" value="" <%= 'checked' if $ch eq '' %>>
-        <label for="search-channel-all">All channels</label>
+        <div class="search-option">
+          <input type="radio" id="search-channel-all" name="ch" value="" <%= 'checked' if $ch eq '' %>>
+          <label for="search-channel-all">All channels</label>
+        </div>
         % if ($last_channel) {
-          <input type="radio" id="search-channel-single" name="ch" value="<%= substr($last_channel, 1) %>" <%= 'checked' if $ch %>>
-          <label for="search-channel-single"><%= $last_channel %></label>
+          <div class="search-option">
+            <input type="radio" id="search-channel-single" name="ch" value="<%= substr($last_channel, 1) %>" <%= 'checked' if $ch %>>
+            <label for="search-channel-single"><%= $last_channel %></label>
+          </div>
         % }
-        <input type="radio" id="search-channel-custom" name="ch" value="c" <%= 'checked' if @$chs %>>
-        <label for="search-channel-custom">Specific Channels</label>
+        <div class="search-option">
+          <input type="radio" id="search-channel-custom" name="ch" value="c" <%= 'checked' if @$chs %>>
+          <label for="search-channel-custom">Specific Channels</label>
+        </div>
       </div>
       <div id="search-channel-multi" class="default-display-none">
         <select name="chs" id="search-channels" multiple size="5">
@@ -43,16 +49,26 @@
     <div class="search-label">When</div>
     <div class="search-input">
       <div>
-        <input type="radio" id="search-when-all" name="w" value="a" <%= 'checked' if $w eq 'a' %>>
-        <label for="search-when-all">All Time</label>
-        <input type="radio" id="search-when-recently" name="w" value="r" <%= 'checked' if $w eq 'r' %>>
-        <label for="search-when-recently" title="Within the last three months">Recently</label>
-        <input type="radio" id="search-when-custom" name="w" value="c" <%= 'checked' if $w eq 'c' %>>
-        <label for="search-when-custom">Specific Range</label>
+        <div class="search-option">
+          <input type="radio" id="search-when-all" name="w" value="a" <%= 'checked' if $w eq 'a' %>>
+          <label for="search-when-all">All Time</label>
+        </div>
+        <div class="search-option">
+          <input type="radio" id="search-when-recently" name="w" value="r" <%= 'checked' if $w eq 'r' %>>
+          <label for="search-when-recently" title="Within the last three months">Recently</label>
+        </div>
+        <div class="search-option">
+          <input type="radio" id="search-when-custom" name="w" value="c" <%= 'checked' if $w eq 'c' %>>
+          <label for="search-when-custom">Specific Range</label>
+        </div>
       </div>
       <div id="search-when-range" class="default-display-none">
-        Between <input type="text" id="search-when-from" name="f" value="<%= $f %>">
-        and <input type="text" id="search-when-to" name="t" value="<%= $t %>">
+        <div class="search-option">
+          Between <input type="text" id="search-when-from" name="f" value="<%= $f %>">
+        </div>
+        <div class="search-option">
+          and <input type="text" id="search-when-to" name="t" value="<%= $t %>">
+        </div>
       </div>
     </div>
   </div>
@@ -61,18 +77,24 @@
     <div class="search-label">Who</div>
     <div class="search-input">
       <input type="text" id="search-who" name="n" placeholder="Anybody" value="<%= $n %>">
-      <input type="checkbox" id="search-ignore-bots" name="i" value="1" <%= 'checked' if $i %>>
-      <label for="search-ignore-bots">Exclude Bots</label>
+      <div class="search-option">
+        <input type="checkbox" id="search-ignore-bots" name="i" value="1" <%= 'checked' if $i %>>
+        <label for="search-ignore-bots">Exclude Bots</label>
+      </div>
     </div>
   </div>
 
   <div class="search-field">
     <div class="search-label">Using</div>
     <div class="search-input">
-      <input type="radio" id="search-using-ft" name="ft" value="y" <%= 'checked' if $ft eq 'y' %>>
-      <label for="search-using-ft">Natural Language</label>
-      <input type="radio" id="search-using-like" name="ft" value="n" <%= 'checked' if $ft eq 'n' %>>
-      <label for="search-using-like">Exact Match (Slower)</label>
+      <div class="search-option">
+        <input type="radio" id="search-using-ft" name="ft" value="y" <%= 'checked' if $ft eq 'y' %>>
+        <label for="search-using-ft">Natural Language</label>
+      </div>
+      <div class="search-option">
+        <input type="radio" id="search-using-like" name="ft" value="n" <%= 'checked' if $ft eq 'n' %>>
+        <label for="search-using-like">Exact Match (Slower)</label>
+      </div>
     </div>
   </div>
 
