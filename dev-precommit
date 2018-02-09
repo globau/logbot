@@ -166,6 +166,10 @@ find(
     $RealBin
 );
 
+# run make
+
+system('make');
+
 sub sort_use {
     my ($input) = @_;
     my @input = split(/\n/, $input);
