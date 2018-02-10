@@ -781,7 +781,7 @@ body
 @media (max-width: 479px)
   body
     &:not(.font-s), &.font-s
-      #logs
+      #logs, #search-logs
         .time
           display: inline-block
           position: static
@@ -791,6 +791,9 @@ body
           font-weight: bold
           margin-left: 0
           position: static
+
+          &:hover
+            padding-right: 0px
 
         .action
           display: inline
