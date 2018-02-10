@@ -78,23 +78,17 @@ sub rewrite_old_urls {
     }
     $channel = normalise_channel($channel);
 
-    my $path = Mojo::Path->new();
-    my $url  = $c->req->url->to_abs();
-
-    # remove network subdomain
-    my @host = split(/\./, $url->host);
-    if (any { $_ eq 'logs' } @host) {
-        shift @host while $host[0] ne 'logs';
-        $url->host(join('.', @host));
-    }
+    my $path        = Mojo::Path->new();
+    my $url         = $c->req->url->to_abs();
+    my $default_url = Mojo::URL->new($c->stash('config')->{url});
+    (my $default_host = $default_url->host) =~ s/^[^.]+\.//;
 
     # map network to subdomain
     if ($url->host ne 'localhost') {
-        $url->host($network . '.' . $url->host);
+        $url->host($network . '.' . $default_host);
     }
 
     # map port
-    my $default_url = Mojo::URL->new($c->stash('config')->{url});
     $url->port($default_url->port);
 
     # find action
