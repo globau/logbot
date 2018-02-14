@@ -22,7 +22,7 @@ use IO::Socket::Timeout ();
 use List::MoreUtils qw( natatime );
 use List::Util qw( any min );
 use LogBot::Config qw( find_config load_config reload_config save_config );
-use LogBot::JobQueue qw( publish_job );
+use LogBot::JobQueue;
 use LogBot::Util qw( file_for logbot_init normalise_channel slurp squash_error timestamp touch );
 use Mojo::Log ();
 use Readonly;
@@ -30,7 +30,7 @@ use Time::HiRes ();
 use Try::Tiny qw( catch try );
 
 # globals
-my ($config, $state, $connection, $log);
+my ($config, $state, $connection, $job_queue, $log);
 
 #
 
@@ -137,8 +137,8 @@ sub publish {
         $text =~ s/[\x02\x1f\x16\x1d\x11\x06]//g;              # formatting
         $text =~ s/\x0f//g;                                    # cancellation
 
-        publish_job(
-            $config, {
+        $job_queue->publish_job(
+            {
                 time    => Time::HiRes::time(),
                 channel => $channel,
                 type    => $type,
@@ -190,6 +190,7 @@ if (@ARGV) {
 STDOUT->autoflush(1);
 $pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
+$job_queue = LogBot::JobQueue->new($config);
 $log = Mojo::Log->new(path => $RealBin . '/log/irc-' . $config->{name} . '.log', level => 'info');
 
 # default timings

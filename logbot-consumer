@@ -17,7 +17,7 @@ use DateTime ();
 use Encode qw( encode );
 use LogBot::Config qw( find_config load_config reload_config );
 use LogBot::Database qw( dbh dbh_disconnect execute_with_retry );
-use LogBot::JobQueue qw( delete_job fetch_job );
+use LogBot::JobQueue ();
 use LogBot::Util qw( event_to_string logbot_init squash_error timestamp );
 use Time::HiRes qw( sleep );
 use Try::Tiny qw( catch try );
@@ -28,8 +28,9 @@ logbot_init($config);
 my $quit = 0;
 $SIG{INT} = sub { $quit = 1 };
 
-# init/cache database
+# init/cache database/queue
 dbh($config, read_write => 1, cached => 1);
+my $job_queue = LogBot::JobQueue->new($config);
 
 my $last_status = '';
 my %tally;
@@ -47,7 +48,7 @@ while (!$quit) {
     }
 
     # wait for next job, blocking call
-    my ($job, $event) = fetch_job($config);
+    my ($job, $event) = $job_queue->fetch_job();
     last unless defined $job;
 
     if ($ENV{DEBUG}) {
@@ -66,7 +67,7 @@ while (!$quit) {
     }
     if ($ignore) {
         say timestamp(), ' -- ignoring event' if $ENV{DEBUG};
-        delete_job($config, $job);
+        $job_queue->delete_job($job);
         next;
     }
 
@@ -79,7 +80,7 @@ while (!$quit) {
 
             $dbh->do('INSERT INTO logs(time,channel,nick,type,text) VALUES (?,?,?,?,?)',
                 undef, $event->{time}, $event->{channel}, $event->{nick}, $event->{type}, $event->{text});
-            delete_job($config, $job);
+            $job_queue->delete_job($job);
             undef $job;
 
             $tally{ $event->{channel} }++;
