@@ -13,7 +13,6 @@ requires 'JSON::XS', '3.03';
 requires 'List::MoreUtils', '0.419';
 requires 'List::Util', '1.33';
 requires 'Mojolicious', '7.65';
-requires 'Mojolicious::Plugin::AccessLog', '0.010';
 requires 'Net::DNS::Native', '0.15';
 requires 'Readonly', '2.05';
 requires 'Term::ReadKey', '2.37';
