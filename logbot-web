@@ -126,7 +126,7 @@ get '/' => sub {
     if (my $url = rewrite_old_urls($c)) {
 
         # url was formed server-side, no need to bounce through js redirect
-        if ($url =~ /#/) {
+        if ($url !~ /#/) {
             return $c->redirect_to($url);
         }
 

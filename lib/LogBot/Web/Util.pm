@@ -84,7 +84,7 @@ sub rewrite_old_urls {
     (my $default_host = $default_url->host) =~ s/^[^.]+\.//;
 
     # map network to subdomain
-    if ($url->host ne 'localhost') {
+    if ($url->host ne 'localhost' && $url->host ne '127.0.0.1') {
         $url->host($network . '.' . $default_host);
     }
 
