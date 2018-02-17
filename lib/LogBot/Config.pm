@@ -67,10 +67,11 @@ sub load_config {
     # internal values that don't need to be persisted
     $config->{_internal} = {
         file     => $config_file,
-        root     => glob(q{'} . $config->{path} . q{'}),  # expand ~
+        root     => glob(q{'} . $config->{path} . q{'}),         # expand ~
         time     => (stat($config_file))[9],
         web      => $params{web},
         readonly => $params{web},
+        is_dev   => substr(basename($config_file), 0, 1) eq '_',
     };
 
     make_path($config->{_internal}->{root});

@@ -191,7 +191,11 @@ STDOUT->autoflush(1);
 $pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
 $job_queue = LogBot::JobQueue->new($config);
-$log = Mojo::Log->new(path => $RealBin . '/log/irc-' . $config->{name} . '.log', level => 'info');
+
+$log = Mojo::Log->new(
+    path => ($config->{_internal}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
+    level => 'info',
+);
 
 # default timings
 $config->{timing}->{initial_ping_delay}     ||= 3 * 60;

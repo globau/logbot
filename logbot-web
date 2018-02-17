@@ -62,9 +62,13 @@ app->static->paths([$RealBin . '/web/public']);
 app->config(
     hypnotoad => {
         listen => ['http://127.0.0.1:' . ($ENV{LOGBOT_PORT} // 3001)],
-        pid_file => ($ENV{LOGBOT_PID_FILE} // $RealBin . '/logbot-web.pid'),
+        pid_file => ($ENV{LOGBOT_PID_FILE} // ($RealBin . '/logbot-web.pid')),
     },
 );
+plugin AccessLog => {
+    log => ($is_production ? '/var/log/logbot/access.log' : 'log/access.log'),
+    format => '%h %{X-Network}o - %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
+};
 
 # per-request initialisation
 under sub {
@@ -88,6 +92,9 @@ under sub {
     # reload config, regenerating channel list if required
     $networks->[$config_index] = reload_config($networks->[$config_index]);
     build_channel_list($networks->[$config_index]);
+
+    # store network name in response header for logging
+    $c->res->headers->add('X-Network' => $networks->[$config_index]->{name});
 
     nick_colour_init();
 
