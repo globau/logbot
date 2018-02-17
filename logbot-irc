@@ -406,16 +406,36 @@ while (1) {
         next;
     }
 
-    # bad channel key --> archive channel
-    if ($message =~ /^:\S+ 475 (\S+) (#\S+) :(.+)/) {
+    # join failed
+    # NOSUCHCHANNEL, TOOMANYCHANNELS NEEDMOREPARAMS, INVITEONLYCHAN, BANNEDFROMCHAN, BADCHANNELKEY
+    if ($message =~ /^:\S+ (403|405|461|471|473|474|475) (\S+) (#\S+) :(.+)/) {
+        my ($code, $who, $channel, $text) = ($1, normalise_channel($2), $3);
+        next unless $who eq $config->{irc}->{nick};
+        say timestamp(), ' -- join ', $channel, ' failed: ', $text;
+        $log->error('join ' . $channel . ' failed: ' . $text);
+        $state->{channels_in}->{$channel} = 0;
+        $config->{channels}->{$channel}->{error} = timestamp() . ' ' . $text;
+        $config->{channels}->{$channel}->{archived} = ($code == 405 ? 1 : 0);
+        save_config($config);
+
+        if (my $invite = delete $state->{pending_invites}->{$channel}) {
+            irc_send_message($invite->{who}, 'unable to join ' . $channel . ': ' . $text);
+        }
+        next;
+    }
+
+    # unable to send to channel - likely means we've been banned and then invited back
+    # treat the same as banned and leave the channel
+    if ($message =~ /^:\S+ 404 (\S+) (#\S+) :(.+)/) {
         my ($who, $channel, $text) = ($1, normalise_channel($2), $3);
         next unless $who eq $config->{irc}->{nick};
         say timestamp(), ' -- join ', $channel, ' failed: ', $text;
         $log->error('join ' . $channel . ' failed: ' . $text);
         $state->{channels_in}->{$channel}           = 0;
-        $config->{channels}->{$channel}->{archived} = 1;
+        $config->{channels}->{$channel}->{archived} = 0;
         $config->{channels}->{$channel}->{error}    = timestamp() . ' ' . $text;
         save_config($config);
+        irc_send('PART ' . $channel . ' I\'m banned from this channel');
         next;
     }
 
