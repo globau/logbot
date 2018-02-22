@@ -189,6 +189,10 @@ if (!$is_production) {
 
 # robots.txt
 my $robots_txt = <<'EOF';
+# http://law.di.unimi.it/BUbiNG.html
+# 20% of my traffic was from this bot
+User-agent: BUbiNG
+Disallow: /
 EOF
 get '/robots.txt' => sub {
     my ($c) = @_;
