@@ -1,17 +1,71 @@
-this document is under construction.
+logbot requires some systems knowledge to install in a production setting.
+It isn't a single-step install, nor do I have plans to make it so.
 
-the very high level install steps for a production deployment are:
-- install cpanm and the local::lib perl library at a system level
-- create a user specifically for logbot
-- clone repo
-- run `cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .`
-- copy etc/_sample.yml to etc/network.yml (eg. etc/mozilla.yml)
-- edit etc/network.yml and set all the values as required
-- run logbot-irc and logbot-consumer as daemons (eg. using systemd)
-- run logbot-nightly and logbot-backup nightly (eg. using cron)
-- figure out how you're going to run the mojolicous logbot-web app
-  - http://mojolicious.org/perldoc/Mojolicious/Guides/Cookbook#DEPLOYMENT
-  - i'm using:
-    - logbot-hypnotoad under systemd (hypnotoad wrapper around logbot-web)
-    - apache-httpd with reverse proxy hitting logbot-hypnotoad
-    - the docs/ directory contains my systemd and apache-httpd confs
+HIGH LEVEL STEPS
+
+Systems Preparation
+
+  logbot was designed to run on Linux systems under its own user.  All of the
+  Perl modules it uses will be stored under the user's home directory, however
+  two modules must be installed into your system's Perl to enable this.
+
+  1. Install `cpanm` and the `local::lib` Perl module
+     eg. `yum install perl-App-cpanminus 'perl(local::lib)'`
+  2. Create a user `logbot`
+  3. Create `/var/log/logbot` and ensure the logbot user has write access
+
+Clone logbot and Install Perl Modules
+
+  Perform these steps as the `logbot` user.  This will clone logbot from GitHub
+  then install the Perl module dependencies into ~logbot/perl5.
+
+  1. `cd; git clone https://github.com/globau/logbot.git`
+  2. `cd logbot`
+  3. `cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .`
+
+Configure logbot
+
+  For the sake of discussion let's assume you're configuring logbot to connect
+  to an IRC network named "cheesenet".
+
+  1. copy `etc/_sample.yaml` to `etc/cheesenet.yaml`
+  2. edit `etc/cheesenet.yaml` and set values as required:
+     - `bots` is a list of bots on your network, these will be treated
+       differently in the web UI
+     - `name` is the internal unique name of this network
+     - `title` allows for the network name to be displayed differently
+     - `path` is the path to store data (databases, running files, etc).  Must
+       be writable by the logbot user.
+
+Configure Services and cron
+
+  You'll need two services for your each IRC network (`logbot-irc` and
+  `logbot-consumer`), as well as a single instance of the Mojolicous
+  application.  Both `logbot-irc` and `logbot-consumer` log to STDOUT.
+
+  How you achieve this depends greatly on your system and preferences.
+
+  I use systemd to manage my services as this trivialises startup, restarting
+  upon failure, and log management.  You'll find sample .service files in the
+  same directory as this file.
+
+  Read the Mojolicous Cookbook[1] for documentation on deploying the web
+  application `logbot-web`.
+
+  I use Mojolicous's HypnoToad (using the `logbot-hypnotoad` wrapper), with
+  Apache's HTTPd in front of it running as a reverse proxy.  Again there's a
+  sample httpd.conf file for logbot in this directory, as well as one for
+  the HypnoToad service.
+
+  Finally you need to configure `logbot-nightly --all` to run nightly; this
+  process generates statistical data and archives stale channels.
+
+  [1] http://mojolicious.org/perldoc/Mojolicious/Guides/Cookbook#DEPLOYMENT
+
+Backups
+
+  Should you want to backup logbot's data the safest way is to run the
+  `~/logbot/logbot-backup --all ~/store/backups` command.  This will use
+  SQLite's `backup` command to create a copy of the databases.  From there use
+  your normal off-system backup mechanisms.
+
