@@ -116,6 +116,13 @@ sub irc_connect {
     }
 }
 
+sub init_logging {
+    $log = Mojo::Log->new(
+        path => ($config->{_internal}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
+        level => 'info',
+    );
+}
+
 #
 
 # publish event to processing queue
@@ -156,7 +163,8 @@ sub publish {
 #
 
 # init config
-$config = load_config(find_config(shift)) // die "syntax: logbot-irc <config file> [--reload][--debug][--quit]\n";
+$config = load_config(find_config(shift))
+    // die "syntax: logbot-irc <config file> [--reload][--cyclelogs][--debug][--quit]\n";
 
 # pid
 my $pid_file = file_for($config, 'pid', 'logbot-irc');
@@ -176,6 +184,10 @@ if (@ARGV) {
         $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
         kill('USR1', $pid);
         say "debug-dump request sent to pid $pid";
+    } elsif ($ARGV[0] eq '--cyclelogs') {
+        $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
+        kill('USR2', $pid);
+        say "cyclelogs request sent to pid $pid";
     } elsif ($ARGV[0] eq '--quit') {
         $pid || die 'logbot-irc (' . $config->{name} . ") is not running\n";
         kill('INT', $pid);
@@ -190,12 +202,8 @@ if (@ARGV) {
 STDOUT->autoflush(1);
 $pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
+init_logging();
 $job_queue = LogBot::JobQueue->new($config);
-
-$log = Mojo::Log->new(
-    path => ($config->{_internal}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
-    level => 'info',
-);
 
 # default timings
 $config->{timing}->{initial_ping_delay}     ||= 3 * 60;
@@ -208,6 +216,7 @@ $config->{timing}->{reload_interval}        ||= 60 * 60;
 # init signals and state
 $SIG{HUP}  = sub { $state->{reload} = 1 };
 $SIG{USR1} = sub { $state->{dump}   = 1 };
+$SIG{USR2} = sub { $state->{relog}  = 1 };
 $SIG{INT}  = sub { $state->{quit}   = 1 };
 $state->{pending_invites} = {};
 
@@ -284,6 +293,12 @@ while (1) {
     if (delete $state->{dump}) {
         print Dumper($config);
         print Dumper($state);
+    }
+
+    # drop log handle on SIGUSR2
+    if (delete $state->{relog}) {
+        say timestamp(), ' -- cycling logs';
+        init_logging();
     }
 
     # quit cleanly when requested
