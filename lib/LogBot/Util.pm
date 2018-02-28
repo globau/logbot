@@ -244,25 +244,26 @@ sub round {
 }
 
 sub time_ago {
-    my ($ss) = @_;
-    my $mm   = round($ss / 60);
-    my $hh   = round($mm / 60);
-    my $dd   = round($hh / 24);
-    my $mo   = round($dd / 30);
-    my $yy   = round($mo / 12);
+    my ($ss, $term) = @_;
+    my $mm = round($ss / 60);
+    my $hh = round($mm / 60);
+    my $dd = round($hh / 24);
+    my $mo = round($dd / 30);
+    my $yy = round($mo / 12);
+    $term //= 'ago';
 
-    return 'just now'           if $ss < 10;
-    return $ss . ' seconds ago' if $ss < 45;
-    return 'a minute ago'       if $ss < 90;
-    return $mm . ' minutes ago' if $mm < 45;
-    return 'an hour ago'        if $mm < 90;
-    return $hh . ' hours ago'   if $hh < 24;
-    return 'a day ago'          if $hh < 36;
-    return $dd . ' days ago'    if $dd < 30;
-    return 'a month ago'        if $dd < 45;
-    return $mo . ' months ago'  if $mo < 12;
-    return 'a year ago'         if $mo < 18;
-    return $yy . ' years ago';
+    return 'just now'                if $ss < 10;
+    return $ss . ' seconds ' . $term if $ss < 45;
+    return 'a minute ' . $term       if $ss < 90;
+    return $mm . ' minutes ' . $term if $mm < 45;
+    return 'an hour ' . $term        if $mm < 90;
+    return $hh . ' hours ' . $term   if $hh < 24;
+    return 'a day ' . $term          if $hh < 36;
+    return $dd . ' days ' . $term    if $dd < 30;
+    return 'a month ' . $term        if $dd < 45;
+    return $mo . ' months ' . $term  if $mo < 12;
+    return 'a year ' . $term         if $mo < 18;
+    return $yy . ' years ' . $term;
 }
 
 1;

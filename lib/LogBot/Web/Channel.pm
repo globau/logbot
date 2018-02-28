@@ -7,7 +7,7 @@ use warnings;
 use DateTime ();
 use Encode qw( decode );
 use List::Util qw( any );
-use LogBot::Database qw( dbh execute_with_timeout replace_sql_placeholders );
+use LogBot::Database qw( dbh execute_with_timeout );
 use LogBot::Util qw( event_to_short_string nick_is_bot normalise_channel time_to_ymd );
 use LogBot::Web::Util qw( linkify nick_hash );
 
@@ -71,20 +71,10 @@ sub logs {
     }
 
     # calc last message date for channel
-    my $last_date = '';
-    my $last_time = $dbh->selectrow_array(
-        'SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1',
-        undef, $c->stash('channel'),
-    );
-    if ($last_time) {
-        my $last = DateTime->from_epoch(epoch => $last_time);
-        if ($last->clone->truncate(to => 'day') <= $c->stash('date')->truncate(to => 'day')) {
-            $last_date = $last;
-        }
-    }
+    if (@{$logs}) {
+        $c->stash(last_date => DateTime->from_epoch(epoch => $logs->[-1]->{time}));
 
-    # provide next/prev for skipping empty spans
-    if (!$last_date && !@{$logs}) {
+    } else {
         my $time = $c->stash('date')->epoch;
 
         my $skip_prev_time =
@@ -102,17 +92,8 @@ sub logs {
         }
     }
 
-    # show sql query
-    if ($ENV{DEBUG} || $c->param('debug')) {
-        $sql = replace_sql_placeholders($dbh, $sql, $params->{values});
-    } else {
-        $sql = '';
-    }
-
     $c->stash(
-        sql             => $sql,
         logs            => $logs,
-        last_date       => $last_date,
         event_count     => scalar(@{$logs}),
         bot_event_count => $bot_event_count,
     );
