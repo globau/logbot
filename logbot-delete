@@ -11,7 +11,7 @@ BEGIN { $ENV{TZ} = 'UTC' }
 
 use LogBot::Config qw( find_config load_config );
 use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
-use LogBot::Util qw( event_to_string logbot_init );
+use LogBot::Util qw( event_to_string logbot_init plural );
 use Mojo::Util qw( trim );
 use Term::ReadKey qw( ReadKey ReadMode );
 use Text::ParseWords qw( quotewords );
@@ -56,7 +56,7 @@ my $sql_count  = "SELECT COUNT(*) $sql_filter";
 say replace_sql_placeholders($dbh, $sql_select, \@values);
 
 my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
-say "found $count match", ($count == 1 ? '' : 'es');
+say 'found ', plural($count, 'match', 'es');
 
 my $all = 0;
 my $sth = $dbh->prepare($sql_select);

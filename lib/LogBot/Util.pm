@@ -15,7 +15,7 @@ our @EXPORT_OK = qw(
     timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
     event_to_string event_to_short_string
-    commify pretty_size time_ago round
+    commify pretty_size time_ago round plural
 );
 use parent 'Exporter';
 
@@ -264,6 +264,12 @@ sub time_ago {
     return $mo . ' months ' . $term  if $mo < 12;
     return 'a year ' . $term         if $mo < 18;
     return $yy . ' years ' . $term;
+}
+
+sub plural {
+    my ($count, $object, $suffix) = @_;
+    $suffix //= 's';
+    return commify($count) . ' ' . $object . ($count == 1 ? '' : $suffix);
 }
 
 1;

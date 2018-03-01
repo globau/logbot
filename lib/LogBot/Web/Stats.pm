@@ -7,7 +7,7 @@ use warnings;
 use DateTime ();
 use JSON::XS qw( decode_json );
 use LogBot::Database qw( dbh );
-use LogBot::Util qw( commify file_for pretty_size slurp time_ago time_to_datetimestr );
+use LogBot::Util qw( commify file_for plural pretty_size slurp time_ago time_to_datetimestr );
 use LogBot::Web::Util qw( irc_host );
 use Time::Duration qw( ago );
 
@@ -55,12 +55,12 @@ sub meta {
 
     ($last_time, $last_ago) = event_time_to_str($last_time);
 
-    my ($first_time, $first_ago, $active_events, $active_nicks);
+    my ($first_ago, $active_events, $active_nicks);
     my $meta_file = file_for($config, 'meta', $channel, 'meta');
     if (-e $meta_file) {
         my $meta = decode_json(slurp($meta_file));
 
-        ($first_time, $first_ago) = event_time_to_str($meta->{first_time});
+        (undef, $first_ago) = event_time_to_str($meta->{first_time});
 
         $active_events =
               $meta->{active_events_days}
@@ -79,21 +79,23 @@ sub meta {
         $event_count //= $meta->{event_count};
 
     } else {
-        $first_time    = '-';
         $first_ago     = '-';
         $active_events = '0';
         $active_nicks  = '0';
         $event_count //= '0';
     }
 
+    my $channels_in = scalar(grep { !($_->{archived} || $_->{blocked} || $_->{disabled}) } values $config->{channels});
+    my $archived = scalar(grep { $_->{archived} && !($_->{blocked} || $_->{disabled}) } values $config->{channels});
+
     return {
-        first_time    => $first_time,
-        first_ago     => $first_ago,
-        last_time     => $last_time,
-        last_ago      => $last_ago,
-        event_count   => commify($event_count),
-        active_events => commify($active_events) . ' event' . ($active_events == 1 ? '' : 's') . '/day',
-        active_nicks  => commify($active_nicks) . ' active user' . ($active_nicks == 1 ? '' : 's'),
+        first_ago      => $first_ago,
+        last_ago       => $last_ago,
+        event_count    => commify($event_count),
+        active_events  => plural($active_events, 'event') . '/day',
+        active_nicks   => plural($active_nicks, 'active user'),
+        channels_in    => 'Logging ' . plural($channels_in, 'channel'),
+        channels_total => plural($archived, 'archived channel'),
     };
 }
 

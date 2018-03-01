@@ -16,29 +16,45 @@
   <tr>
     <th>Last Event</th>
     <td>
-      <div id="last_time" class="loading">loading&hellip;</div>
       <div id="last_ago" class="loading">&hellip;</div>
     </td>
     <th>Logging started</th>
     <td>
-      <div id="first_time" class="loading">loading&hellip;</div>
       <div id="first_ago" class="loading">&hellip;</div>
     </td>
   </tr>
   <tr>
     <th>It is currently</th>
     <td><%= time_to_datetimestr($now->epoch) %></td>
-    <th>Event count</th>
-    <td>
-      <span id="event_count" class="loading">loading&hellip;</span>
-      <span class="loading-hide">(approximation)</span>
-    </td>
+    % if (!$channel) {
+      <th>Channels</th>
+      <td>
+        <span id="channels_in" class="loading">loading&hellip;</span>
+        <span class="loading-hide">&middot;</span>
+        <span id="channels_total"></span>
+      </td>
+    % } else {
+      <th>Event count</th>
+      <td>
+        <span id="event_count" class="loading">loading&hellip;</span>
+        <span class="loading-hide">(approximation)</span>
+      </td>
+    % }
   </tr>
+  % if (!$channel) {
+    <tr>
+      <th></th>
+      <td>All times are UTC</td>
+      <th>Event count</th>
+      <td>
+        <span id="event_count" class="loading">loading&hellip;</span>
+        <span class="loading-hide">(approximation)</span>
+      </td>
+    </tr>
+  % }
   <tr>
-    <th></th>
-    <td>All times are UTC</td>
     <th>Activity</th>
-    <td>
+    <td colspan="3">
       <span id="active_events" class="loading">loading&hellip;</span>
       <span class="loading-hide">&middot;</span>
       <span id="active_nicks"></span>
