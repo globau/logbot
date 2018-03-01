@@ -76,3 +76,5 @@ body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!
     % }
   </div>
 % }
+
+</div>

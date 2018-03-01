@@ -22,27 +22,27 @@
   <div id="sidebar">
 
     <div id="actions">
-      <a id="collapse-sidebar" class="button is-white" alt="Toggle Sidebar">
-        <span class="icon is-small">
+      <a id="collapse-sidebar" class="button is-white" title="Toggle Sidebar">
+        <div class="icon is-small">
           <div id="sidebar-open">
             <svg class="svg-sidebar-collapse" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M223.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L319.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L393.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34zm-192 34l136 136c9.4 9.4 24.6 9.4 33.9 0l22.6-22.6c9.4-9.4 9.4-24.6 0-33.9L127.9 256l96.4-96.4c9.4-9.4 9.4-24.6 0-33.9L201.7 103c-9.4-9.4-24.6-9.4-33.9 0l-136 136c-9.5 9.4-9.5 24.6-.1 34z"/></svg>
           </div>
           <div id="sidebar-closed">
             <svg class="svg-sidebar-open" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34zm192-34l-136-136c-9.4-9.4-24.6-9.4-33.9 0l-22.6 22.6c-9.4 9.4-9.4 24.6 0 33.9l96.4 96.4-96.4 96.4c-9.4 9.4-9.4 24.6 0 33.9l22.6 22.6c9.4 9.4 24.6 9.4 33.9 0l136-136c9.4-9.2 9.4-24.4 0-33.8z"/></svg>
           </div>
-        </span>
+        </div>
       </a>
 
-      <a id="settings" class="button is-white" title="Settings" alt="Settings">
-        <span class="icon is-small">
+      <a id="settings" class="button is-white" title="Settings">
+        <div class="icon is-small">
           <svg class="svg-settings" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M452.515 237l31.843-18.382c9.426-5.441 13.996-16.542 11.177-27.054-11.404-42.531-33.842-80.547-64.058-110.797-7.68-7.688-19.575-9.246-28.985-3.811l-31.785 18.358a196.276 196.276 0 0 0-32.899-19.02V39.541a24.016 24.016 0 0 0-17.842-23.206c-41.761-11.107-86.117-11.121-127.93-.001-10.519 2.798-17.844 12.321-17.844 23.206v36.753a196.276 196.276 0 0 0-32.899 19.02l-31.785-18.358c-9.41-5.435-21.305-3.877-28.985 3.811-30.216 30.25-52.654 68.265-64.058 110.797-2.819 10.512 1.751 21.613 11.177 27.054L59.485 237a197.715 197.715 0 0 0 0 37.999l-31.843 18.382c-9.426 5.441-13.996 16.542-11.177 27.054 11.404 42.531 33.842 80.547 64.058 110.797 7.68 7.688 19.575 9.246 28.985 3.811l31.785-18.358a196.202 196.202 0 0 0 32.899 19.019v36.753a24.016 24.016 0 0 0 17.842 23.206c41.761 11.107 86.117 11.122 127.93.001 10.519-2.798 17.844-12.321 17.844-23.206v-36.753a196.34 196.34 0 0 0 32.899-19.019l31.785 18.358c9.41 5.435 21.305 3.877 28.985-3.811 30.216-30.25 52.654-68.266 64.058-110.797 2.819-10.512-1.751-21.613-11.177-27.054L452.515 275c1.22-12.65 1.22-25.35 0-38zm-52.679 63.019l43.819 25.289a200.138 200.138 0 0 1-33.849 58.528l-43.829-25.309c-31.984 27.397-36.659 30.077-76.168 44.029v50.599a200.917 200.917 0 0 1-67.618 0v-50.599c-39.504-13.95-44.196-16.642-76.168-44.029l-43.829 25.309a200.15 200.15 0 0 1-33.849-58.528l43.819-25.289c-7.63-41.299-7.634-46.719 0-88.038l-43.819-25.289c7.85-21.229 19.31-41.049 33.849-58.529l43.829 25.309c31.984-27.397 36.66-30.078 76.168-44.029V58.845a200.917 200.917 0 0 1 67.618 0v50.599c39.504 13.95 44.196 16.642 76.168 44.029l43.829-25.309a200.143 200.143 0 0 1 33.849 58.529l-43.819 25.289c7.631 41.3 7.634 46.718 0 88.037zM256 160c-52.935 0-96 43.065-96 96s43.065 96 96 96 96-43.065 96-96-43.065-96-96-96zm0 144c-26.468 0-48-21.532-48-48 0-26.467 21.532-48 48-48s48 21.533 48 48c0 26.468-21.532 48-48 48z"/></svg>
-        </span>
+        </div>
       </a>
 
-      <a id="about" class="button is-white" title="LogBot Home" alt="LogBot Home" href="/">
-        <span class="icon is-small">
+      <a id="about" class="button is-white" title="LogBot Home" href="/">
+        <div class="icon is-small">
           <svg class="svg-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path id="bot" d="M50 81c-17.6 0-32-13.9-32-31v-.8l-8.6-9.8c-.8-.9-1-2.1-.6-3.2s1.3-1.9 2.4-2.1l13.1-2.6.2-.3C30.7 23.4 40 19 50 19s19.3 4.4 25.4 12.2l.2.3L88.8 34c1.1.2 2 1 2.4 2.1.4 1.1.1 2.3-.6 3.2L82 49.2v.8c0 17.1-14.4 31-32 31zm12.3-28c.7 0 1.3.2 2 .3.6.1 1.1.3 1.7.3 2.4 0 2.4-2.7 2.4-3.6 0-4.9-2.6-8.8-6-8.8s-6 3.9-6 8.8c0 .9 0 3.6 2.4 3.6.5 0 1.1-.1 1.7-.3.4-.1 1.1-.3 1.8-.3zm-24.5 0c.7 0 1.3.2 2 .3.6.1 1.1.3 1.7.3 2.4 0 2.4-2.7 2.4-3.6 0-4.9-2.6-8.8-6-8.8s-6 3.9-6 8.8c0 .9 0 3.6 2.4 3.6.5 0 1.1-.1 1.7-.3.4-.1 1.1-.3 1.8-.3z"/></svg>
-        </span>
+        </div>
       </a>
     </div>
 
@@ -108,90 +108,89 @@
       % my $next = $date->clone->add( days => 1 );
       <div id="date-container">
         <a id="date-prev" href="<%= url_for_channel( channel => $channel, date => $prev ) %>"
-           class="button is-white date-inc" data-ymd="<%= $prev->ymd('') %>" alt="Previous Date">
-          <span class="icon is-small">
+           class="button is-white date-inc" data-ymd="<%= $prev->ymd('') %>" title="Previous Date">
+          <div class="icon is-small">
             <svg class="svg-date-prev" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path d="M31.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L127.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L201.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34z"/></svg>
-          </span>
+          </div>
         </a><%#
 
         %><span id="date" data-ymd="<%= $date->ymd('') %>"><%= $date->format_cldr('d MMM yyyy') %></span><%#
 
         %><div id="date-picker"></div><%#
 
-        %><a id="date-icon" class="button is-white" alt="Date Picker">
-          <span class="icon is-small">
+        %><a id="date-icon" class="button is-white" title="Date Picker">
+          <div class="icon is-small">
             <svg class="svg-date-pick" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>
-          </span>
+          </div>
         </a><%#
 
         %><a id="date-next" href="<%= url_for_channel( channel => $channel, date => $next ) %>"
-           <%== 'class="hidden"' if ($is_today) %>
-           class="button is-white date-inc" data-ymd="<%= $next->ymd('') %>" alt="Next Date">
-          <span class="icon is-small">
+           class="button is-white date-inc<%= ' hidden' if $is_today %>" data-ymd="<%= $next->ymd('') %>" title="Next Date">
+          <div class="icon is-small">
             <svg class="svg-date-next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
 
       <div id="end-container" class="nav-button">
-        <a id="channel-end" class="button is-white" title="Scroll to last message" alt="Scroll to last message"
+        <a id="channel-end" class="button is-white" title="Scroll to last message"
             href="#end" <%= 'disabled' if ($event_count == 0) || ($hide_b && ($event_count == $bot_event_count)) %>>
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-end" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M230.9 64c8.8 0 16 7.2 16 16v144h93.9c7.1 0 10.7 8.6 5.7 13.6L203.3 381.2c-6.3 6.3-16.4 6.3-22.7 0l-143-143.6c-5-5-1.5-13.6 5.7-13.6h93.9V80c0-8.8 7.2-16 16-16h77.7m0-32h-77.7c-26.5 0-48 21.5-48 48v112H43.3c-35.5 0-53.5 43-28.3 68.2l143 143.6c18.8 18.8 49.2 18.8 68 0l143.1-143.5c25.1-25.1 7.3-68.2-28.3-68.2h-61.9V80c0-26.5-21.6-48-48-48zM384 468v-8c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v8c0 6.6 5.4 12 12 12h360c6.6 0 12-5.4 12-12z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
 
       <div id="reload-container" class="nav-button">
         % if ($is_today) {
-          <a id="channel-reload" class="button is-white" title="Reload" alt="Reload"
+          <a id="channel-reload" class="button is-white" title="Reload"
              href="<%= url_for_channel( channel => $channel, date => $date )%>">
         % } else {
           <a class="button is-white" disabled>
         % }
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-reload" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M483.515 28.485L431.35 80.65C386.475 35.767 324.485 8 256 8 123.228 8 14.824 112.338 8.31 243.493 7.971 250.311 13.475 256 20.301 256h28.045c6.353 0 11.613-4.952 11.973-11.294C66.161 141.649 151.453 60 256 60c54.163 0 103.157 21.923 138.614 57.386l-54.128 54.129c-7.56 7.56-2.206 20.485 8.485 20.485H492c6.627 0 12-5.373 12-12V36.971c0-10.691-12.926-16.045-20.485-8.486zM491.699 256h-28.045c-6.353 0-11.613 4.952-11.973 11.294C445.839 370.351 360.547 452 256 452c-54.163 0-103.157-21.923-138.614-57.386l54.128-54.129c7.56-7.56 2.206-20.485-8.485-20.485H20c-6.627 0-12 5.373-12 12v143.029c0 10.691 12.926 16.045 20.485 8.485L80.65 431.35C125.525 476.233 187.516 504 256 504c132.773 0 241.176-104.338 247.69-235.493.339-6.818-5.165-12.507-11.991-12.507z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
 
       <div id="stats-container" class="nav-button">
-        <a id="channel-stats" class="button is-white" title="<%= $channel %> Statistics" alt="<%= $channel %> Statistics"
+        <a id="channel-stats" class="button is-white" title="<%= $channel %> Statistics"
             href="<%= url_for_channel( channel => $channel, date => 'stats' )%>">
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-stats" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M500 400c6.6 0 12 5.4 12 12v24c0 6.6-5.4 12-12 12H12c-6.6 0-12-5.4-12-12V76c0-6.6 5.4-12 12-12h24c6.6 0 12 5.4 12 12v324h452zm-356-60v-72c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v72c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V140c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v200c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V204c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v136c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V108c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v232c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
 
       <div id="raw-container" class="nav-button">
-        <a id="channel-raw" class="button is-white" title="Text only" alt="Text only"
+        <a id="channel-raw" class="button is-white" title="Text only"
            href="<%= url_for_channel( channel => $channel, date => $date->ymd('') . '/raw' )%>">
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-raw" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zm-22.6 22.7c2.1 2.1 3.5 4.6 4.2 7.4H256V32.5c2.8.7 5.3 2.1 7.4 4.2l83.9 83.9zM336 480H48c-8.8 0-16-7.2-16-16V48c0-8.8 7.2-16 16-16h176v104c0 13.3 10.7 24 24 24h104v304c0 8.8-7.2 16-16 16zm-48-244v8c0 6.6-5.4 12-12 12H108c-6.6 0-12-5.4-12-12v-8c0-6.6 5.4-12 12-12h168c6.6 0 12 5.4 12 12zm0 64v8c0 6.6-5.4 12-12 12H108c-6.6 0-12-5.4-12-12v-8c0-6.6 5.4-12 12-12h168c6.6 0 12 5.4 12 12zm0 64v8c0 6.6-5.4 12-12 12H108c-6.6 0-12-5.4-12-12v-8c0-6.6 5.4-12 12-12h168c6.6 0 12 5.4 12 12z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
     % }
 
     % if ($channel && $is_stats) {
       <div id="logs-container" class="nav-button">
-        <a id="channel-logs" class="button is-white" title="<%= $channel %> Logs" alt="<%= $channel %> Logs"
+        <a id="channel-logs" class="button is-white" title="<%= $channel %> Logs"
             href="<%= url_for_channel( channel => $channel )%>">
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-logs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M288 32C129 32 0 125.1 0 240c0 49.3 23.7 94.5 63.3 130.2-8.7 23.3-22.1 32.7-37.1 43.1C15.1 421-6 433 1.6 456.5c5.1 15.4 20.9 24.7 38.1 23.3 57.7-4.6 111.2-19.2 157-42.5 28.7 6.9 59.4 10.7 91.2 10.7 159.1 0 288-93 288-208C576 125.1 447.1 32 288 32zm0 368c-32.5 0-65.4-4.4-97.3-14-32.3 19-78.7 46-134.7 54 32-24 56.8-61.6 61.2-88.4C79.1 325.6 48 286.7 48 240c0-70.9 86.3-160 240-160s240 89.1 240 160c0 71-86.3 160-240 160z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
     % }
 
     % if (!$channel) {
       <div id="network-stats-container" class="nav-button">
-        <a id="network-stats" class="button is-white" title="Network Statistics" alt="Network Statistics"
+        <a id="network-stats" class="button is-white" title="Network Statistics"
             href="/_stats">
-          <span class="icon is-small">
+          <div class="icon is-small">
             <svg class="svg-channel-stats" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M500 400c6.6 0 12 5.4 12 12v24c0 6.6-5.4 12-12 12H12c-6.6 0-12-5.4-12-12V76c0-6.6 5.4-12 12-12h24c6.6 0 12 5.4 12 12v324h452zm-356-60v-72c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v72c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V140c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v200c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V204c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v136c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12zm96 0V108c0-6.6-5.4-12-12-12h-24c-6.6 0-12 5.4-12 12v232c0 6.6 5.4 12 12 12h24c6.6 0 12-5.4 12-12z"/></svg>
-          </span>
+          </div>
         </a>
       </div>
     % }
@@ -202,10 +201,10 @@
       % }
       <input id="search-nav" type="text" name="q" placeholder="Search<%= ' ' . $channel if $channel %>"><%#
       %><noscript><input type="submit" value="Search"></noscript><%#
-      %><a id="search-submit" class="button is-white" alt="Search">
-        <span class="icon is-small">
+      %><a id="search-submit" class="button is-white" title="Search">
+        <div class="icon is-small">
           <svg class="svg-search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
-        </span>
+        </div>
       </a>
     </div>
   </div>
@@ -238,7 +237,7 @@
           <input type="checkbox" <%= "checked" if $norm_b %>> Don't desaturate bots
         </div>
         <div id="settings-close-container">
-          <a id="settings-close" class="button is-primary" alt="Close">Close</a>
+          <a id="settings-close" class="button is-primary" title="Close">Close</a>
         </div>
       </div>
     </div>
