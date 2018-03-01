@@ -193,6 +193,12 @@ my $robots_txt = <<'EOF';
 # 20% of my traffic was from this bot
 User-agent: BUbiNG
 Disallow: /
+
+# Marketing/SEO bot
+User-agent: SemrushBot
+Disallow: /
+User-agent: SemrushBot-SA
+Disallow: /
 EOF
 get '/robots.txt' => sub {
     my ($c) = @_;
