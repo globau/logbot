@@ -342,6 +342,13 @@ while (1) {
             next;
         }
 
+        # can't log channels starting with underscores - used for internal web calls
+        if (substr($channel, 1, 1) eq '_') {
+            irc_send_message($who, 'unable to join ' . $channel . ': unable to log channels starting with underscore');
+            $log->info('rejecting invite to underscored ' . $channel . ' from ' . $who);
+            next;
+        }
+
         $state->{pending_invites}->{$channel} = {
             who => lc($who),
             ops => [],
