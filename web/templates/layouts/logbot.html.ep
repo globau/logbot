@@ -82,7 +82,7 @@
           % if (@archived) {
             <li id="archived">Archived</li>
             % foreach my $c (@archived) {
-              <li><a<%== ' class="is-active"' if $c eq $channel %> href="/<%= substr($c, 1) %>"><%= $c %></a></li>
+              <li class="archived"><a<%== ' class="is-active"' if $c eq $channel %> href="/<%= substr($c, 1) %>"><%= $c %></a></li>
             % }
           % }
         </ul>
