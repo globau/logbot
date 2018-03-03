@@ -1,0 +1,170 @@
+#!/usr/bin/perl
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+BEGIN {
+    $ENV{TZ} = 'UTC';
+}
+
+END {
+    ReadMode(0);
+}
+$| = 1;
+
+use File::Path qw( make_path );
+use LogBot::Config qw( find_config load_all_configs load_config );
+use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
+use LogBot::Util qw( event_to_string file_for plural pretty_size slurp timestamp );
+use Mojo::Util qw( trim );
+use Term::ReadKey qw( ReadKey ReadMode );
+use Text::ParseWords qw( quotewords );
+
+my @configs;
+
+if (@ARGV && $ARGV[0] eq '--all') {
+    shift;
+    @configs = values %{ load_all_configs(all => !!$ENV{DEBUG}) };
+} else {
+    push @configs, load_config(find_config(shift));
+}
+
+my ($command, @args) = (lc(shift), @ARGV);
+
+(scalar(@configs) && $command) || die <<'EOF';
+syntax: logbot-util <config>|--all <command> [command args]
+
+commands:
+    backup <path>   create backup database(s) in <path>
+    delete <str>    delete log entries matching <str>
+    flush-cache     flush memcache
+    log-rotate      rotate log files (all irc and web daemons)
+EOF
+
+if ($command eq 'backup') {
+    my ($backup_path) = @args;
+    $backup_path || die "syntax: logbot-util <config file|--all> backup <backup path>\n";
+    $backup_path =~ s{/$}{};
+
+    foreach my $config (@configs) {
+        make_path($backup_path);
+        my $backup_file = $backup_path . '/' . $config->{name} . '.sqlite';
+
+        say timestamp(), ' backing up to ' . $backup_file if $ENV{DEBUG};
+        my $dbh = dbh($config);
+        $dbh->sqlite_backup_to_file($backup_file);
+
+        say timestamp(), " compressing $backup_file (" . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
+        unlink($backup_file . '.bz2');
+        system('bzip2', $backup_file);
+
+        $backup_file .= '.bz2';
+        say timestamp(), ' compressed (' . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
+    }
+
+} elsif ($command eq 'delete') {
+    my $query = join(' ', @ARGV);
+    my $nick = '';
+    if ($query =~ s/^<([^>]+)>\s*//) {
+        $nick = $1;
+    }
+    $query = trim($query);
+    $nick  = trim($nick);
+
+    foreach my $config (@configs) {
+        my $dbh = dbh($config, read_write => 1);
+
+        my (@where, @values);
+        if ($query) {
+            my @parts;
+            foreach my $word (quotewords('\s+', 0, $query)) {
+                push @parts,  '(text LIKE ?)';
+                push @values, like_value($word);
+            }
+            push @where, join(' AND ', @parts);
+        }
+        if ($nick) {
+            push @where,  'nick = ?';
+            push @values, $nick;
+        }
+        die "query not provided\n" unless @where;
+
+        my $sql_filter = 'FROM logs WHERE (' . join(') AND (', @where) . ') ORDER BY channel,time';
+        my $sql_select = "SELECT * $sql_filter";
+        my $sql_count  = "SELECT COUNT(*) $sql_filter";
+        say replace_sql_placeholders($dbh, $sql_select, \@values);
+
+        my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
+        say 'found ', plural($count, 'match', 'es');
+
+        my $all = 0;
+        my $sth = $dbh->prepare($sql_select);
+        $sth->execute(@values);
+        while (my $event = $sth->fetchrow_hashref) {
+            say event_to_string($event);
+
+            my $key;
+            if ($all) {
+                $key = 'y';
+            } else {
+                print '(y)es (n)o (a)ll (q)uit ? ';
+                $key = confirm();
+            }
+
+            if ($key eq 'a') {
+                $all = 1;
+                $key = 'y';
+            }
+
+            if ($key eq 'y') {
+                execute_with_retry(
+                    $config,
+                    sub {
+                        my ($_dbh) = @_;
+                        $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
+                        return 1;
+                    }
+                ) // die;
+                say 'deleted';
+            } elsif ($key eq 'n') {
+                print "\r\e[K";
+            } else {
+                say '';
+                exit;
+            }
+        }
+    }
+
+} elsif ($command eq 'flush-cache') {
+
+} elsif ($command eq 'log-rotate') {
+    foreach my $config (@configs) {
+        my $file = file_for($config, 'pid', 'logbot-irc');
+        next unless -e $file;
+        chomp(my $pid = slurp($file));
+        kill('USR2', $pid);
+    }
+
+} else {
+    die "unknown command '$command'\n";
+}
+
+sub confirm {
+    my $key = '';
+    ReadMode(4);
+    do {
+        $key = ReadKey();
+        if (ord($key) == 3 || ord($key) == 27) {
+            say '^C';
+            ReadMode(0);
+            exit;
+        }
+        $key = lc($key);
+    } until $key =~ /^[ynaq]$/;
+    ReadMode(0);
+    return $key;
+}
