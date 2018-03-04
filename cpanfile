@@ -1,4 +1,5 @@
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .
+requires 'Cache::Memcached::Fast', '0.25';
 requires 'DBD::SQLite', '1.54';
 requires 'DBI', '1.636';
 requires 'Date::Parse', '2.30';

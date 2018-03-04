@@ -5,6 +5,8 @@
 % use LogBot::Util qw( time_to_ymd time_to_datestr time_ago );
 % use LogBot::Web::Util qw( nick_colour url_for_channel );
 
+%= cached $cache_key => begin
+
 <style>
 % foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$logs) {
 body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
@@ -78,3 +80,5 @@ body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!
 % }
 
 </div>
+
+% end

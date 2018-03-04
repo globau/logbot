@@ -3,6 +3,8 @@ Description=Logbot Mojolicious Daemon
 After=syslog.target network.target
 
 [Service]
+Environment="MOJO_REVERSE_PROXY=1"
+Environment="LOGBOT_MEMCACHE=localhost:11211"
 ExecStart=/home/logbot/logbot/logbot-hypnotoad --pid-file /home/logbot/store/mojo-main.pid --listen-port 3001
 ExecReload=/home/logbot/logbot/logbot-hypnotoad --pid-file /home/logbot/store/mojo-main.pid --listen-port 3001
 Group=logbot

@@ -19,6 +19,7 @@ BEGIN { $ENV{TZ} = 'UTC' }
 use DateTime ();
 use IO::Compress::Gzip qw( gzip );
 use LogBot::Config qw( config_filename find_config load_all_configs load_config reload_config );
+use LogBot::MemCache ();
 use LogBot::Util qw( normalise_channel slurp spurt time_to_ymd ymd_to_time );
 use LogBot::Web::Channel ();
 use LogBot::Web::Index   ();
@@ -69,6 +70,7 @@ plugin AccessLog => {
     log => ($is_production ? '/var/log/logbot/access.log' : 'log/access.log'),
     format => '%h %{X-Network}o - %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
 };
+my $memcache = LogBot::MemCache->new();
 
 # per-request initialisation
 under sub {
@@ -119,6 +121,7 @@ under sub {
         is_stats        => 0,
         today           => DateTime->now()->truncate(to => 'day'),
         is_today        => 0,
+        cache_key       => '',
     );
     return 1;
 };
@@ -150,8 +153,10 @@ get '/' => sub {
         );
         LogBot::Web::Search::render($c, $q);
 
-        # index
     } else {
+
+        # index
+        $c->stash(cache_key => $c->stash('config')->{name});
         LogBot::Web::Index::render($c);
     }
 };
@@ -241,6 +246,9 @@ get '/#channel/:date' => [date => qr/\d{8}/] => sub {
         is_logs  => 1,
         is_today => $date == $c->stash('today'),
     );
+    if (!$c->stash('is_today')) {
+        $c->stash(cache_key => $c->stash('config')->{name} . $channel . ':' . $date->ymd(''));
+    }
 
     # render
     LogBot::Web::Channel::logs($c);
@@ -311,6 +319,12 @@ helper static => sub {
 helper svg => sub {
     my ($self, $file) = @_;
     return $cache{svg}->{$file} //= Mojo::ByteStream->new(slurp($RealBin . '/web/svg/' . $file . '.svg'));
+};
+
+# cache
+helper cached => sub {
+    my ($self, $key, $callback) = @_;
+    return $key ? $memcache->get($key, $callback) : $callback->();
 };
 
 hook after_render => sub {

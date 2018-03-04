@@ -12,6 +12,7 @@ use Time::HiRes qw( sleep );
 $| = 1;
 $ENV{DEBUG} = 1;
 $ENV{LOGBOT_CONFIG} = join(',', @ARGV) || '_development';
+$ENV{LOGBOT_MEMCACHE} = 'localhost:11211';
 
 die "failed to find makefile\n" unless -e 'makefile';
 

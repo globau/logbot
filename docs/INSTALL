@@ -13,6 +13,7 @@ Systems Preparation
      eg. `yum install perl-App-cpanminus 'perl(local::lib)'`
   2. Create a user `logbot`
   3. Create `/var/log/logbot` and ensure the logbot user has write access
+  4. Install memcached (optional)
 
 Clone logbot and Install Perl Modules
 
@@ -56,6 +57,11 @@ Configure Services and cron
   Apache's HTTPd in front of it running as a reverse proxy.  Again there's a
   sample httpd.conf file for logbot in this directory, as well as one for
   the HypnoToad service.
+
+  If you want to use memcached configure it with the LOGBOT_MEMCACHE
+  environmental variable - it must be in the form `server:port`. eg.
+  `localhost:11211`.  Restart memcached every time you redeploy to clear the
+  cache.
 
   Finally you need to configure `logbot-nightly --all` to run nightly; this
   process generates statistical data and archives stale channels.
