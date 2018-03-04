@@ -8,7 +8,7 @@ use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
 use Cache::Memcached::Fast ();
-use IO::Socket::INET ();
+use IO::Socket::INET       ();
 
 sub new {
     my ($class) = @_;
