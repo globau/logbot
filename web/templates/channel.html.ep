@@ -12,7 +12,7 @@
 
 <ul>
 % foreach my $event (@$logs) {
-%= include 'shared/event', event => $event, $search => 0
+%= include 'shared/event', event => $event, search => 0
 % }
 </ul>
 
