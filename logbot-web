@@ -27,7 +27,6 @@ use LogBot::Web::Search  ();
 use LogBot::Web::Stats   ();
 use LogBot::Web::Util qw( channel_from_param date_from_param nick_colour_init rewrite_old_urls );
 use Mojo::ByteStream ();
-use Mojo::File       ();
 use Mojo::Util qw( dumper );
 use Mojolicious::Lite qw( app );
 

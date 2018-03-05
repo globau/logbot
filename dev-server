@@ -5,7 +5,6 @@ use warnings;
 use v5.10;
 
 use File::Glob qw( bsd_glob );
-use Mojo::File          ();
 use Mojo::Server::Morbo ();
 use Time::HiRes qw( sleep );
 

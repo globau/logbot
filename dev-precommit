@@ -9,7 +9,8 @@ use File::Basename qw( basename );
 use File::Find qw( find );
 use FindBin qw( $RealBin );
 use List::Util qw( any );
-use Mojo::File   ();
+use Mojo::File ();
+use Mojo::Util qw( trim );
 use Perl::Critic ();
 use Perl::Tidy   ();
 
@@ -151,13 +152,21 @@ find(
         }
 
         # critic
-        my @issues = $critic->critique($file);
+        my @issues     = $critic->critique($file);
+        my $has_issues = !!scalar(@issues);
         foreach my $issue (@issues) {
             (my $policy = $issue->policy) =~ s/^Perl::Critic::Policy:://;
             say "\e[33m", $rel_file, ':', $issue->line_number, ' ', $issue->description, ' (', $policy, ")\e[0m";
         }
 
-        if (@issues) {
+        # warn for unused imports
+        @issues = find_unused_imports($input);
+        $has_issues ||= !!scalar(@issues);
+        foreach my $issue (@issues) {
+            say "\e[33m", $rel_file, ': ', $issue, "\e[0m";
+        }
+
+        if ($has_issues) {
             clear_modified($file);
         } else {
             set_modified($file);
@@ -172,17 +181,79 @@ system('make');
 
 sub sort_use {
     my ($input) = @_;
-    my @input = split(/\n/, $input);
-    my @output;
+    return foreach_use_block(
+        $input,
+        sub {
+            my @uses = @_;
+
+            # sort imports
+            foreach my $line (@uses) {
+                next unless $line =~ /^(use\s+\S+)\s+qw\(([^\)]+)\);$/;
+                my ($module, $imports) = ($1, $2);
+                my @imports = split(/\s+/, trim($imports));
+                $imports = join(' ', sort @imports);
+                $line = "$module qw( $imports );";
+            }
+
+            # sort modules
+            return [sort { lc($a) cmp lc($b) } @uses];
+        }
+    );
+}
+
+sub find_unused_imports {
+    my ($input) = @_;
+    my (%modules, %imports);
+    foreach_use_block(
+        $input,
+        sub {
+            my @uses = @_;
+            foreach my $line (@uses) {
+                if ($line =~ /^use\s+(\S+)\s+\(\);$/) {
+                    $modules{$1} = 1;
+                } elsif ($line =~ /^(use\s+\S+)\s+qw\(([^\)]+)\);$/) {
+                    my ($module, $imports) = ($1, $2);
+                    my @imports = split(/\s+/, trim($imports));
+                    foreach my $import (@imports) {
+                        next if $import =~ /^:/;
+                        $imports{$import} = 1;
+                    }
+                }
+            }
+            return undef;
+        }
+    );
+
+    my @issues;
+    foreach my $module (sort keys %modules) {
+        next if $input =~ /\b$module(?:->|::)/;
+        push @issues, "package $module is unused";
+    }
+    foreach my $import (sort keys %imports) {
+        if ($import =~ /^\$/) {
+            next if $input =~ /\Q$import\E\b/;
+        } else {
+            next if $input =~ /\b\Q$import\E\b/;
+        }
+        push @issues, "import $import is unused";
+    }
+    return @issues;
+}
+
+sub foreach_use_block {
+    my ($input, $callback) = @_;
+
+    # use-block is replaced by callback's return, unless callback returns undef
 
     # find use blocks, assumes they are always followed by a blank line
+    my @output;
     my $in_use_block = 0;
     my @uses;
-    foreach my $line (@input) {
+    foreach my $line (split(/\n/, $input)) {
         if ($in_use_block) {
             if ($line eq '') {
                 $in_use_block = 0;
-                push @output, sort_uses(@uses), '';
+                process_uses(\@uses, \@output, $callback);
                 @uses = ();
                 next;
             }
@@ -196,31 +267,26 @@ sub sort_use {
 
         push @output, $line;
     }
-    push @output, sort_uses(@uses) if @uses;
+    process_uses(\@uses, \@output, $callback);
 
     return join("\n", @output) . "\n";
 }
 
-sub sort_uses {
-    my @uses = @_;
+sub process_uses {
+    my ($uses, $output, $callback) = @_;
+    return unless @{$uses};
 
     # skip setup / lib blocks
-    if (any { /^use local::lib/ || /^use lib / || /^use base / } @uses) {
-        return @uses;
+    if (any { /^use local::lib/ || /^use lib / || /^use base / } @{$uses}) {
+        push @{$output}, @{$uses}, '';
+    } else {
+        my $replace = $callback->(@{$uses});
+        if (defined $replace) {
+            push @{$output}, @{$replace}, '';
+        } else {
+            push @{$output}, @{$uses}, '';
+        }
     }
-
-    # sort imports
-    foreach my $line (@uses) {
-        next unless $line =~ /^(use\s+\S+)\s+qw\(([^\)]+)\);$/;
-        my ($module, $imports) = ($1, $2);
-        my @imports = split(' ', $imports);
-        $imports = join(' ', sort split(' ', $imports));
-        $line = "$module qw( $imports );";
-    }
-
-    # sort modules
-    @uses = sort { lc($a) cmp lc($b) } @uses;
-    return @uses;
 }
 
 # lastmod tracking
@@ -237,6 +303,11 @@ sub _init_modified {
             $lastmod->{$1} = $2;
         }
         close($fh) || die $!;
+    }
+
+    if (is_modified("$RealBin/dev-precommit")) {
+        $lastmod = {};
+        _write_modified();
     }
 }
 

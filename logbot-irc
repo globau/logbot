@@ -15,7 +15,6 @@ use Data::Dumper qw( Dumper );
 use Encode qw( decode );
 use Encode::Guess;
 use Errno qw( ETIMEDOUT EWOULDBLOCK );
-use IO::Handle       ();
 use IO::Socket::INET ();
 use IO::Socket::SSL qw( $SSL_ERROR );
 use IO::Socket::Timeout ();
