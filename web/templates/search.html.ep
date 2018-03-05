@@ -133,7 +133,7 @@
     % foreach my $channel (sort keys %$channels) {
       <li class="channel"><%= $channel %></li>
       % foreach my $event (@{ $channels->{$channel} }) {
-      %= include 'shared/event', event => $event
+      %= include 'shared/event', event => $event, search => 1, search => 1, channel => $channel, date => $date
     % }
   % }
   </ul>

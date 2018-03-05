@@ -1,6 +1,11 @@
+% use LogBot::Web::Util qw( url_for_channel );
 % my $type = $event->{type};
 <li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
+% if ($search) {
+<div class="time"><a href="<%= url_for_channel(channel => $channel, date => $date) %>#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
+% } else {
 <div class="time"><a href="#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
+% }
 % if ($type == 0) {
 <div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
 <div class="text"><%== $event->{text} %></div>
