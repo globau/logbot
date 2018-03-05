@@ -1,0 +1,13 @@
+% my $type = $event->{type};
+<li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
+<div class="time"><a href="#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
+% if ($type == 0) {
+<div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
+<div class="text"><%== $event->{text} %></div>
+% } elsif ($type == 1) {
+<div class="action"><span class="a">&raquo;</span> <span class="anick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></span> <%== $event->{text} %></div>
+% } else {
+<div class="notice nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
+<div class="text notice-text nc" data-hash="<%= $event->{hash} %>"><%== $event->{text} %></div>
+% }
+</li>

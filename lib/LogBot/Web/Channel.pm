@@ -9,7 +9,7 @@ use Encode qw( decode );
 use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout );
 use LogBot::Util qw( event_to_short_string nick_is_bot normalise_channel time_to_ymd );
-use LogBot::Web::Util qw( linkify nick_hash );
+use LogBot::Web::Util qw( preprocess_event );
 
 sub _get_logs {
     my ($c, $dbh) = @_;
@@ -62,11 +62,9 @@ sub logs {
 
     # process each event
     my $bot_event_count = 0;
+    my $nick_hashes     = {};
     foreach my $event (@{$logs}) {
-        $event->{bot} = nick_is_bot($config, $event->{nick});
-        $event->{hash} = $event->{bot} ? '0' : nick_hash($event->{nick});
-        $event->{hhss} = sprintf('%02d:%02d', (localtime($event->{time}))[2, 1]);
-        $event->{text} = linkify(decode('UTF-8', $event->{text}));
+        preprocess_event($config, $event, $nick_hashes);
         $bot_event_count++ if $event->{bot};
     }
 
@@ -96,6 +94,7 @@ sub logs {
         logs            => $logs,
         event_count     => scalar(@{$logs}),
         bot_event_count => $bot_event_count,
+        nick_hashes     => [keys %{$nick_hashes}],
     );
 
     $c->render('channel');
@@ -124,4 +123,5 @@ sub raw {
 
     $c->render(text => join("\n", @lines) . "\n", format => 'txt', charset => 'utf-8');
 }
+
 1;

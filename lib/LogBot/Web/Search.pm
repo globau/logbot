@@ -6,12 +6,9 @@ use warnings;
 
 use Date::Parse qw( str2time );
 use DateTime ();
-use Encode qw( decode );
-use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout like_value replace_sql_placeholders );
-use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
-use LogBot::Web::Channel ();
-use LogBot::Web::Util qw( linkify nick_hash url_for_channel );
+use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
+use LogBot::Web::Util qw( preprocess_event url_for_channel );
 use Mojo::Util qw( trim );
 use Readonly;
 use Text::ParseWords qw( quotewords );
@@ -216,6 +213,7 @@ sub render {
     my @collated;
     my $current_channel = '';
     my $current_date    = '';
+    my $nick_hashes     = {};
     my ($date_channels, $channel_events);
     foreach my $event (@{$logs}) {
         my $date    = time_to_ymd($event->{time});
@@ -234,12 +232,8 @@ sub render {
             $date_channels->{$channel} = $channel_events;
         }
 
+        preprocess_event($config, $event, $nick_hashes);
         push @{$channel_events}, $event;
-
-        $event->{bot} = nick_is_bot($config, $event->{nick});
-        $event->{hash} = $event->{bot} ? '0' : nick_hash($event->{nick});
-        $event->{hhss} = sprintf('%02d:%02d', (localtime($event->{time}))[2, 1]);
-        $event->{text} = linkify(decode('UTF-8', $event->{text}));
     }
 
     foreach my $date_block (@collated) {
@@ -249,11 +243,12 @@ sub render {
     }
 
     $c->stash(
-        logs      => \@collated,
-        limit     => $SEARCH_LIMIT,
-        limited   => $limited,
-        log_count => scalar(@{$logs}),
-        searched  => 1,
+        logs        => \@collated,
+        limit       => $SEARCH_LIMIT,
+        limited     => $limited,
+        log_count   => scalar(@{$logs}),
+        nick_hashes => [keys $nick_hashes],
+        searched    => 1,
     );
 
     $c->render('search');

@@ -7,9 +7,10 @@ use warnings;
 use Date::Parse qw( str2time );
 use DateTime ();
 use Digest::xxHash qw( xxhash32 );
+use Encode qw ( decode );
 use List::Util qw( any );
 use LogBot::Database qw( dbh );
-use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
+use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
 use Mojo::Path ();
 use Mojo::URL  ();
 use Mojo::Util qw( html_unescape xml_escape );
@@ -22,6 +23,7 @@ our @EXPORT_OK = qw(
     url_for_channel irc_host
     channel_from_param date_from_param
     linkify
+    preprocess_event
 );
 use parent 'Exporter';
 
@@ -267,6 +269,31 @@ sub shorten_url {
     $value = xml_escape($value);
     $value =~ s/\0/&hellip;/;
     return $value;
+}
+
+sub preprocess_event {
+    my ($config, $event, $nick_hashes) = @_;
+    $event->{hhss} = sprintf('%02d:%02d', (localtime($event->{time}))[2, 1]);
+    $event->{text} = linkify(decode('UTF-8', $event->{text}));
+    if (nick_is_bot($config, $event->{nick})) {
+        $event->{bot}  = 1;
+        $event->{hash} = '0';
+    } else {
+        $event->{bot}                    = 0;
+        $event->{hash}                   = nick_hash($event->{nick});
+        $event->{text}                   = addressed_nick($event->{text}, $nick_hashes);
+        $nick_hashes->{ $event->{hash} } = 1;
+    }
+}
+
+sub addressed_nick {
+    my ($text, $nick_hashes) = @_;
+    if ($text =~ s/^([a-zA-Z0-9_|-]+):\s+//) {
+        my $hash = nick_hash($1);
+        $text = '<span class="nc" data-hash="' . $hash . '">' . $1 . '</span>: ' . $text;
+        $nick_hashes->{$hash} = 1;
+    }
+    return $text;
 }
 
 1;

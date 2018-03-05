@@ -121,20 +121,7 @@
   </div>
 % }
 
-% my @hashes;
-% foreach my $date_block (@$logs) {
-  % my $channels = $date_block->{channels};
-  % foreach my $channel (sort keys %$channels) {
-    % foreach my $event (@{ $channels->{$channel} }) {
-      % push @hashes, $event->{hash};
-    % }
-  % }
-% }
-<style>
-% foreach my $hash (uniq grep { $_ } @hashes) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
-% }
-</style>
+%= include 'shared/nick_styles', nick_hashes => $nick_hashes
 
 <div id="search-logs">
 
@@ -146,11 +133,7 @@ body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!
     % foreach my $channel (sort keys %$channels) {
       <li class="channel"><%= $channel %></li>
       % foreach my $event (@{ $channels->{$channel} }) {
-<li id="c<%= $event->{id} %>"<%== ' class="bot"' if $event->{bot} %>>
-<div class="time"><a href="<%= url_for_channel(channel => $channel, date => $date) %>#c<%= $event->{id} %>"><%= $event->{hhss} %></a></div>
-<div class="nick nc" data-hash="<%= $event->{hash} %>"><%= $event->{nick} %></div>
-<div class="text"><%== $event->{text} %></div>
-</li>
+      %= include 'shared/event', event => $event
     % }
   % }
   </ul>

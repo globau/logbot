@@ -1,0 +1,5 @@
+<style>
+% foreach my $hash (@{$nick_hashes}) {
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+% }
+</style>
