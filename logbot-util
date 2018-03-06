@@ -33,7 +33,7 @@ if (@ARGV && $ARGV[0] eq '--all') {
     push @configs, load_config(find_config(shift));
 }
 
-my ($command, @args) = (lc(shift), @ARGV);
+my ($command, @args) = (lc(shift // ''), @ARGV);
 
 (scalar(@configs) && $command) || die <<'EOF';
 syntax: logbot-util <config>|--all <command> [command args]
