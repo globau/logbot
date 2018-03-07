@@ -56,12 +56,13 @@ sub render {
         i   => $c->param('i') // '',                # ignore bots
         ft  => $c->param('ft') // 'y',              # full-text
 
-        debug     => '',
-        logs      => undef,
-        last_date => undef,
-        log_count => 0,
-        limited   => 0,
-        searched  => 0,
+        debug       => '',
+        logs        => undef,
+        last_date   => undef,
+        log_count   => 0,
+        limited     => 0,
+        searched    => 0,
+        nick_hashes => [],
     );
 
     return $c->render('search') if $q eq '' && $n eq '';
