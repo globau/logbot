@@ -62,6 +62,7 @@ app->config(
     hypnotoad => {
         listen => ['http://127.0.0.1:' . ($ENV{LOGBOT_PORT} // 3001)],
         pid_file => ($ENV{LOGBOT_PID_FILE} // $RealBin . '/logbot-web.pid'),
+        workers => 2,
     },
 );
 
