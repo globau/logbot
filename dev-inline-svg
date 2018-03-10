@@ -101,13 +101,13 @@ sub import_svg {
         my $output_file = "$fa_path/$output_name.svg";
 
         my $input  = Mojo::File->new($input_file)->slurp;
-        my $output = Mojo::File->new($output_file)->slurp;
+        my $output = -e $output_file ? Mojo::File->new($output_file)->slurp : '';
 
         if ($input eq $output) {
             say "inline-svg: $output_name unchanged";
         } else {
             Mojo::File->new($output_file)->spurt($input);
-            say "inline-svg: $output_name updated";
+            say "inline-svg: $output_name \e[34mupdated\e[0m";
         }
     }
 }
