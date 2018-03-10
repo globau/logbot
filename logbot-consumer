@@ -13,7 +13,6 @@ use lib "$RealBin/lib";
 BEGIN { $ENV{TZ} = 'UTC' }
 
 use Data::Dumper qw( Dumper );
-use DateTime ();
 use Encode qw( encode );
 use LogBot::Config qw( find_config load_config reload_config );
 use LogBot::Database qw( dbh dbh_disconnect execute_with_retry );
@@ -33,19 +32,7 @@ dbh($config, read_write => 1, cached => 1);
 my $job_queue = LogBot::JobQueue->new($config);
 
 my $last_status = '';
-my %tally;
 while (!$quit) {
-
-    # print daily status
-    my $now = DateTime->now();
-    if ($now->ymd ne $last_status) {
-        say $now->ymd('-') if scalar(keys %tally);
-        foreach my $channel (sort { $tally{$b} <=> $tally{$b} } keys %tally) {
-            printf "%7s %s\n", $tally{$channel}, $channel;
-        }
-        %tally       = ();
-        $last_status = $now->ymd;
-    }
 
     # wait for next job, blocking call
     my ($job, $event) = $job_queue->fetch_job();
@@ -83,7 +70,6 @@ while (!$quit) {
             $job_queue->delete_job($job);
             undef $job;
 
-            $tally{ $event->{channel} }++;
             return 1;
         }
     );
