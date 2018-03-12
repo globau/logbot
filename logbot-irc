@@ -564,7 +564,12 @@ while (1) {
         foreach my $channel (sort keys %{ $config->{channels} }) {
             next if $config->{channels}->{$channel}->{disabled};
             next if $config->{channels}->{$channel}->{archived};
-            next if $state->{channels_reconcile}->{$channel};
+
+            # update channel_in
+            if ($state->{channels_reconcile}->{$channel}) {
+                $state->{channels_in}->{$channel} = 1;
+                next;
+            }
 
             # join channels with passwords immediately
             if (exists $config->{channels}->{$channel}->{password}) {
