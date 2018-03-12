@@ -300,7 +300,8 @@ sub addressed_nick {
 sub channel_topics {
     my ($config) = @_;
     my $dbh = dbh($config, cached => 1);
-    return { map { $_->[0] => $_->[1] } @{ $dbh->selectall_arrayref('SELECT channel,topic FROM topics') } };
+    return { map { $_->[0] => decode('UTF-8', $_->[1]) }
+            @{ $dbh->selectall_arrayref('SELECT channel,topic FROM topics') } };
 }
 
 1;
