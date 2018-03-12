@@ -236,6 +236,52 @@ $(function() {
             }
         });
 
+    // channel list filter
+
+    if ($('#channel-list').length) {
+        $('#filter')
+            .focus()
+            .select()
+            .keyup(function(e) {
+                var filter = this.value.trim().toLowerCase();
+                if (filter === '') {
+                    $('#archived-channels').show();
+                } else {
+                    $('#archived-channels').hide();
+                }
+                var filter_words = filter.split(/ +/);
+                $('#active-channels li').each(function() {
+                    var $this = $(this);
+                    var this_text = $this.data('text');
+                    var match = true;
+                    for (var i = 0, l = filter_words.length; i < l; i++) {
+                        if (this_text.indexOf(filter_words[i]) === -1) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match) {
+                        $this.show();
+                    } else {
+                        $this.hide();
+                    }
+                });
+                if ($('#active-channels li:visible').length === 0) {
+                    $('#no-results').show();
+                } else {
+                    $('#no-results').hide();
+                }
+            })
+            .keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    if ($('#active-channels li:visible').length === 1) {
+                        document.location = $('#active-channels li:visible a').attr('href');
+                    }
+                }
+            });
+    }
+
     // highlight
 
     function highlight($start, $end) {

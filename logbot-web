@@ -23,6 +23,7 @@ use LogBot::MemCache ();
 use LogBot::Util qw( normalise_channel slurp spurt time_to_ymd ymd_to_time );
 use LogBot::Web::Channel ();
 use LogBot::Web::Index   ();
+use LogBot::Web::List    ();
 use LogBot::Web::Search  ();
 use LogBot::Web::Stats   ();
 use LogBot::Web::Util qw( channel_from_param channel_topics date_from_param linkify nick_colour_init rewrite_old_urls );
@@ -166,6 +167,12 @@ get '/' => sub {
 get '/_config' => sub {
     my ($c) = @_;
     $c->render('config');
+};
+
+# channel list
+get '/_channels' => sub {
+    my ($c) = @_;
+    LogBot::Web::List::render($c);
 };
 
 # network stats

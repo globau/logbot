@@ -69,7 +69,7 @@ sub inline_svg {
         next if $orig eq $tmpl;
         say substr($file, length($templates_path) + 1);
         Mojo::File->new($file)->spurt($tmpl);
-        say 'inline-svg: updated ', substr($file, length($RealBin) + 1);
+        say "inline-svg: \e[34mupdated\e[0m ", substr($file, length($RealBin) + 1);
     }
 }
 

@@ -1,5 +1,6 @@
 ---
 channel-end: light/arrow-alt-to-bottom
+channel-list: regular/list-ul
 channel-logs: regular/comment
 channel-raw: light/file-alt
 channel-reload: regular/sync-alt

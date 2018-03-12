@@ -21,6 +21,10 @@
       collected by the <b><%= $config->{irc}->{nick} %></b> bot.
     </p>
 
+    <p>
+      <a href="/_channels">List of channels logged</a>.
+    </p>
+
     <h3 id="how-to-log">How to get LogBot to log your channel</h3>
     <p>
       A channel OP can invite "<%= $config->{irc}->{nick} %>" into the channel
