@@ -6,7 +6,7 @@
   <li class="<%= 'archived' if $channel->{archived} %>" data-text="<%= $channel->{name} . ' ' . lc($topic) %>">
     <a href="<%= url_for_channel( channel => $channel->{name} ) %>" class="channel"><%= $channel->{name} %></a>
     % if ($topic ne '') {
-      <div class="topic"><%= linkify $topic %></div>
+      <div class="topic"><%== linkify $topic %></div>
     % }
   </li>
 <% end %>
