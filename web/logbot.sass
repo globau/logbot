@@ -17,6 +17,7 @@ $sidebar-width-open: 165px
 
 $nav-height: 30px
 $network-height: 32px
+$topic-height: 30px
 
 $nick-width-small: 7.0em
 $time-width-small: 3em
@@ -136,6 +137,32 @@ a
     color: #444
     margin-bottom: 0.5em
     margin-top: 0
+
+// topic
+
+#topic
+  background-color: #eee
+  height: $topic-height
+  line-height: $topic-height
+  overflow: hidden
+  padding: 0 4px
+  text-overflow: ellipsis
+  white-space: nowrap
+
+  &:hover
+    height: auto
+    min-height: 30px
+    white-space: normal
+
+body
+  &.topic
+
+    #main
+      top: $nav-height + $topic-height
+
+    #channel-topic
+      border-bottom: 1px solid #000
+
 
 // logs
 
@@ -807,8 +834,11 @@ body
           display: inline
           margin-left: 1em
 
+      #reload-container, #stats-container, #topic-container
+        display: none
+
       &:not(.menu-c)
-        #reload-container, #stats-container, #search-container
+        #search-container
           display: none
 
   #search-form

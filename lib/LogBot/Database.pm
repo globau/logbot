@@ -63,11 +63,13 @@ sub _dbh_read_write {
     _do_multi(
         $dbh,
         "CREATE TABLE IF NOT EXISTS logs(id INTEGER PRIMARY KEY, old_id INTEGER, time REAL, channel TEXT, nick TEXT, type INTEGER, text TEXT)",
+        "CREATE TABLE IF NOT EXISTS topics(id INTEGER PRIMARY KEY, time REAL, channel TEXT, topic TEXT)",
         "CREATE INDEX IF NOT EXISTS idx_time ON logs(time)",
         "CREATE INDEX IF NOT EXISTS idx_channel ON logs(channel)",
         "CREATE INDEX IF NOT EXISTS idx_nick ON logs(nick COLLATE NOCASE)",
         "CREATE INDEX IF NOT EXISTS idx_text ON logs(text)",
         "CREATE INDEX IF NOT EXISTS idx_channel_time ON logs(channel, time)",
+        "CREATE INDEX IF NOT EXISTS idx_topic ON topics(channel)",
     );
 
     # initalise fts

@@ -195,6 +195,8 @@ sub event_to_string {
         return $time . ' ' . $event->{channel} . ' * ' . $event->{nick} . ' ' . $event->{text};
     } elsif ($event->{type} == 2) {
         return $time . ' ' . $event->{channel} . ' -' . $event->{nick} . '- ' . $event->{text};
+    } elsif ($event->{type} == 3) {
+        return $time . ' ' . $event->{channel} . ' :topic: ' . $event->{text};
     } else {
         die 'unsupported event: ' . Dumper($event);
     }

@@ -100,7 +100,7 @@ sub import_svg {
         my $input_file  = "$source_path/" . $mapping->{$output_name} . '.svg';
         my $output_file = "$fa_path/$output_name.svg";
 
-        my $input  = Mojo::File->new($input_file)->slurp;
+        my $input = Mojo::File->new($input_file)->slurp;
         my $output = -e $output_file ? Mojo::File->new($output_file)->slurp : '';
 
         if ($input eq $output) {

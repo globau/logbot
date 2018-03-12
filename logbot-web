@@ -25,7 +25,7 @@ use LogBot::Web::Channel ();
 use LogBot::Web::Index   ();
 use LogBot::Web::Search  ();
 use LogBot::Web::Stats   ();
-use LogBot::Web::Util qw( channel_from_param date_from_param nick_colour_init rewrite_old_urls );
+use LogBot::Web::Util qw( channel_from_param channel_topics date_from_param linkify nick_colour_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::Util qw( dumper );
 use Mojolicious::Lite qw( app );
@@ -104,12 +104,14 @@ under sub {
         networks        => $networks,
         network         => $networks->[$config_index]->{name},
         channels        => $networks->[$config_index]->{channel_list},
+        topics          => channel_topics($networks->[$config_index]),
         font_s          => $c->cookie('font-s'),
         menu_c          => $c->cookie('menu-c'),
         nick_u          => $c->cookie('nick-u'),
         nick_w          => $c->cookie('nick-w'),
         hide_b          => $c->cookie('hide-b'),
         norm_b          => $c->cookie('norm-b'),
+        topic           => $c->cookie('topic'),
         channel         => '',
         date            => '',
         error           => '',
@@ -318,6 +320,12 @@ helper static => sub {
 helper svg => sub {
     my ($self, $file) = @_;
     return $cache{svg}->{$file} //= Mojo::ByteStream->new(slurp($RealBin . '/web/svg/' . $file . '.svg'));
+};
+
+# linkify text
+helper linkify => sub {
+    my ($self, $text) = @_;
+    return linkify($text);
 };
 
 # cache

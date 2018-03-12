@@ -13,6 +13,7 @@
              <%= 'menu-c ' if $menu_c =%>
              <%= 'hide-b ' if $hide_b =%>
              <%= 'norm-b ' if $norm_b =%>
+             <%= 'topic'   if $topic %>
              <%= 'stats '  if $is_stats =%>
              <%= 'search'  if $is_search =%>">
 
@@ -74,15 +75,15 @@
             %   next;
             % }
             % if ($c->{name} eq $channel) {
-              <li><a class="is-active" href="<%= url_for_channel( channel => $c->{name} ) %>"><%= $c->{name} %></a></li>
+              <li><a class="is-active" href="<%= url_for_channel( channel => $c->{name} ) %>" title="<%= $topics->{$c->{name}} %>" ><%= $c->{name} %></a></li>
             % } else {
-              <li><a href="<%= url_for_channel( channel => $c->{name}, date => $date ) %>"><%= $c->{name} %></a></li>
+              <li><a href="<%= url_for_channel( channel => $c->{name}, date => $date ) %>" title="<%= $topics->{$c->{name}} %>"><%= $c->{name} %></a></li>
             % }
           % }
           % if (@archived) {
             <li id="archived" title="Archived channels are no longer logged due to inactivity">Archived</li>
             % foreach my $c (@archived) {
-              <li class="archived"><a<%== ' class="is-active"' if $c eq $channel %> href="/<%= substr($c, 1) %>"><%= $c %></a></li>
+              <li class="archived"><a<%== ' class="is-active"' if $c eq $channel %> title="<%= $topics->{$c} %>" href="/<%= substr($c, 1) %>"><%= $c %></a></li>
             % }
           % }
         </ul>
@@ -154,6 +155,14 @@
         </a>
       </div>
 
+      <div id="topic-container" class="nav-button">
+        <a id="channel-topic" class="button is-white" title="Show Channel Topic" href="#">
+          <div class="icon is-small">
+            <svg class="svg-topic" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm0-338c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"/></svg>
+          </div>
+        </a>
+      </div>
+
       <div id="stats-container" class="nav-button">
         <a id="channel-stats" class="button is-white" title="<%= $channel %> Statistics"
             href="<%= url_for_channel( channel => $channel, date => 'stats' )%>">
@@ -207,6 +216,17 @@
         </div>
       </a>
     </div>
+
+    % if ($channel) {
+      <div id="topic" <%== 'style="display: none"' unless $topic %>>
+        % if (($topics->{$channel} // '') eq '') {
+          <i>No topic</i>
+        % } else {
+          <%== linkify $topics->{$channel} %>
+        % }
+      </div>
+    % }
+
   </div>
 
   <div id="main" class="<%= 'logs' if $is_logs %>">

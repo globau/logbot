@@ -24,6 +24,7 @@ our @EXPORT_OK = qw(
     channel_from_param date_from_param
     linkify
     preprocess_event
+    channel_topics
 );
 use parent 'Exporter';
 
@@ -294,6 +295,12 @@ sub addressed_nick {
         $nick_hashes->{$hash} = 1;
     }
     return $text;
+}
+
+sub channel_topics {
+    my ($config) = @_;
+    my $dbh = dbh($config, cached => 1);
+    return { map { $_->[0] => $_->[1] } @{ $dbh->selectall_arrayref('SELECT channel,topic FROM topics') } };
 }
 
 1;

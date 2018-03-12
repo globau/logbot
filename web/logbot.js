@@ -3,12 +3,18 @@ $(function() {
     var initialising = true;
     var current_channel = $('#channel').data('name');
 
+    // cookie helper
+
+    function set_cookie(name, value) {
+        document.cookie = name + "=" + (value ? '1' : '0') + '; expires=Thu, 31 Dec 2037 23:59:58 GMT; path=/';
+    }
+
     // always collapse the sidebar on tiny screens
 
     var is_tiny_screen = !$('#not-tiny-screen').is(':visible');
     if (is_tiny_screen) {
         $('body').addClass('menu-c');
-        set_sidebar_cookie(true);
+        set_cookie('menu-c', true);
     }
 
     // keyboard shortcuts
@@ -27,10 +33,6 @@ $(function() {
 
     // collapse sidebar
 
-    function set_sidebar_cookie(value) {
-        document.cookie = "menu-c=" + (value ? '1' : '0') + '; expires=Thu, 31 Dec 2037 23:59:58 GMT; path=/';
-    }
-
     function set_sidebar_collapse_title() {
         $('#collapse-sidebar').attr('title',
             $('body').hasClass('menu-c')
@@ -42,7 +44,7 @@ $(function() {
         .click(function() {
             $('body').toggleClass('menu-c');
             set_sidebar_collapse_title();
-            set_sidebar_cookie(is_tiny_screen || $('body').hasClass('menu-c'));
+            set_cookie('menu-c', is_tiny_screen || $('body').hasClass('menu-c'));
         });
 
     set_sidebar_collapse_title();
@@ -51,7 +53,7 @@ $(function() {
 
     $('#about')
         .click(function() {
-            set_sidebar_cookie(false);
+            set_cookie('menu-c', false);
         });
 
     // nav - date
@@ -106,6 +108,30 @@ $(function() {
             } else {
                 $('#networks').addClass('collapsed');
             }
+        });
+
+    // nav - topic
+
+    function set_topic_visible(is_visible) {
+        if (is_visible) {
+            $('#channel-topic').attr('title', 'Hide Channel Topic');
+            $('body').addClass('topic');
+            $('#topic').show();
+            set_cookie('topic', true);
+        } else {
+            $('#channel-topic').attr('title', 'Show Channel Topic');
+            $('body').removeClass('topic');
+            $('#topic').hide();
+            set_cookie('topic', false);
+        }
+    }
+
+    set_topic_visible($('body').hasClass('topic'));
+
+    $('#channel-topic')
+        .click(function(e) {
+            e.preventDefault();
+            set_topic_visible(!$('body').hasClass('topic'));
         });
 
     // search
@@ -312,7 +338,7 @@ $(function() {
         var enabled = $('body')
             .toggleClass(name)
             .hasClass(name);
-        document.cookie = name + '=' + (enabled ? '1' : '0') + '; expires=Thu, 31 Dec 2037 23:59:58 GMT; path=/';
+        set_cookie(name, enabled);
         $setting
             .find('input')
             .prop('checked', enabled);

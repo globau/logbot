@@ -205,18 +205,22 @@ init_logging();
 $job_queue = LogBot::JobQueue->new($config);
 
 # default timings
-$config->{timing}->{initial_ping_delay}     ||= 3 * 60;
-$config->{timing}->{max_reconnect_interval} ||= 3 * 60;
-$config->{timing}->{ping_interval}          ||= 60;
-$config->{timing}->{ping_timeout}           ||= 30;
-$config->{timing}->{ping_timeout_attempts}  ||= 5;
-$config->{timing}->{reload_interval}        ||= 60 * 60;
+$config->{timing}->{initial_ping_delay}      ||= 3 * 60;
+$config->{timing}->{max_reconnect_interval}  ||= 3 * 60;
+$config->{timing}->{ping_interval}           ||= 60;
+$config->{timing}->{ping_timeout}            ||= 30;
+$config->{timing}->{ping_timeout_attempts}   ||= 5;
+$config->{timing}->{channel_reload_interval} ||= 60 * 60;
+$config->{timing}->{topic_reload_interval}   ||= 24 * 60 * 60;
 
 # init signals and state
-$SIG{HUP}  = sub { $state->{reload} = 1 };
-$SIG{USR1} = sub { $state->{dump}   = 1 };
-$SIG{USR2} = sub { $state->{relog}  = 1 };
-$SIG{INT}  = sub { $state->{quit}   = 1 };
+$SIG{HUP} = sub {
+    $state->{next_channel_reload} = time();
+    $state->{next_topic_reload}   = time();
+};
+$SIG{USR1} = sub { $state->{dump}  = 1 };
+$SIG{USR2} = sub { $state->{relog} = 1 };
+$SIG{INT}  = sub { $state->{quit}  = 1 };
 $state->{pending_invites} = {};
 
 # event loop
@@ -233,10 +237,11 @@ while (1) {
             # connected, setup initial state
             $log->info('connected to ' . $config->{irc}->{host});
             delete $state->{backoff};
-            $state->{reload}        = 1;
-            $state->{next_ping}     = time() + $config->{timing}->{initial_ping_delay};
-            $state->{pong_timeouts} = 0;
-            $state->{touch_file}    = file_for($config, 'connected');
+            $state->{next_channel_reload} = time();
+            $state->{next_topic_reload}   = time() + 5 * 60;
+            $state->{next_ping}           = time() + $config->{timing}->{initial_ping_delay};
+            $state->{pong_timeouts}       = 0;
+            $state->{touch_file}          = file_for($config, 'connected');
             touch($state->{touch_file});
         }
         catch {
@@ -273,18 +278,29 @@ while (1) {
         irc_send('PING :' . $state->{server});
     }
 
-    # reload timer
-    if (exists $state->{next_reload} && $state->{next_reload} <= $time) {
-        say timestamp(), ' -- timer initiated reload';
-        delete $state->{next_reload};
-        $state->{reload} = 1;
+    # update stored channel topics
+    if (exists $state->{next_topic_reload} && $state->{next_topic_reload} <= $time) {
+        say timestamp(), ' -- refresh topics';
+        $state->{pending_topics}      = [sort keys %{ $state->{channels_in} }];
+        $state->{next_pending_topics} = $time;
+        $state->{next_topic_reload}   = time() + $config->{timing}->{topic_reload_interval};
+    }
+
+    if (exists $state->{next_pending_topics} && $state->{next_pending_topics} <= $time) {
+        irc_send('TOPIC ' . shift(@{ $state->{pending_topics} }));
+        if (@{ $state->{pending_topics} }) {
+            $state->{next_pending_topics} = time() + 1;
+        } else {
+            delete $state->{next_pending_topics};
+            delete $state->{pending_topics};
+        }
     }
 
     # trigger reconciliation of joined channels
-    if (delete $state->{reload}) {
-        say timestamp(), ' -- reload config';
-        $config = reload_config($config);
-        $state->{channels_in} = {};
+    if (exists $state->{next_channel_reload} && $state->{next_channel_reload} <= $time) {
+        say timestamp(), ' -- reload channel config';
+        delete $state->{next_channel_reload};
+        $state->{channels_reconcile} = {};
         irc_send('WHOIS ' . $config->{irc}->{nick});
     }
 
@@ -373,6 +389,15 @@ while (1) {
         next;
     }
 
+    # parted
+    if ($message =~ /^:([^!]+)!\S+ JOIN :(#.+)/) {
+        my ($who, $channel) = ($1, normalise_channel($2));
+        next unless $who eq $config->{irc}->{nick};
+
+        delete $state->{channels_in}->{$channel};
+        next;
+    }
+
     # RPL_NAMREPLY (pending-invites)
     if ($message =~ /^:\S+ 353 (\S+) . (#\S+) :(.+)$/) {
         my ($who, $channel, $nicks) = ($1, normalise_channel($2), $3);
@@ -434,7 +459,7 @@ while (1) {
         next unless $who eq $config->{irc}->{nick};
         say timestamp(), ' -- join ', $channel, ' failed: ', $text;
         $log->error('join ' . $channel . ' failed: ' . $text);
-        $state->{channels_in}->{$channel} = 0;
+        delete $state->{channels_in}->{$channel};
         $config->{channels}->{$channel}->{error} = timestamp() . ' ' . $text;
         $config->{channels}->{$channel}->{archived} = ($code == 405 ? 1 : 0);
         save_config($config);
@@ -452,7 +477,7 @@ while (1) {
         next unless $who eq $config->{irc}->{nick};
         say timestamp(), ' -- join ', $channel, ' failed: ', $text;
         $log->error('join ' . $channel . ' failed: ' . $text);
-        $state->{channels_in}->{$channel}           = 0;
+        delete $state->{channels_in}->{$channel};
         $config->{channels}->{$channel}->{archived} = 0;
         $config->{channels}->{$channel}->{error}    = timestamp() . ' ' . $text;
         save_config($config);
@@ -477,7 +502,7 @@ while (1) {
         $text = 'kicked' if ($text // '') eq '';
         say timestamp(), ' -- kicked from ', $channel, ' by ', $who, ': ', $text;
         $log->info('kicked from ' . $channel . ' by ' . $who . ': ' . $text);
-        $state->{channels_in}->{$channel}           = 0;
+        delete $state->{channels_in}->{$channel};
         $config->{channels}->{$channel}->{disabled} = 1;
         $config->{channels}->{$channel}->{kick}     = timestamp() . ' <' . $who . '> ' . $text;
         save_config($config);
@@ -502,6 +527,18 @@ while (1) {
         next;
     }
 
+    # topic updated
+    if ($message =~ /^:\S+ TOPIC (#\S+) :(.+)/) {
+        publish(3, '-', normalise_channel($1), $2);
+        next;
+    }
+
+    # topic (RPL_NOTOPIC, RPL_TOPIC)
+    if ($message =~ /^:\S+ (331|332) \S+ (#\S+) :(.+)/) {
+        publish(3, '-', normalise_channel($2), $1 eq '331' ? '' : $3);
+        next;
+    }
+
     # private message
     if ($message =~ /^:([^!]+)!\S+ PRIVMSG \S+ :.+/) {
         my $who = $1;
@@ -513,20 +550,21 @@ while (1) {
         my $channels = $1;
         foreach my $channel (split(' ', $channels)) {
             $channel =~ s/^[^#]+//;  # strip usermode prefix
-            $state->{channels_in}->{ normalise_channel($channel) } = 1;
+            $state->{channels_reconcile}->{ normalise_channel($channel) } = 1;
         }
         next;
     }
 
     # channel reconciliation RPL_ENDOFWHOIS
     if ($message =~ /^:\S+ 318 /) {
+        $config = reload_config($config);
 
         # join channels
         my @join;
         foreach my $channel (sort keys %{ $config->{channels} }) {
             next if $config->{channels}->{$channel}->{disabled};
             next if $config->{channels}->{$channel}->{archived};
-            next if $state->{channels_in}->{$channel};
+            next if $state->{channels_reconcile}->{$channel};
 
             # join channels with passwords immediately
             if (exists $config->{channels}->{$channel}->{password}) {
@@ -546,7 +584,7 @@ while (1) {
 
         # part channels
         my @part;
-        foreach my $channel (sort keys %{ $state->{channels_in} }) {
+        foreach my $channel (sort keys %{ $state->{channels_reconcile} }) {
             next if $config->{channels}->{$channel};
             push @part, $channel;
         }
@@ -558,7 +596,8 @@ while (1) {
             $log->info('parting ' . join(' ', @part_channels));
         }
 
-        $state->{next_reload} = time() + $config->{timing}->{reload_interval};
+        delete $state->{channels_reconcile};
+        $state->{next_channel_reload} = time() + $config->{timing}->{channel_reload_interval};
         next;
     }
 }

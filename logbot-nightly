@@ -58,6 +58,9 @@ foreach my $config_name (sort keys %configs) {
 
     # stop logging and leave stale channels
     archive_stale_channels($config_name);
+
+    # remove stored topics for stale channels
+    remove_stale_topics($config_name);
 }
 
 sub query {
@@ -229,4 +232,15 @@ sub archive_stale_channels {
     if ($reload) {
         system("$RealBin/logbot-irc", $config->{_internal}->{file}, '--reload');
     }
+}
+
+sub remove_stale_topics {
+    my ($config_name) = @_;
+    my $config = $configs{$config_name};
+    my $dbh = dbh($config, read_write => 1);
+
+    my @channels = sort keys %{ $config->{channels} };
+    my $sql = 'DELETE FROM topics WHERE NOT (channel in (' . join(',', ('?') x scalar(@channels)) . '))';
+
+    $dbh->do($sql, undef, @channels);
 }
