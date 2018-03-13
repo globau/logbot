@@ -50,10 +50,14 @@ sub load_config {
 
     # normalise channel keys
     my $channels = delete $config->{channels};
+    $config->{disabled} = [];
     foreach my $channel (keys %{$channels}) {
         if ($params{web}) {
             next if $channels->{$channel}->{no_logs};
-            next if $channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only};
+            if ($channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only}) {
+                push @{ $config->{disabled} }, normalise_channel($channel);
+                next;
+            }
         }
         $config->{channels}->{ normalise_channel($channel) } = $channels->{$channel};
     }

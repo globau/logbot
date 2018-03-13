@@ -6,6 +6,7 @@ use warnings;
 
 use Date::Parse qw( str2time );
 use DateTime ();
+use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout like_value replace_sql_placeholders );
 use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
 use LogBot::Web::Util qw( preprocess_event url_for_channel );
@@ -43,6 +44,12 @@ sub render {
     }
     $n =~ s/(?:^<|>$)//g;
 
+    my $last_c = $c->cookie('last-c') // '';
+    if ($last_c ne '') {
+        $last_c = normalise_channel($last_c);
+        $last_c = '' if any { $_ eq $last_c } @{ $config->{disabled} };
+    }
+
     $c->stash(
         is_search => 1,
 
@@ -56,6 +63,7 @@ sub render {
         i   => $c->param('i') // '',                # ignore bots
         ft  => $c->param('ft') // 'y',              # full-text
 
+        last_c      => $last_c,
         debug       => '',
         logs        => undef,
         last_date   => undef,
@@ -160,6 +168,11 @@ sub render {
     # bots
     if ($c->stash('i') && @bots) {
         push @where, 'NOT(nick COLLATE NOCASE IN (' . join(',', map { $dbh->quote($_) } @bots) . '))';
+    }
+
+    # exclude disabled channels
+    if (@{ $config->{disabled} }) {
+        push @where, 'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{disabled} }) . '))';
     }
 
     # build sql

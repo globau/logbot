@@ -149,10 +149,6 @@ get '/' => sub {
     # search
     my $q = $c->req->query_params->param('q');
     if (defined($q)) {
-        $c->stash(
-            last_c => $c->cookie('last-c') // '',
-            debug => '',
-        );
         LogBot::Web::Search::render($c, $q);
 
     } else {
