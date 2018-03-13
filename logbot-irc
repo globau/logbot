@@ -48,7 +48,12 @@ sub irc_read {
         undef $connection;
         return undef;
     }
-    $message =~ s/[\r\n]+$//;
+
+    $message =~ s/^\@\S+ +//;  # strip tags
+    $message =~ s/[\r\n]+$//;  # strip eol
+    if (substr($message, 0, 1) ne ':') {  # add source
+        $message = ':- ' . $message;
+    }
 
     # print all server messages (except ping/pong to reduce noise)
     say timestamp(), ' << ', $message
@@ -95,9 +100,10 @@ sub irc_connect {
     while (1) {
         my $message = irc_read();
         die 'Disconnected' . ($ssl ? '' : ' (possible SSL mismatch)') . "\n" unless $connection;
+        exit if $state->{quit};
         next unless $message;
-        if (substr($message, 0, 5) eq 'PING ') {
-            irc_send('PONG ' . substr($message, 5));
+        if ($message =~ /^:\S+ PING (.+)/) {
+            irc_send('PONG ' . $1);
             next;
         }
         next unless $message =~ /^:(\S+) (\d+) /;
@@ -327,8 +333,8 @@ while (1) {
     next unless $message;
 
     # server initiated ping
-    if (substr($message, 0, 5) eq 'PING ') {
-        irc_send('PONG ' . substr($message, 5));
+    if ($message =~ /^:\S+ PING (.+)/) {
+        irc_send('PONG ' . $1);
         next;
     }
 
