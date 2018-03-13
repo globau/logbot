@@ -18,12 +18,15 @@
     <input id="filter" type="text" placeholder="Filter" autocomplete="off">
   </div>
 
+  % my @archived;
   <ul id="active-channels">
     % foreach my $channel (@{$channels}) {
-      % my $topic = $topics->{$channel->{name}} // '';
       % next if $channel->{disabled} || $channel->{no_logs};
-      % next if $channel->{archived};
-      <%= $channel_li->($channel, $topic) %>
+      % if ($channel->{archived}) {
+      %   push @archived, $channel;
+      %   next;
+      % }
+      <%= $channel_li->($channel, $topics->{$channel->{name}} // '') %>
     % }
   </ul>
 
@@ -31,15 +34,14 @@
     No matching channels.
   </div>
 
-  <div id="archived-channels">
-    <h3>Archived Channels</h3>
-    <ul>
-      % foreach my $channel (@{$channels}) {
-        % my $topic = $topics->{$channel->{name}} // '';
-        % next if $channel->{disabled} || $channel->{no_logs};
-        % next unless $channel->{archived};
-        <%= $channel_li->($channel, $topic) %>
-      % }
-    </ul>
-  </div>
+  % if (@archived) {
+    <div id="archived-channels">
+      <h3>Archived Channels</h3>
+      <ul>
+        % foreach my $channel (@archived) {
+          <%= $channel_li->($channel, $topics->{$channel->{name}} // '') %>
+        % }
+      </ul>
+    </div>
+  % }
 </div>
