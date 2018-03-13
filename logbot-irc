@@ -22,7 +22,7 @@ use List::MoreUtils qw( natatime );
 use List::Util qw( any min );
 use LogBot::Config qw( find_config load_config reload_config save_config );
 use LogBot::JobQueue;
-use LogBot::Util qw( file_for logbot_init normalise_channel slurp squash_error timestamp touch );
+use LogBot::Util qw( file_for logbot_init normalise_channel slurp source_to_nick squash_error timestamp touch );
 use Mojo::Log ();
 use Readonly;
 use Time::HiRes ();
@@ -348,8 +348,8 @@ while (1) {
     }
 
     # invited
-    if ($message =~ /^:([^!]+)!\S+ INVITE \S+ :(#.+)/) {
-        my ($who, $channel) = ($1, normalise_channel($2));
+    if ($message =~ /^:(\S+) INVITE \S+ :(#.+)/) {
+        my ($who, $channel) = (source_to_nick($1), normalise_channel($2));
 
         if (any { $_ eq $channel } @{ $config->{blocked} }) {
             say timestamp(), ' -- ignoring invite to blocked ', $channel, ' from ', $who;
@@ -379,8 +379,8 @@ while (1) {
     }
 
     # joined
-    if ($message =~ /^:([^!]+)!\S+ JOIN :(#.+)/) {
-        my ($who, $channel) = ($1, normalise_channel($2));
+    if ($message =~ /^:(\S+) JOIN :(#.+)/) {
+        my ($who, $channel) = (source_to_nick($1), normalise_channel($2));
         next unless $who eq $config->{irc}->{nick};
 
         # if we're joining due to an invite, check the requester is an op
@@ -396,8 +396,8 @@ while (1) {
     }
 
     # parted
-    if ($message =~ /^:([^!]+)!\S+ JOIN :(#.+)/) {
-        my ($who, $channel) = ($1, normalise_channel($2));
+    if ($message =~ /^:(\S+) JOIN :(#.+)/) {
+        my ($who, $channel) = (source_to_nick($1), normalise_channel($2));
         next unless $who eq $config->{irc}->{nick};
 
         delete $state->{channels_in}->{$channel};
@@ -502,8 +502,8 @@ while (1) {
     }
 
     # when kicked track why, and don't try to rejoin
-    if ($message =~ /^:([^!]+)!\S+ KICK (#\S+) (\S+) :(.*)/) {
-        my ($who, $channel, $kicked, $text) = ($1, normalise_channel($2), $3, $4);
+    if ($message =~ /^:(\S+) KICK (#\S+) (\S+) :(.*)/) {
+        my ($who, $channel, $kicked, $text) = (source_to_nick($1), normalise_channel($2), $3, $4);
         next unless $kicked eq $config->{irc}->{nick};
         $text = 'kicked' if ($text // '') eq '';
         say timestamp(), ' -- kicked from ', $channel, ' by ', $who, ': ', $text;
@@ -516,20 +516,20 @@ while (1) {
     }
 
     # channel /me ctcp action
-    if ($message =~ /^:([^!]+)!\S+ PRIVMSG (#\S+) :\x01ACTION (.+)\x01/) {
-        publish(1, $1, normalise_channel($2), $3);
+    if ($message =~ /^:(\S+) PRIVMSG (#\S+) :\x01ACTION (.+)\x01/) {
+        publish(1, source_to_nick($1), normalise_channel($2), $3);
         next;
     }
 
     # channel message
-    if ($message =~ /^:([^!]+)!\S+ PRIVMSG (#\S+) :(.+)/) {
-        publish(0, $1, normalise_channel($2), $3);
+    if ($message =~ /^:(\S+) PRIVMSG (#\S+) :(.+)/) {
+        publish(0, source_to_nick($1), normalise_channel($2), $3);
         next;
     }
 
     # channel notice
-    if ($message =~ /^:([^!]+)!\S+ NOTICE (#\S+) :(.+)/) {
-        publish(2, $1, normalise_channel($2), $3);
+    if ($message =~ /^:(\S+) NOTICE (#\S+) :(.+)/) {
+        publish(2, source_to_nick($1), normalise_channel($2), $3);
         next;
     }
 
@@ -546,8 +546,8 @@ while (1) {
     }
 
     # private message
-    if ($message =~ /^:([^!]+)!\S+ PRIVMSG \S+ :.+/) {
-        my $who = $1;
+    if ($message =~ /^:(\S+) PRIVMSG \S+ :.+/) {
+        my $who = source_to_nick($1);
         irc_send_message($who, $config->{help}) if $config->{help};
     }
 

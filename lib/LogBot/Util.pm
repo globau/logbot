@@ -9,7 +9,7 @@ BEGIN { $ENV{TZ} = 'UTC' }
 our @EXPORT_OK = qw(
     logbot_init
     nick_is_bot
-    normalise_channel
+    normalise_channel source_to_nick
     slurp spurt touch
     squash_error
     timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
@@ -62,6 +62,15 @@ sub normalise_channel {
     my ($channel) = @_;
     $channel = '#' . $channel unless substr($channel, 0, 1) eq '#';
     return lc($channel);
+}
+
+sub source_to_nick {
+    my ($source) = @_;
+    if ($source =~ /^([^!]+)!/) {
+        return $1;
+    } else {
+        return $source;
+    }
 }
 
 sub timestamp {
