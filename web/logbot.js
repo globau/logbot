@@ -11,7 +11,7 @@ $(function() {
 
     // always collapse the sidebar on tiny screens
 
-    var is_tiny_screen = !$('#not-tiny-screen').is(':visible');
+    var is_tiny_screen = $('#not-tiny-screen:visible').length === 0;
     if (is_tiny_screen) {
         $('body').addClass('menu-c');
         set_cookie('menu-c', true);
@@ -21,11 +21,15 @@ $(function() {
 
     $('body')
         .keyup(function(e) {
-            if (e.which === 27) {
-                // esc --> toggle sidebar
-                if ($('#settings-dialog').is(':visible')) {
+            if (e.which === 27) {  // esc
+                if (document.activeElement.id === 'filter') {
+                    // clear channel-list filter
+                    $('#filter').val('').keyup();
+                } else if ($('#settings-dialog:visible').length) {
+                    // close settings
                     $('#settings-close').click();
                 } else {
+                    // toggle sidebar
                     $('#collapse-sidebar').click();
                 }
             }

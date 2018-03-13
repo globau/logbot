@@ -13,7 +13,7 @@
              <%= 'menu-c ' if $menu_c =%>
              <%= 'hide-b ' if $hide_b =%>
              <%= 'norm-b ' if $norm_b =%>
-             <%= 'topic'   if $topic %>
+             <%= 'topic'   if $topic && $is_logs %>
              <%= 'stats '  if $is_stats =%>
              <%= 'search'  if $is_search =%>">
 
