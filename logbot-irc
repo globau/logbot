@@ -57,7 +57,7 @@ sub irc_read {
 
     # print all server messages (except ping/pong to reduce noise)
     say timestamp(), ' << ', $message
-        if $message !~ /^:\S+ PONG / || $ENV{DEBUG};
+        if ($message !~ /^:\S+ P[IO]NG /) || $ENV{DEBUG};
     return $message;
 }
 
@@ -67,7 +67,7 @@ sub irc_send {
 
     # print all client messages (except ping/pong to reduce noise)
     say timestamp(), ' >> ', $message
-        if substr($message, 0, 5) ne 'PING ' || $ENV{DEBUG};
+        if ($message !~ /^P[IO]NG /) || $ENV{DEBUG};
     $connection->print($message . "\r\n");
 }
 
@@ -289,7 +289,7 @@ while (1) {
         say timestamp(), ' -- refresh topics';
         $state->{pending_topics}      = [sort keys %{ $state->{channels_in} }];
         $state->{next_pending_topics} = $time;
-        $state->{next_topic_reload}   = time() + $config->{timing}->{topic_reload_interval};
+        $state->{next_topic_reload} = time() + $config->{timing}->{topic_reload_interval};
     }
 
     if (exists $state->{next_pending_topics} && $state->{next_pending_topics} <= $time) {
