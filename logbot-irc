@@ -286,9 +286,11 @@ while (1) {
 
     # update stored channel topics
     if (exists $state->{next_topic_reload} && $state->{next_topic_reload} <= $time) {
-        say timestamp(), ' -- refresh topics';
-        $state->{pending_topics}      = [sort keys %{ $state->{channels_in} }];
-        $state->{next_pending_topics} = $time;
+        if (keys %{ $state->{channels_in} }) {
+            say timestamp(), ' -- refresh topics';
+            $state->{pending_topics}      = [sort keys %{ $state->{channels_in} }];
+            $state->{next_pending_topics} = $time;
+        }
         $state->{next_topic_reload} = time() + $config->{timing}->{topic_reload_interval};
     }
 
@@ -571,7 +573,7 @@ while (1) {
             next if $config->{channels}->{$channel}->{disabled};
             next if $config->{channels}->{$channel}->{archived};
 
-            # update channel_in
+            # update channels_in
             if ($state->{channels_reconcile}->{$channel}) {
                 $state->{channels_in}->{$channel} = 1;
                 next;
