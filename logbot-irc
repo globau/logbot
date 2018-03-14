@@ -210,15 +210,6 @@ logbot_init($config);
 init_logging();
 $job_queue = LogBot::JobQueue->new($config);
 
-# default timings
-$config->{timing}->{initial_ping_delay}      ||= 3 * 60;
-$config->{timing}->{max_reconnect_interval}  ||= 3 * 60;
-$config->{timing}->{ping_interval}           ||= 60;
-$config->{timing}->{ping_timeout}            ||= 30;
-$config->{timing}->{ping_timeout_attempts}   ||= 5;
-$config->{timing}->{channel_reload_interval} ||= 60 * 60;
-$config->{timing}->{topic_reload_interval}   ||= 24 * 60 * 60;
-
 # init signals and state
 $SIG{HUP} = sub {
     $state->{next_channel_reload} = time();

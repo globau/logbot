@@ -78,6 +78,15 @@ sub load_config {
         is_dev   => substr(basename($config_file), 0, 1) eq '_',
     };
 
+    # default timings
+    $config->{timing}->{initial_ping_delay}      ||= 3 * 60;
+    $config->{timing}->{max_reconnect_interval}  ||= 3 * 60;
+    $config->{timing}->{ping_interval}           ||= 60;
+    $config->{timing}->{ping_timeout}            ||= 30;
+    $config->{timing}->{ping_timeout_attempts}   ||= 5;
+    $config->{timing}->{channel_reload_interval} ||= 60 * 60;
+    $config->{timing}->{topic_reload_interval}   ||= 24 * 60 * 60;
+
     make_path($config->{_internal}->{root});
     make_path(path_for($config, 'queue'));
 
