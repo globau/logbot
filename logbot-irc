@@ -605,3 +605,34 @@ while (1) {
         next;
     }
 }
+
+__END__
+
+connect
+    -> channel reload
+    -> +5m topic reload
+
+channel reload
+    -> WHOIS logbot
+        <= RPL_WHOISCHANNELS
+            - collect channels in
+        <= RPL_ENDOFWHOIS
+            - diff channels-in with config
+            - join/part as required
+
+topic reload
+    -> TOPIC (foreach channel)
+        <= RPL_TOPIC / RPL_NOTOPIC
+            - update stored topic
+
+invite to channel
+    <= INVITE
+        - store invite request
+        -> JOIN channel
+    <= JOINED pending invite channel
+        -> NAMES channel
+    <= RPL_NAMREPLY pending invite channel
+        - collect owners, admins, and ops
+    <= RPL_ENDOFNAMES pending invite channel
+        - if invite from owner/admin/op update config
+        - otherwise PART
