@@ -68,26 +68,28 @@ sub logs {
         $bot_event_count++ if $event->{bot};
     }
 
-    # calc last message date for channel
-    if (@{$logs}) {
+    # calc navigation dates
+    if (@{$logs} && $c->stash('is_today')) {
         $c->stash(last_date => DateTime->from_epoch(epoch => $logs->[-1]->{time}));
+    }
 
-    } else {
-        my $time = $c->stash('date')->epoch;
+    my $time = $c->stash('date')->epoch;
 
-        my $skip_prev_time =
-            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1',
-            undef, $c->stash('channel'), $time);
-        if ($skip_prev_time) {
-            $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
-        }
+    my $skip_prev_time =
+        $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1',
+        undef, $c->stash('channel'), $time);
+    if ($skip_prev_time) {
+        $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
+    }
 
-        my $skip_next_time =
-            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time > ? ORDER BY time ASC LIMIT 1',
-            undef, $c->stash('channel'), $time);
-        if ($skip_next_time) {
-            $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));
-        }
+    my $skip_next_time = $dbh->selectrow_array(
+        'SELECT time FROM logs WHERE channel = ? AND time >= ? ORDER BY time ASC LIMIT 1',
+        undef,
+        $c->stash('channel'),
+        $time + 60 * 60 * 24
+    );
+    if ($skip_next_time) {
+        $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));
     }
 
     $c->stash(

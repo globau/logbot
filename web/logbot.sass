@@ -168,14 +168,6 @@ body
 
 #logs, #search-logs
 
-  .last-timestamp
-    color: #999
-    margin-top: 1rem
-    padding-left: 4px
-
-    a
-      color: #999
-
   div.notification
     margin: 4px
     padding-left: 4px
@@ -236,6 +228,25 @@ body
 
     .notice, .notice-text
       font-style: italic
+
+.time-nav
+  color: #999
+  margin-top: 1rem
+  padding-left: 4px
+
+  a
+    color: #999
+
+  .time-nav-item
+    display: inline-block
+
+    &.static
+      color: #444
+
+    &:not(:last-child)
+      border-right: 1px dotted #ddd
+      margin-right: 8px
+      padding-right: 8px
 
 #debug
   max-width: calc(100% - #{$sidebar-width-open + 32px})
