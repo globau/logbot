@@ -13,6 +13,7 @@ email: regular/envelope
 github: brands/github
 networks-close: light/angle-up
 networks-open: light/angle-down
+paypal: brands/paypal
 search: solid/search
 settings: regular/cog
 sidebar-collapse: solid/angle-double-left
