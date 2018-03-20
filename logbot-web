@@ -334,7 +334,7 @@ helper linkify => sub {
 # cache
 helper cached => sub {
     my ($self, $key, $callback) = @_;
-    return $key ? $memcache->get($key, $callback) : $callback->();
+    return Mojo::ByteStream->new($key ? $memcache->get($key, $callback) : $callback->());
 };
 
 hook after_render => sub {

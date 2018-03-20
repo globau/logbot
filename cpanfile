@@ -1,5 +1,4 @@
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .
-requires 'Cache::Memcached::Fast', '0.25';
 requires 'DBD::SQLite', '1.54';
 requires 'DBI', '1.636';
 requires 'Date::Parse', '2.30';
@@ -13,6 +12,7 @@ requires 'JSON', '2.94';
 requires 'JSON::XS', '3.03';
 requires 'List::MoreUtils', '0.419';
 requires 'List::Util', '1.33';
+requires 'Memcached::libmemcached', '1.001801';
 requires 'Mojolicious', '7.65';
 requires 'Mojolicious::Plugin::AccessLog', '0.010';
 requires 'Net::DNS::Native', '0.15';

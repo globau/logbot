@@ -7,44 +7,42 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
-use Cache::Memcached::Fast ();
-use IO::Socket::INET       ();
+use Encode qw( decode encode );
+use IO::Socket::INET ();
+use Memcached::libmemcached qw( /^memcached/ MEMCACHED_BEHAVIOR_BINARY_PROTOCOL );
 
 sub new {
     my ($class) = @_;
 
-    my $server = $ENV{LOGBOT_MEMCACHE} // '';
+    my $server = $ENV{LOGBOT_MEMCACHE} // 'localhost:11211';
 
+    my ($host, $port);
     if ($server =~ /^([^:]+):(\d+)$/) {
-        my ($host, $port) = ($1, $2);
-        if (!IO::Socket::INET->new(PeerHost => $host, PeerPort => $port, Proto => 'tcp', Timeout => 1)) {
-            warn "failed to connect to memcached on $server\n";
-            undef $server;
-        }
+        ($host, $port) = ($1, $2);
     } else {
-        undef $server;
-    }
-    if (!$server) {
-        return LogBot::MemCache::None->new();
+        ($host, $port) = ($server, 11211);  ## no critic (ValuesAndExpressions::RequireNumberSeparators)
     }
 
-    return bless(
-        {
-            cache => Cache::Memcached::Fast->new({ servers => [{ address => $server }], nowait => 1 }),
-        },
-        $class
-    );
+    if (IO::Socket::INET->new(PeerHost => $host, PeerPort => $port, Proto => 'tcp', Timeout => 1)) {
+        my $cache = memcached_create();
+        memcached_behavior_set($cache, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+        memcached_server_add($cache, $host, $port);
+        return bless({ cache => $cache }, $class);
+    }
+
+    warn "failed to connect to memcache on $host:$port\n";
+    return LogBot::MemCache::None->new();
 }
 
 sub get {
     my ($self, $key, $callback) = @_;
     my $cache = $self->{cache};
 
-    my $cached = $cache->get($key);
-    return $cached if defined $cached;
+    my $cached = memcached_get($cache, $key);
+    return decode('UTF-8', $cached) if defined $cached;
 
-    my $value = $callback->();
-    $cache->set($key, $value);
+    my $value = scalar($callback->());
+    memcached_set($cache, $key, encode('UTF-8', $value));
     return $value;
 }
 

@@ -215,7 +215,7 @@ sub find_unused_imports {
                     my ($module, $imports) = ($1, $2);
                     my @imports = split(/\s+/, trim($imports));
                     foreach my $import (@imports) {
-                        next if $import =~ /^:/;
+                        next if $import =~ m{^[:/]};
                         $imports{$import} = 1;
                     }
                 }
