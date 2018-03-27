@@ -37,6 +37,7 @@ use warnings;
 use Config qw ( %Config );
 use File::Basename qw( basename );
 use File::Find qw( find );
+use File::Spec ();
 use FindBin qw( $RealBin );
 use POSIX qw( WEXITSTATUS WIFEXITED WIFSIGNALED WTERMSIG );
 
@@ -84,9 +85,17 @@ sub updated {
 
 sub _prerequisites {
     my ($self) = @_;
+    my $web_path = $RealBin . '/web';
     my @files;
-    push @files, glob("$RealBin/web/*.js"),      glob("$RealBin/web/*.sass");
-    push @files, glob("$RealBin/web/svg/*.svg"), glob("$RealBin/web/svg/font-awesome/*.svg");
+    find(
+        sub {
+            return unless /\.(?:js|sass|svg)$/;
+            my $rel_file = File::Spec->abs2rel($File::Find::name, $web_path);
+            return if $rel_file =~ m{^(?:public/static|build)/};
+            push @files, $File::Find::name;
+        },
+        $web_path
+    );
     return \@files;
 }
 
