@@ -100,7 +100,7 @@
   <div class="search-field">
     <div class="search-label"></div>
     <div class="search-input">
-      <input type="submit" id="search-form-submit" value="Search" class="button">
+      <input type="submit" id="search-form-submit" value="Search">
     </div>
   </div>
 

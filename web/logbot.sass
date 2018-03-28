@@ -1,18 +1,9 @@
-// bulma
-
-@import "bulma/sass/utilities/initial-variables"
-
-$family-sans-serif: Hind, $family-sans-serif
-
-$primary-invert: #eee
-$primary: #444
-
 $link-color-bot: #7f7ff7
 $link-colour: #00e
-$link-invert: $primary-invert
+$link-invert: #eee
 $link-visited-colour: #939
 
-$sidebar-width-closed: 36px
+$sidebar-width-closed: 34px
 $sidebar-width-open: 165px
 
 $nav-height: 30px
@@ -25,41 +16,9 @@ $time-width-small: 3em
 $nick-width-large: 7.5em
 $time-width-large: 3em
 
-$log-hover: #eee
+$hover-colour: #ebebeb
 
 $transition-time: 50ms
-
-// bulma
-
-@import "bulma/sass/utilities/_all"
-
-@import "bulma/sass/components/menu"
-@import "bulma/sass/components/modal"
-@import "bulma/sass/elements/button"
-@import "bulma/sass/elements/form"
-@import "bulma/sass/elements/notification"
-
-.menu-list a
-  border-radius: 0
-
-.button
-  display: inline-block
-  height: 1rem
-
-  &.is-white:hover, &.is-white.is-hovered
-    background-color: #dbdbdb
-
-.icon
-  svg
-    height: 18px
-    width: 18px
-
-.notification
-  margin-right: 18px
-  padding: .25rem 1.5rem .25rem .5rem
-
-.modal-content
-  margin: 0
 
 // pika
 
@@ -75,7 +34,7 @@ $transition-time: 50ms
 
 body
   color: #000
-  font-family: $family-sans-serif
+  font-family: "Hind", BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif
   font-size: medium
   margin: 0
   padding: 0 10px 0 0
@@ -90,6 +49,34 @@ a
     outline: none
   &:visited
     color: $link-visited-colour
+
+.notification
+  background-color: #f5f5f5
+  border-radius: 3px
+  margin: 4px 18px 4px 4px
+  padding: .25rem 1.5rem .25rem .5rem
+
+  &.is-warning
+    background-color: #ffdd57
+
+.button
+  border-radius: 4px
+  cursor: pointer
+  display: inline-block
+  height: 28px
+  margin: 1px
+  text-align: center
+  width: 32px
+
+  &:hover
+    background-color: $hover-colour
+    text-decoration: none
+
+  svg
+    height: 18px
+    position: relative
+    top: calc(50% - 9px)
+    width: 18px
 
 .hidden
   visibility: hidden
@@ -152,6 +139,7 @@ a
 
 #topic
   background-color: #eee
+  clear: both
   height: $topic-height
   line-height: $topic-height
   overflow: hidden
@@ -178,10 +166,6 @@ body
 
 #logs, #search-logs
 
-  div.notification
-    margin: 4px
-    padding-left: 4px
-
   ul
     list-style: none
     margin: 0
@@ -192,7 +176,7 @@ body
       padding: 3px 1rem 3px 4px
 
       &:hover
-        background: $log-hover
+        background: $hover-colour
 
       &.hl
         background: #ffffb7
@@ -216,7 +200,7 @@ body
       width: 7em
 
       &:hover
-        background: $log-hover
+        background: $hover-colour
         overflow: visible
         padding-right: 5px
         width: auto !important
@@ -263,6 +247,57 @@ body
   overflow: scroll
 
 // settings
+
+=overlay
+  bottom: 0
+  left: 0
+  position: absolute
+  right: 0
+  top: 0
+
+.modal
+  +overlay
+  align-items: center
+  display: none
+  justify-content: center
+  overflow: hidden
+  position: fixed
+  z-index: 20
+
+  &.is-active
+    display: flex
+
+.modal-background
+  +overlay
+  background-color: rgba(#000, 0.86)
+
+.modal-content
+  margin: 0
+  max-height: calc(100vh - 160px)
+  overflow: auto
+  position: relative
+  width: 100%
+
+  @media screen and (min-width: 769px)
+    margin: 0 auto
+    max-height: calc(100vh - 40px)
+    width: 640px
+
+.modal-close
+  background: none
+  border-radius: 100%
+  border: none
+  color: #fff
+  cursor: pointer
+  font-size: large
+  height: 40px
+  position: fixed
+  right: 20px
+  top: 20px
+  width: 40px
+
+  &:hover
+    background-color: #000
 
 body
   // small text
@@ -357,18 +392,41 @@ body
     background: #fff  // for chrome
 
     &.hover
-      box-shadow: 0 0 2px $primary
+      box-shadow: 0 0 2px #444
 
   #settings-close-container
     text-align: right
 
     #settings-close
-      display: inline-flex
+      background-color: #444
+      border-radius: 3px
+      color: #eee
+      cursor: pointer
+      display: initial
+      line-height: 1.5
+      padding: 5px 12px
 
       &:hover
+        background-color: $hover-colour
         text-decoration: none
 
 // sidebar
+
+.menu-list
+  line-height: 1.25
+
+  a
+    color: #4a4a4a
+    display: block
+    padding: 0.5em 0.75em
+
+    &:hover
+      background-color: $hover-colour
+      color: #4a4a4a
+
+    &.is-active
+      background-color: #4a4a4a
+      color: #fff
 
 #sidebar
   border-right: 1px solid #eee
@@ -386,9 +444,7 @@ body
 
   #actions
     background-color: #fff
-    font-size: 0px
     height: $nav-height
-    padding-top: 2px
     position: fixed
     width: $sidebar-width-open
     z-index: 5
@@ -398,20 +454,20 @@ body
 
   #menu
     a
-      color: $grey-dark
+      color: #4a4a4a
 
       &:hover
-        background-color: $grey-lighter
+        background-color: $hover-colour
         color: #000
         text-decoration: none !important
 
       &.is-active
-        background-color: $grey-dark
-        color: $white
+        background-color: #4a4a4a
+        color: #fff
 
         &:hover
-          background-color: $grey-dark
-          color: $white
+          background-color: #4a4a4a
+          color: #fff
 
     #archived
       background-color: #eee
@@ -425,9 +481,9 @@ body
 
 body
   &.menu-c
-    #sidebar-open
+    .svg-sidebar-collapse
       display: none
-    #sidebar-closed
+    .svg-sidebar-open
       display: inline-block
 
     #sidebar
@@ -439,9 +495,6 @@ body
         transition-duration: $transition-time
         transition-property: width
         width: $sidebar-width-closed
-
-        .button
-          display: inherit
 
         #about
           float: inherit
@@ -465,9 +518,9 @@ body
       width: calc(100% - #{$sidebar-width-closed + 1px})
 
   &:not(.menu-c)
-    #sidebar-open
+    .svg-sidebar-closed
       display: inline-block
-    #sidebar-closed
+    .svg-sidebar-open
       display: none
 
     #sidebar
@@ -489,7 +542,7 @@ body
 
 #networks
   font-size: initial
-  margin-top: $nav-height + 2px
+  margin-top: $nav-height
 
   svg
     height: 18px
@@ -500,7 +553,7 @@ body
     border-bottom-right-radius: 0
     border-top-left-radius: 3px
     border-top-right-radius: 3px
-    border: 1px solid #dbdbdb
+    border: 1px solid $hover-colour
     color: #4a4a4a
     height: 32px
     margin-bottom: 0
@@ -517,7 +570,7 @@ body
   #other-networks
     border-bottom-left-radius: 3px
     border-bottom-right-radius: 3px
-    border: 1px solid #dbdbdb
+    border: 1px solid $hover-colour
     margin: 0 2px 4px 2px
 
     border-top: none
@@ -526,7 +579,7 @@ body
       margin: 0
 
       &:hover
-        background: #dbdbdb
+        background: $hover-colour
         text-decoration: none
 
   &.collapsed
@@ -579,7 +632,6 @@ body
   border-left: 1px solid #eee
   height: $nav-height
   margin-left: $sidebar-width-open
-  padding-top: 2px
   position: fixed
   top: 0
   width: calc(100% - #{$sidebar-width-open})
@@ -611,15 +663,16 @@ body
     float: left
     margin-right: 8px
 
-  #search-container
+  #search-input-container
+    float: left
     margin-left: 4px
+    margin-top: 2px
 
-  #search-submit
-    margin-left: 2px
+  #search-button-container
+    float: left
 
   #search-nav
     font-size: 1rem
-    margin: 1px 0
 
   #channel-logs
     margin-left: 4px
@@ -692,7 +745,12 @@ body
     width: 100% !important
 
   #search-form-submit
-    height: auto
+    background: #fff
+    border-radius: 2px
+    cursor: pointer
+
+    &:hover
+      background: $hover-colour
 
 .chosen-container-multi .chosen-choices
   background-image: none
@@ -726,7 +784,7 @@ body
 // hide nav search form on search pages
 body
   &.search
-    #search-nav, #search-submit
+    #search-input-container, #search-button-container
       display: none
 
 // channel list
@@ -745,10 +803,17 @@ body
     list-style: none
     padding-left: 16px
 
+    .channel
+      color: #000
+
     .topic
       border-left: 1px solid #ddd
+      color: #888
       margin-left: 8px
       padding-left: 8px
+
+      a
+        color: #88f
 
     li
       margin-bottom: 1rem
@@ -883,7 +948,7 @@ body
         display: none
 
       &:not(.menu-c)
-        #search-container
+        #search-input-container
           display: none
 
   #search-form
@@ -905,15 +970,15 @@ body
     display: none
 
   #nav
-    #search-nav, #loc-container, #raw-container, #end-container
+    #search-input-container, #loc-container, #raw-container, #end-container
       display: none
 
 @media (max-width: 800px)
   #nav
-    #search-nav, #loc-container
+    #search-input-container, #loc-container
       display: none
 
 @media (max-width: 1200px)
   #nav
-    #search-nav
+    #search-input-container
       display: none

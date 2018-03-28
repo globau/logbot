@@ -402,7 +402,8 @@ $(function() {
         });
 
     $('#settings-dialog .modal-background, #settings-dialog .modal-close, #settings-close')
-        .click(function() {
+        .click(function(e) {
+            e.preventDefault();
             $('#settings-dialog').removeClass('is-active');
         });
 
