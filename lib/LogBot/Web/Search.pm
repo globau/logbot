@@ -14,6 +14,7 @@ use Mojo::Util qw( trim );
 use Readonly;
 use Text::ParseWords qw( quotewords );
 use Time::HiRes ();
+use Try::Tiny qw( catch try );
 
 Readonly::Scalar my $SEARCH_FTS_LIMIT => 100_000;
 Readonly::Scalar my $SEARCH_LIMIT     => 200;
@@ -91,6 +92,9 @@ sub render {
             # always treat apostrophe as literial
             $quoted_q =~ s/'/\\'/g;
 
+            # remove escaped quotes
+            $quoted_q =~ s/[\\"]"//g;
+
             # fix unbalanced quotes
             my $quote_count = $quoted_q =~ tr/"/"/;
             $quoted_q .= '"' if $quote_count && ($quote_count % 2);
@@ -101,7 +105,19 @@ sub render {
             # wrap words in ", honouring user-supplied word groups
             $quoted_q = join(' ', map { '"' . $_ . '"' } quotewords('\s+', 0, $quoted_q));
 
-            my $count = $dbh->selectrow_array('SELECT COUNT(*) FROM logs_fts WHERE logs_fts MATCH ?', undef, $quoted_q);
+            my $count;
+            try {
+                $count =
+                    $dbh->selectrow_array('SELECT COUNT(*) FROM logs_fts WHERE logs_fts MATCH ?', undef, $quoted_q);
+            }
+            catch {
+                $c->app->log->error($_);
+                $count = -1;
+            };
+            if ($count == -1) {
+                $c->stash(error => 'Internal error while executing search, please try a different query.');
+                return $c->render('search');
+            }
 
             # fts is _fast_, however if it returns a massive number of rows,
             # sqlite can be slow at ordering.  if there are more than an
