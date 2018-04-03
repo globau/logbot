@@ -111,19 +111,18 @@ sub render {
                     $dbh->selectrow_array('SELECT COUNT(*) FROM logs_fts WHERE logs_fts MATCH ?', undef, $quoted_q);
             }
             catch {
+                # an error here means that fts failed somehow (there's some odd
+                # syntax).  log so we can investigate later, and drop back to
+                # substring.
                 $c->app->log->error($_);
                 $count = -1;
             };
-            if ($count == -1) {
-                $c->stash(error => 'Internal error while executing search, please try a different query.');
-                return $c->render('search');
-            }
 
             # fts is _fast_, however if it returns a massive number of rows,
             # sqlite can be slow at ordering.  if there are more than an
             # arbitrary amount of hits, switch to a substring search, which
             # will execute much faster.
-            if ($count > $SEARCH_FTS_LIMIT) {
+            if ($count == -1 || $count > $SEARCH_FTS_LIMIT) {
                 push @where,  'text LIKE ?';
                 push @values, like_value($q);
 
