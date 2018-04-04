@@ -7,7 +7,7 @@ use warnings;
 use DateTime ();
 use JSON::XS qw( decode_json );
 use LogBot::Database qw( dbh );
-use LogBot::Util qw( commify file_for plural pretty_size slurp time_ago time_to_datetimestr );
+use LogBot::Util qw( commify file_for plural slurp time_to_datetimestr );
 use LogBot::Web::Util qw( irc_host );
 use Time::Duration qw( ago );
 

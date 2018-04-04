@@ -21,9 +21,8 @@ use parent 'Exporter';
 
 use Data::Dumper qw( Dumper );
 use DateTime ();
-use File::Basename qw( basename dirname );
+use File::Basename qw( basename );
 use File::Path qw( make_path );
-use FindBin qw( $RealBin );
 use List::Util qw( any );
 use POSIX qw( ceil floor );
 use Readonly;

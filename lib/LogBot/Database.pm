@@ -7,7 +7,6 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
-use DBD::SQLite ();
 use DBD::SQLite::Constants qw( :file_open );
 use DBI ();
 use LogBot::Util qw( file_for squash_error timestamp );

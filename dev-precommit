@@ -224,6 +224,8 @@ sub find_unused_imports {
         }
     );
 
+    $input = join("\n", grep { !/^use\s/ } split(/\n/, $input));
+
     my @issues;
     foreach my $module (sort keys %modules) {
         next if $input =~ /\b$module(?:->|::)/;

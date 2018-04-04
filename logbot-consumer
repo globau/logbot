@@ -12,14 +12,11 @@ use lib "$RealBin/lib";
 
 BEGIN { $ENV{TZ} = 'UTC' }
 
-use Data::Dumper qw( Dumper );
 use Encode qw( encode );
 use LogBot::Config qw( find_config load_config reload_config );
-use LogBot::Database qw( dbh dbh_disconnect execute_with_retry );
+use LogBot::Database qw( dbh execute_with_retry );
 use LogBot::JobQueue ();
-use LogBot::Util qw( event_to_string logbot_init squash_error timestamp );
-use Time::HiRes qw( sleep );
-use Try::Tiny qw( catch try );
+use LogBot::Util qw( event_to_string logbot_init timestamp );
 
 my $config = load_config(find_config(shift)) // die "syntax: logbot-consumer <config file>\n";
 logbot_init($config);

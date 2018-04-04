@@ -8,7 +8,6 @@ use Date::Parse qw( str2time );
 use DateTime ();
 use Digest::xxHash qw( xxhash32 );
 use Encode qw ( decode );
-use List::Util qw( any );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
 use Mojo::Path ();

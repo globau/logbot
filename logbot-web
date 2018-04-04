@@ -18,9 +18,9 @@ BEGIN { $ENV{TZ} = 'UTC' }
 
 use DateTime ();
 use IO::Compress::Gzip qw( gzip );
-use LogBot::Config qw( config_filename find_config load_all_configs load_config reload_config );
+use LogBot::Config qw( find_config load_all_configs load_config reload_config );
 use LogBot::MemCache ();
-use LogBot::Util qw( normalise_channel slurp spurt time_to_ymd ymd_to_time );
+use LogBot::Util qw( time_to_ymd );
 use LogBot::Web::Channel ();
 use LogBot::Web::Index   ();
 use LogBot::Web::List    ();

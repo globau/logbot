@@ -6,9 +6,8 @@ use warnings;
 
 use DateTime ();
 use Encode qw( decode );
-use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout );
-use LogBot::Util qw( event_to_short_string nick_is_bot normalise_channel time_to_ymd );
+use LogBot::Util qw( event_to_short_string );
 use LogBot::Web::Util qw( preprocess_event );
 
 sub _get_logs {

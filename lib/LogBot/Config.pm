@@ -7,7 +7,7 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
-use File::Basename qw( basename dirname );
+use File::Basename qw( basename );
 use File::Path qw( make_path );
 use LogBot::Util qw( normalise_channel path_for squash_error timestamp );
 use Try::Tiny qw( catch try );
