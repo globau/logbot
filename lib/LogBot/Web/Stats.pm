@@ -32,9 +32,9 @@ sub render {
 }
 
 sub event_time_to_str {
-    my ($time) = @_;
+    my ($time, $accuracy) = @_;
     return ('no events', '-') unless $time;
-    return (time_to_datetimestr(int($time)), ago(time() - $time));
+    return (time_to_datetimestr(int($time)), ago(time() - $time, $accuracy // 2));
 }
 
 sub meta {
@@ -53,7 +53,7 @@ sub meta {
         $last_time = $dbh->selectrow_array('SELECT time FROM logs ORDER BY time DESC LIMIT 1');
     }
 
-    ($last_time, $last_ago) = event_time_to_str($last_time);
+    ($last_time, $last_ago) = event_time_to_str($last_time, 1);
 
     my ($first_ago, $active_events, $active_nicks);
     my $meta_file = file_for($config, 'meta', $channel, 'meta');
