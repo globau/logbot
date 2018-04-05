@@ -3,6 +3,7 @@
 % use DateTime ();
 % use LogBot::Util qw( time_to_datestr time_ago );
 % use LogBot::Web::Util qw( nick_colour url_for_channel );
+% use Mojo::Util qw( trim );
 
 %= cached $cache_key => begin
 
@@ -26,39 +27,49 @@
 % end
 
 % my $now = DateTime->now();
-<div class="time-nav">
-  <!--
-  % if ($last_date) {
-    --><div class="time-nav-item static" title="Last message seen">
+% my @nav;
+% if ($last_date) {
+  % push @nav, begin
+    <div class="time-nav-item static" title="Last message seen">
       <span class="rel-time" data-time="<%= $last_date->epoch %>"><%= time_ago($now->epoch - $last_date->epoch) %></span>
-    </div><!--
-  % } elsif (!$is_today) {
-    --><div class="time-nav-item static" title="Messages age">
+    </div>
+  % end
+% } elsif (!$is_today) {
+  % push @nav, begin
+    <div class="time-nav-item static" title="Messages age">
       <span class="rel-time" data-time="<%= $date->epoch %>"><%= time_ago($now->epoch - $date->epoch) %></span>
-    </div><!--
-  % }
-  % if ($skip_prev) {
-    --><div class="time-nav-item">
+    </div>
+  % end
+% }
+% if ($skip_prev) {
+  % push @nav, begin
+    <div class="time-nav-item">
       &laquo;
       <a title="Skip empty days"
           href="<%= url_for_channel( channel => $channel, date => $skip_prev )%>"><%= time_ago($date->epoch - $skip_prev->epoch, 'earlier') %></a>
-    </div><!--
-  % }
-  % if ($skip_next) {
-    --><div class="time-nav-item">
+    </div>
+  % end
+% }
+% if ($skip_next) {
+  % push @nav, begin
+    <div class="time-nav-item">
       <a title="Skip empty days"
          href="<%= url_for_channel( channel => $channel, date => $skip_next )%>"><%= time_ago($skip_next->epoch - $date->epoch, 'later') %></a>
       &raquo;
-    </div><!--
-  % }
-  % if (!$is_today && (!$skip_next || $skip_next->ymd ne $today->ymd)) {
-    --><div class="time-nav-item">
+    </div>
+  % end
+% }
+% if (!$is_today && (!$skip_next || $skip_next->ymd ne $today->ymd)) {
+  % push @nav, begin
+    <div class="time-nav-item">
       <a title="Jump to today"
          href="<%= url_for_channel( channel => $channel, date => $now)%>">today</a>
       &raquo;
-    </div><!--
-  % }
-    -->
+    </div>
+  % end
+% }
+<div class="time-nav">
+  <%== join('', map { trim($_->()) } @nav) %>
 </div>
 
 <div id="end"></div>
