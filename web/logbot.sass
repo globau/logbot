@@ -72,6 +72,13 @@ a
     background-color: $hover-colour
     text-decoration: none
 
+  &[disabled]
+    cursor: not-allowed
+    opacity: 0.25
+
+    &:hover
+      background-color: #fff
+
   svg
     height: 18px
     position: relative
