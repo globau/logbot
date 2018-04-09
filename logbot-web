@@ -341,18 +341,23 @@ hook after_render => sub {
     my ($c, $output, $format) = @_;
     my $headers = $c->res->headers;
 
-    #<<<
-    ## no critic (ProhibitInterpolationOfLiterals)
-    $headers->header(
-        'Content-Security-Policy' => "default-src 'self'; " .
-                                     "object-src 'none'; " .
-                                     "frame-ancestors 'none'; " .
-                                     "base-uri 'none'; " .
-                                     "style-src 'self' 'unsafe-inline'; " . # unsafe-inline for chosen, top-nick graph
-                                     "img-src 'self' data:"                 # data: for pikaday
+    # CSP
+    state $csp = join(
+        '; ',
+        q{default-src 'self'},
+        q{object-src 'none'},
+        q{frame-ancestors 'none'},
+        q{base-uri 'none'},
+        q{style-src 'self' 'unsafe-inline'},  # unsafe-inline for chosen, top-nick graph
+        q{img-src 'self' data:},              # data: for pikaday
     );
-    ## use critic
-    #>>>
+    $headers->header('Content-Security-Policy' => $csp);
+
+    # preload fonts
+    state $link = join(', ',
+        map { '<' . $c->url_for($_)->to_abs . '>; rel=preload; as=font' }
+            qw( /static/hind-regular.ttf /static/hind-medium.ttf /static/hind-bold.ttf ));
+    $headers->header(Link => $link);
 
     # no need to expose this info
     $headers->remove('Server');
@@ -361,7 +366,7 @@ hook after_render => sub {
     if (($c->req->headers->accept_encoding // '') =~ /gzip/i) {
         $headers->append(Vary => 'Accept-Encoding');
         $headers->content_encoding('gzip');
-        gzip $output, \my $compressed;
+        gzip($output, \my $compressed);
         ${$output} = $compressed;
     }
 };
