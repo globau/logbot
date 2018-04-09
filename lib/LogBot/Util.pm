@@ -12,7 +12,7 @@ our @EXPORT_OK = qw(
     normalise_channel source_to_nick
     slurp spurt touch
     squash_error
-    timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
+    date_string_to_ymd timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
     event_to_string event_to_short_string
     commify pretty_size time_ago round plural
@@ -20,6 +20,7 @@ our @EXPORT_OK = qw(
 use parent 'Exporter';
 
 use Data::Dumper qw( Dumper );
+use Date::Parse qw( str2time );
 use DateTime ();
 use File::Basename qw( basename );
 use File::Path qw( make_path );
@@ -105,6 +106,12 @@ sub ymd_to_time {
     my ($yyyy, $mm, $dd) = (substr($ymd, 0, 4), substr($ymd, 4, 2), substr($ymd, 6, 2));
     my $time = eval { timelocal(0, 0, 0, $dd, $mm - 1, $yyyy - 1900) };
     return $time;
+}
+
+sub date_string_to_ymd {
+    my ($value) = @_;
+    my $time = str2time($value, 'UTC') // return undef;
+    return DateTime->from_epoch(epoch => $time)->truncate(to => 'day')->ymd('-');
 }
 
 sub squash_error {

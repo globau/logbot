@@ -4,11 +4,10 @@ use v5.10;
 use strict;
 use warnings;
 
-use Date::Parse qw( str2time );
 use DateTime ();
 use List::Util qw( any );
 use LogBot::Database qw( dbh execute_with_timeout like_value replace_sql_placeholders );
-use LogBot::Util qw( normalise_channel time_to_ymd ymd_to_time );
+use LogBot::Util qw( date_string_to_ymd normalise_channel time_to_ymd ymd_to_time );
 use LogBot::Web::Util qw( preprocess_event url_for_channel );
 use Mojo::Util qw( trim );
 use Readonly;
@@ -153,7 +152,7 @@ sub render {
     }
 
     # when
-    if ($c->stash('w') eq 'c' && !($c->param('f') || $c->param('t'))) {
+    if ($c->stash('w') eq 'c' && !($c->stash('f') || $c->stash('t'))) {
         $c->stash('w', 'r');
     }
 
@@ -162,8 +161,8 @@ sub render {
         push @where, 'time >= ' . $date->subtract(months => 3)->epoch;
 
     } elsif ($c->stash('w') eq 'c') {
-        my $from_time = ymd_to_time($c->param('f')) // $today;
-        my $to_time   = ymd_to_time($c->param('t')) // $today;
+        my $from_time = ymd_to_time($c->stash('f')) // $today;
+        my $to_time   = ymd_to_time($c->stash('t')) // $today;
 
         if ($to_time < $from_time) {
             ($from_time, $to_time) = ($to_time, $from_time);
@@ -284,12 +283,6 @@ sub render {
     );
 
     $c->render('search');
-}
-
-sub date_string_to_ymd {
-    my ($value) = @_;
-    my $time = str2time($value, 'UTC') // return undef;
-    return DateTime->from_epoch(epoch => $time)->truncate(to => 'day')->ymd('-');
 }
 
 1;
