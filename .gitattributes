@@ -1,0 +1,11 @@
+web/build/* linguist-generated=true
+web/public/static/*.min.css linguist-generated=true
+web/public/static/*.min.js linguist-generated=true
+
+web/chosen/* linguist-vendored=true
+web/flot/* linguist-vendored=true
+web/hind/* linguist-vendored=true
+web/jquery/* linguist-vendored=true
+web/pikaday/* linguist-vendored=true
+web/svg/font-awesome/* linguist-vendored=true
+web/URL/* linguist-vendored=true
