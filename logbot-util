@@ -81,8 +81,9 @@ if ($command eq 'backup') {
         if ($query) {
             my @parts;
             foreach my $word (quotewords('\s+', 0, $query)) {
-                push @parts,  '(text LIKE ?)';
-                push @values, like_value($word);
+                my ($condition, $value) = like_value(text => $word);
+                push @parts,  $condition;
+                push @values, $value;
             }
             push @where, join(' AND ', @parts);
         }
@@ -92,7 +93,7 @@ if ($command eq 'backup') {
         }
         die "query not provided\n" unless @where;
 
-        my $sql_filter = 'FROM logs WHERE (' . join(') AND (', @where) . ') ESCAPE \'\\\' ORDER BY channel,time';
+        my $sql_filter = 'FROM logs WHERE (' . join(') AND (', @where) . ') ORDER BY channel,time';
         my $sql_select = "SELECT * $sql_filter";
         my $sql_count  = "SELECT COUNT(*) $sql_filter";
         say replace_sql_placeholders($dbh, $sql_select, \@values);

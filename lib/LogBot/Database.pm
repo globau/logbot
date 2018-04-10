@@ -191,9 +191,12 @@ sub replace_sql_placeholders {
 }
 
 sub like_value {
-    my ($value) = @_;
-    $value =~ s/(?=[\\%_])/\\/g;
-    return '%' . $value . '%';
+    my ($field, $value) = @_;
+    my $condition = $field . ' LIKE ?';
+    if ($value =~ s/(?=[\\%_])/\\/g) {
+        $condition .= ' ESCAPE \'\\\'';
+    }
+    return ($condition, '%' . $value . '%');
 }
 
 1;

@@ -122,8 +122,9 @@ sub render {
             # arbitrary amount of hits, switch to a substring search, which
             # will execute much faster.
             if ($count == -1 || $count > $SEARCH_FTS_LIMIT) {
-                push @where,  'text LIKE ? ESCAPE \'\\\'';
-                push @values, like_value($q);
+                my ($condition, $value) = like_value(text => $q);
+                push @where,  $condition;
+                push @values, $value;
 
             } else {
                 #<<<
@@ -137,8 +138,9 @@ sub render {
             }
 
         } else {
-            push @where,  'text LIKE ? ESCAPE \'\\\'';
-            push @values, like_value($q);
+            my ($condition, $value) = like_value(text => $q);
+            push @where,  $condition;
+            push @values, $value;
         }
     }
 
