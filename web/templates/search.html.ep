@@ -7,6 +7,7 @@
 % my $last_channel = $ch eq '' ? $last_c : $ch;
 
 <div id="search-form">
+  <form action="/" method="get" name="search">
 
   <div class="search-field">
     <div class="search-label">Query</div>
@@ -104,6 +105,7 @@
     </div>
   </div>
 
+  </form>
 </div>
 
 % if ($debug ne '') {

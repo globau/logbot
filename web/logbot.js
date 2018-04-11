@@ -142,7 +142,7 @@ $(function() {
 
     $('#search-submit')
         .click(function() {
-            document.forms[0].submit();
+            document.forms['nav-search'].submit();
         });
 
     if ($('body').hasClass('search')) {

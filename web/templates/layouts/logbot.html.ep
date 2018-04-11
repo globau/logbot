@@ -19,9 +19,6 @@
 
   <noscript><h1>This site requires JavaScript</h1></noscript>
 
-  <form action="/" method="get">
-    <input type="submit" class="hidden">
-
   <div id="sidebar">
 
     <div id="actions">
@@ -181,10 +178,13 @@
     % }
 
     <div id="search-input-container">
-      % if ($channel) {
-        <input type="hidden" name="ch" value="<%= substr($channel, 1) %>">
-      % }
-      <input id="search-nav" type="text" name="q" placeholder="Search<%= ' ' . $channel if $channel %>">
+      <form action="/" method="get" name="nav-search">
+        <input type="submit" class="default-display-none">
+        % if ($channel) {
+          <input type="hidden" name="ch" value="<%= substr($channel, 1) %>">
+        % }
+        <input id="search-nav" type="text" name="q" placeholder="Search<%= ' ' . $channel if $channel %>">
+      </form>
     </div>
     <div id="search-button-container">
       <a id="search-submit" class="button" title="Search">
@@ -238,7 +238,6 @@
     </div>
     <button class="modal-close">&#9587;</button>
   </div>
-  </form>
 
   <div id="not-tiny-screen"></div>
 
