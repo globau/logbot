@@ -5,7 +5,8 @@ the very high level install steps for a development setup are:
 - copy etc/_sample.yml to etc/_development.yml
 - edit etc/_development.yml and set all the values as required
 - install cpanm and the local::lib perl library at a system level
-- install sass and uglifyjs
+- install sass (https://sass-lang.com/install)
+- install uglifyjs (https://www.npmjs.com/package/uglify-js)
 - run `cpanm --verbose --local-lib ~/perl5/ --notest --installdeps . --with-develop`
 - run `./dev-server` to start the web server
 - run `./logbot-irc development` to start the irc server

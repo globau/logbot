@@ -2,15 +2,15 @@
 .SUFFIXES:
 
 define sass
-	sass --sourcemap=none --no-cache --style compressed "web/$1.sass" "web/build/$2.min.css"
+	sass --style compressed "web/$1.sass" "web/build/$2.min.css"
 endef
 
 define scss
-	sass --scss --sourcemap=none --no-cache --style compressed "web/$1.scss" "web/build/$2.min.css"
+	sass --style compressed "web/$1.scss" "web/build/$2.min.css"
 endef
 
 define css
-	sass --scss --sourcemap=none --no-cache --style compressed "web/$1.css" "web/build/$2.min.css"
+	sass --style compressed "web/$1.css" "web/build/$2.min.css"
 endef
 
 define js
