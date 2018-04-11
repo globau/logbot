@@ -1,8 +1,8 @@
 #!/usr/bin/perl
-use strict;
-use warnings;
 use local::lib;
 use v5.10;
+use strict;
+use warnings;
 
 use File::Find qw( find );
 use FindBin qw( $RealBin );

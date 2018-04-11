@@ -21,7 +21,7 @@ $(function() {
 
     $('body')
         .keyup(function(e) {
-            if (e.which === 27) {  // esc
+            if (e.which === 27) { // esc
                 if (document.activeElement.id === 'filter') {
                     // clear channel-list filter
                     $('#filter').val('').keyup();
@@ -39,8 +39,8 @@ $(function() {
 
     function set_sidebar_collapse_title() {
         $('#collapse-sidebar').attr('title',
-            $('body').hasClass('menu-c')
-            ? 'Show Channels (Esc)' : 'Hide Channels (Esc)'
+            $('body').hasClass('menu-c') ?
+            'Show Channels (Esc)' : 'Hide Channels (Esc)'
         );
     }
 
@@ -67,7 +67,7 @@ $(function() {
     }
 
     if (document.getElementById('date-icon')) {
-        var pika_config = {
+        var nav_pika_config = {
             field: document.getElementById('date-icon'),
             maxDate: new Date(),
             onSelect: function(date) {
@@ -79,17 +79,19 @@ $(function() {
         };
         var ymd = $('#date').data('ymd') + '';
         if (ymd) {
-            pika_config.defaultDate = new Date(ymd.substr(0, 4), ymd.substr(4, 2) - 1, ymd.substr(6, 2));
-            pika_config.setDefaultDate = true;
+            nav_pika_config.defaultDate = new Date(ymd.substr(0, 4), ymd.substr(4, 2) - 1, ymd.substr(6, 2));
+            nav_pika_config.setDefaultDate = true;
         }
-        new Pikaday(pika_config);
+        new Pikaday(nav_pika_config);
     }
 
     // nav - last message
     $('#channel-end')
         .click(function(e) {
             e.preventDefault();
-            $('html, body').animate({ scrollTop: $(document).height() }, 250);
+            $('html, body').animate({
+                scrollTop: $(document).height()
+            }, 250);
         });
     $(document).on('setting:hide-b', function(e, enabled) {
         if ($('.no-events:visible').length) {
@@ -153,7 +155,7 @@ $(function() {
             .focus()
             .select();
 
-        var pika_config = {
+        var search_pika_config = {
             maxDate: new Date(),
             keyboardInput: false,
             toString: function(d) {
@@ -164,10 +166,10 @@ $(function() {
                 ].join('-');
             }
         };
-        pika_config.field = document.getElementById('search-when-from');
-        new Pikaday(pika_config);
-        pika_config.field = document.getElementById('search-when-to');
-        new Pikaday(pika_config);
+        search_pika_config.field = document.getElementById('search-when-from');
+        new Pikaday(search_pika_config);
+        search_pika_config.field = document.getElementById('search-when-to');
+        new Pikaday(search_pika_config);
 
         $(window).on('pageshow', function(e) {
             // replace name attributes that are cleared on submit
@@ -194,14 +196,14 @@ $(function() {
                 return;
             }
             if ($(this).attr('id') === 'search-channel-custom') {
-                $('#search-channels').attr('disabled', false)
+                $('#search-channels').attr('disabled', false);
                 $('#search-channel-multi').show();
                 if (!initialising) {
                     $('#search-channels').trigger('chosen:open');
                 }
             } else {
                 $('#search-channel-multi').hide();
-                $('#search-channels').attr('disabled', true)
+                $('#search-channels').attr('disabled', true);
             }
         })
         .change();
@@ -212,13 +214,13 @@ $(function() {
                 return;
             }
             if ($(this).attr('id') === 'search-when-custom') {
-                $('#search-when-from').attr('disabled', false)
-                $('#search-when-to').attr('disabled', false)
+                $('#search-when-from').attr('disabled', false);
+                $('#search-when-to').attr('disabled', false);
                 $('#search-when-range').show();
             } else {
                 $('#search-when-range').hide();
-                $('#search-when-from').attr('disabled', true)
-                $('#search-when-to').attr('disabled', true)
+                $('#search-when-from').attr('disabled', true);
+                $('#search-when-to').attr('disabled', true);
             }
         })
         .change();
@@ -337,7 +339,9 @@ $(function() {
             var range = highlight($li, $('#' + hl_hash[3]));
             var offset = $li.offset();
             $hl_anchor = $('#' + range[0]);
-            $('html, body').animate({ scrollTop: $li.offset().top - 40 }, 50);
+            $('html, body').animate({
+                scrollTop: $li.offset().top - 40
+            }, 50);
         }
     }
 
@@ -368,7 +372,7 @@ $(function() {
                 $current.removeClass('hl');
                 $li.addClass('hl');
                 $hl_anchor = $li;
-                history.pushState('', document.title, document.location.pathname + document.location.search + '#' + $li.attr('id'))
+                history.pushState('', document.title, document.location.pathname + document.location.search + '#' + $li.attr('id'));
             }
         });
 
@@ -392,7 +396,7 @@ $(function() {
         $setting
             .find('input')
             .prop('checked', enabled);
-        $(document).trigger('setting:' + name, [ enabled ]);
+        $(document).trigger('setting:' + name, [enabled]);
     }
 
     $('#settings')
@@ -454,6 +458,20 @@ $(function() {
         });
     }
 
+    function handle_visibility_change() {
+        if (document[hidden_event]) {
+            relative_timer();
+            if (!relative_timer_id) {
+                relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
+            }
+        } else {
+            relative_timer();
+            if (!relative_timer_id) {
+                relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
+            }
+        }
+    }
+
     if ($('.rel-time').length) {
         var relative_timer_duration = 60000;
         var relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
@@ -468,19 +486,6 @@ $(function() {
             visibility_change = "webkitvisibilitychange";
         }
 
-        function handle_visibility_change() {
-            if (document[hidden_event]) {
-                relative_timer();
-                if (!relative_timer_id) {
-                    relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
-                }
-            } else {
-                relative_timer();
-                if (!relative_timer_id) {
-                    relative_timer_id = window.setInterval(relative_timer, relative_timer_duration);
-                }
-            }
-        }
         if (hidden_event) {
             document.addEventListener(visibility_change, handle_visibility_change);
         }
@@ -513,9 +518,7 @@ $(function() {
                     .removeClass('loading');
 
                 var plot = $.plot(
-                    $container,
-                    [ series ],
-                    {
+                    $container, [series], {
                         xaxis: {
                             ticks: 24,
                             tickFormatter: function(h) {
@@ -532,14 +535,17 @@ $(function() {
                         grid: {
                             borderWidth: 0
                         },
-                        colors: [ '#444' ]
+                        colors: ['#444']
                     }
                 );
 
                 var current_hh = $container.data('hh') * 1;
                 var current_mm = $container.data('mm') * 1;
 
-                var offset = plot.pointOffset({ x: current_hh + (current_mm / 60), y: plot.getAxes().yaxis.datamax });
+                var offset = plot.pointOffset({
+                    x: current_hh + (current_mm / 60),
+                    y: plot.getAxes().yaxis.datamax
+                });
                 var style = 'position:absolute;height:' + plot.height() + 'px;top:8px;left:' + offset.left + 'px';
                 $container.append('<div id="hours-now" style="' + style + '">Now</div>');
             }
@@ -563,7 +569,7 @@ $(function() {
     $('.setting').each(function() {
         var $this = $(this);
         var name = $this.data('setting');
-        $(document).trigger('setting:' + name, [ $('body').hasClass(name) ]);
+        $(document).trigger('setting:' + name, [$('body').hasClass(name)]);
     });
 
     initialising = false;

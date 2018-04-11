@@ -1,20 +1,24 @@
 #!/usr/bin/perl
-use strict;
-use warnings;
 use local::lib;
 use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
 
 use Cwd qw( abs_path );
 use File::Basename qw( basename );
 use File::Find qw( find );
-use FindBin qw( $RealBin );
 use List::Util qw( any );
+use LogBot::Util qw( run );
 use Mojo::File ();
 use Mojo::Util qw( trim );
 use Perl::Critic ();
 use Perl::Tidy   ();
 
 $| = 1;
+chdir($RealBin);
 
 # tabs
 
@@ -175,9 +179,16 @@ find(
     $RealBin
 );
 
+# javascript
+
+foreach my $js_file (qw( web/logbot.js web/redirect.js )) {
+    run('js-beautify', '-r', '-n', $js_file);
+    run('jshint', $js_file);
+}
+
 # run make
 
-system('make');
+run('make');
 
 sub sort_use {
     my ($input) = @_;

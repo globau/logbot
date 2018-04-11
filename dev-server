@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 use local::lib;
+use v5.10;
 use strict;
 use warnings;
-use v5.10;
 
 use Mojo::Server::Morbo ();
 use Time::HiRes qw( sleep );
@@ -33,12 +33,12 @@ use strict;
 use v5.10;
 use warnings;
 
-use Config qw ( %Config );
-use File::Basename qw( basename );
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
 use File::Find qw( find );
 use File::Spec ();
-use FindBin qw( $RealBin );
-use POSIX qw( WEXITSTATUS WIFEXITED WIFSIGNALED WTERMSIG );
+use LogBot::Util qw( run );
 
 sub new {
     my ($class) = @_;
@@ -96,24 +96,6 @@ sub _prerequisites {
         $web_path
     );
     return \@files;
-}
-
-sub run {
-    my @command = @_;
-    my $exec    = shift @command;
-    system($exec, @command);
-    my $error = $?;
-    die sprintf(qq#"%s" failed to start: "%s"\n#, $exec, $!) if $error == -1;
-    if (WIFEXITED($error)) {
-        my $exit_val = WEXITSTATUS($error);
-        return if $exit_val == 0;
-        print chr(7);
-    } elsif (WIFSIGNALED($error)) {
-        my $signal_no   = WTERMSIG($error);
-        my @sig_names   = split(' ', $Config{sig_name});
-        my $signal_name = $sig_names[$signal_no] // 'UNKNOWN';
-        die sprintf(qq#"%s" died to signal "%s" (%d)\n#, basename($exec), $signal_name, $signal_no);
-    }
 }
 
 1;

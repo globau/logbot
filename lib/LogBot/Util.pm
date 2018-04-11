@@ -16,16 +16,18 @@ our @EXPORT_OK = qw(
     path_for file_for
     event_to_string event_to_short_string
     commify pretty_size time_ago round plural
+    run
 );
 use parent 'Exporter';
 
+use Config qw ( %Config );
 use Data::Dumper qw( Dumper );
 use Date::Parse qw( str2time );
 use DateTime ();
 use File::Basename qw( basename );
 use File::Path qw( make_path );
 use List::Util qw( any );
-use POSIX qw( ceil floor );
+use POSIX qw( WEXITSTATUS WIFEXITED WIFSIGNALED WTERMSIG ceil floor );
 use Readonly;
 use Time::Local qw( timelocal );
 
@@ -287,6 +289,24 @@ sub plural {
     my ($count, $object, $suffix) = @_;
     $suffix //= 's';
     return commify($count) . ' ' . $object . ($count == 1 ? '' : $suffix);
+}
+
+sub run {
+    my @command = @_;
+    my $exec    = shift @command;
+    system($exec, @command);
+    my $error = $?;
+    die sprintf(qq#"%s" failed to start: "%s"\n#, $exec, $!) if $error == -1;
+    if (WIFEXITED($error)) {
+        my $exit_val = WEXITSTATUS($error);
+        return if $exit_val == 0;
+        print chr(7);
+    } elsif (WIFSIGNALED($error)) {
+        my $signal_no   = WTERMSIG($error);
+        my @sig_names   = split(' ', $Config{sig_name});
+        my $signal_name = $sig_names[$signal_no] // 'UNKNOWN';
+        die sprintf(qq#"%s" died to signal "%s" (%d)\n#, basename($exec), $signal_name, $signal_no);
+    }
 }
 
 1;
