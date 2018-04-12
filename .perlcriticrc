@@ -1,64 +1,122 @@
-# stern
+# use a whitelist of policies
+# avoids problems when additional policies are installed
+
 severity = 1
+only = 1
 
-# http://search.cpan.org/~petdance/Perl-Critic/lib/Perl/Critic/PolicySummary.pod
+[BuiltinFunctions::ProhibitBooleanGrep]
+[BuiltinFunctions::ProhibitComplexMappings]
+[BuiltinFunctions::ProhibitLvalueSubstr]
+[BuiltinFunctions::ProhibitSleepViaSelect]
+[BuiltinFunctions::ProhibitStringyEval]
+[BuiltinFunctions::ProhibitStringySplit]
+[BuiltinFunctions::ProhibitUniversalCan]
+[BuiltinFunctions::ProhibitUniversalIsa]
+[BuiltinFunctions::ProhibitUselessTopic]
+[BuiltinFunctions::ProhibitVoidGrep]
+[BuiltinFunctions::ProhibitVoidMap]
+[BuiltinFunctions::RequireBlockGrep]
+[BuiltinFunctions::RequireBlockMap]
+[BuiltinFunctions::RequireGlobFunction]
+[ClassHierarchies::ProhibitAutoloading]
+[ClassHierarchies::ProhibitExplicitISA]
+[ClassHierarchies::ProhibitOneArgBless]
+[CodeLayout::ProhibitHardTabs]
+[CodeLayout::ProhibitQuotedWordLists]
+[CodeLayout::ProhibitTrailingWhitespace]
+[CodeLayout::RequireConsistentNewlines]
+[CodeLayout::RequireTidyCode]
+[CodeLayout::RequireTrailingCommas]
+[ControlStructures::ProhibitDeepNests]
+[ControlStructures::ProhibitLabelsWithSpecialBlockNames]
+[ControlStructures::ProhibitMutatingListFunctions]
+[ControlStructures::ProhibitUnreachableCode]
+[ControlStructures::ProhibitUntilBlocks]
+[ControlStructures::ProhibitYadaOperator]
+[Documentation::RequirePackageMatchesPodName]
+[Documentation::RequirePodAtEnd]
+[Documentation::RequirePodLinksIncludeText]
+[Documentation::RequirePodSections]
+[ErrorHandling::RequireCheckingReturnValueOfEval]
+[InputOutput::ProhibitBacktickOperators]
+[InputOutput::ProhibitBarewordFileHandles]
+[InputOutput::ProhibitExplicitStdin]
+[InputOutput::ProhibitInteractiveTest]
+[InputOutput::ProhibitJoinedReadline]
+[InputOutput::ProhibitOneArgSelect]
+[InputOutput::ProhibitReadlineInForLoop]
+[InputOutput::ProhibitTwoArgOpen]
+[InputOutput::RequireBriefOpen]
+[InputOutput::RequireCheckedOpen]
+[InputOutput::RequireCheckedSyscalls]
+[InputOutput::RequireEncodingWithUTF8Layer]
+[Miscellanea::ProhibitFormats]
+[Miscellanea::ProhibitTies]
+[Miscellanea::ProhibitUnrestrictedNoCritic]
+[Miscellanea::ProhibitUselessNoCritic]
+[Modules::ProhibitAutomaticExportation]
+[Modules::ProhibitConditionalUseStatements]
+[Modules::ProhibitEvilModules]
+[Modules::RequireBarewordIncludes]
+[Modules::RequireEndWithOne]
+[Modules::RequireExplicitPackage]
+[Modules::RequireFilenameMatchesPackage]
+[Modules::RequireNoMatchVarsWithUseEnglish]
+[NamingConventions::Capitalization]
+[Objects::ProhibitIndirectSyntax]
+[References::ProhibitDoubleSigils]
+[RegularExpressions::ProhibitCaptureWithoutTest]
+[RegularExpressions::ProhibitFixedStringMatches]
+[RegularExpressions::ProhibitUnusedCapture]
+[RegularExpressions::ProhibitUnusualDelimiters]
+[RegularExpressions::ProhibitUselessTopic]
+[RegularExpressions::RequireBracesForMultiline]
+[Subroutines::ProhibitAmpersandSigils]
+[Subroutines::ProhibitBuiltinHomonyms]
+[Subroutines::ProhibitManyArgs]
+[Subroutines::ProhibitNestedSubs]
+[Subroutines::ProhibitReturnSort]
+[Subroutines::ProhibitSubroutinePrototypes]
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+[Subroutines::ProtectPrivateSubs]
+[Subroutines::RequireArgUnpacking]
+[TestingAndDebugging::ProhibitNoStrict]
+[TestingAndDebugging::ProhibitNoWarnings]
+[TestingAndDebugging::ProhibitProlongedStrictureOverride]
+[TestingAndDebugging::RequireTestLabels]
+[TestingAndDebugging::RequireUseStrict]
+[TestingAndDebugging::RequireUseWarnings]
+[ValuesAndExpressions::ProhibitCommaSeparatedStatements]
+[ValuesAndExpressions::ProhibitComplexVersion]
+[ValuesAndExpressions::ProhibitConstantPragma]
+[ValuesAndExpressions::ProhibitEscapedCharacters]
+[ValuesAndExpressions::ProhibitInterpolationOfLiterals]
+[ValuesAndExpressions::ProhibitLeadingZeros]
+[ValuesAndExpressions::ProhibitMismatchedOperators]
+[ValuesAndExpressions::ProhibitMixedBooleanOperators]
+[ValuesAndExpressions::ProhibitQuotesAsQuotelikeOperatorDelimiters]
+[ValuesAndExpressions::ProhibitSpecialLiteralHeredocTerminator]
+[ValuesAndExpressions::RequireConstantVersion]
+[ValuesAndExpressions::RequireInterpolationOfMetachars]
+[ValuesAndExpressions::RequireNumberSeparators]
+[ValuesAndExpressions::RequireQuotedHeredocTerminator]
+[ValuesAndExpressions::RequireUpperCaseHeredocTerminator]
+[Variables::ProhibitAugmentedAssignmentInDeclaration]
+[Variables::ProhibitConditionalDeclarations]
+[Variables::ProhibitLocalVars]
+[Variables::ProhibitMatchVars]
+[Variables::ProhibitPackageVars]
+[Variables::ProhibitPerl4PackageNames]
+[Variables::ProhibitPunctuationVars]
+[Variables::ProhibitReusedNames]
+[Variables::ProhibitUnusedVariables]
+[Variables::ProtectPrivateVars]
+[Variables::RequireInitializationForLocalVars]
+[Variables::RequireLexicalLoopIterators]
+[Variables::RequireNegativeIndices]
 
-# don't require localised magic vars
-[-Variables::RequireLocalizedPunctuationVars]
-
-# don't require sub returns
-[-Subroutines::RequireFinalReturn]
-
-# 'return' != 'return undef'
-[-Subroutines::ProhibitExplicitReturnUndef]
-
-# version strings are nice
-[-ValuesAndExpressions::ProhibitVersionStrings]
-
-# die is fine
-[-ErrorHandling::RequireCarping]
-
-# packages don't need $VERSION
-[-Modules::RequireVersionVar]
-
-# imho q{} and qq{} is uglier than '' and ""
-[-ValuesAndExpressions::ProhibitEmptyQuotes]
-[-ValuesAndExpressions::ProhibitNoisyQuotes]
-
-# whitelist more punctuation vars
 [Variables::ProhibitPunctuationVars]
 allow = $| $? $! $@ $0 $^O $$
 
-# no need to check all syscalls
 [InputOutput::RequireCheckedSyscalls]
 exclude_functions = print say
-
-# functions should look like functions
-[-CodeLayout::ProhibitParensWithBuiltins]
-
-# regexs are fine
-[-RegularExpressions::ProhibitComplexRegexes]
-[-RegularExpressions::ProhibitEnumeratedClasses]
-[-RegularExpressions::ProhibitEscapedMetacharacters]
-[-RegularExpressions::ProhibitSingleCharAlternation]
-[-RegularExpressions::RequireDotMatchAnything]
-[-RegularExpressions::RequireExtendedFormatting]
-[-RegularExpressions::RequireLineBoundaryMatching]
-
-# complex code is fine
-[-BuiltinFunctions::ProhibitReverseSortBlock]
-[-BuiltinFunctions::RequireSimpleSortBlock]
-[-ControlStructures::ProhibitCStyleForLoops]
-[-ControlStructures::ProhibitCascadingIfElse]
-[-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
-[-ControlStructures::ProhibitPostfixControls]
-[-ControlStructures::ProhibitUnlessBlocks]
-[-InputOutput::RequireBracedFileHandleWithPrint]
-[-InputOutput::RequireCheckedClose]
-[-Modules::ProhibitExcessMainComplexity]
-[-Modules::ProhibitMultiplePackages]
-[-NamingConventions::ProhibitAmbiguousNames]
-[-Subroutines::ProhibitExcessComplexity]
-[-ValuesAndExpressions::ProhibitImplicitNewlines]
-[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
-[-ValuesAndExpressions::ProhibitMagicNumbers]

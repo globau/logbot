@@ -103,6 +103,7 @@ foreach my $file (glob('web/*.sass')) {
 }
 
 # tidy all the perl as per .perltidy
+# critic all the perl as per .perlcriticrc
 
 my $critic = Perl::Critic->new(-profile => $RealBin . '/.perlcriticrc');
 find(
