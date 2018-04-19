@@ -63,7 +63,7 @@ sub load_config {
     }
 
     # normalise blocked channels
-    $config->{blocked} = [sort map { normalise_channel($_) } @{ $config->{blocked} // [] }];
+    $config->{blocked} = [sort map { /^#/ ? normalise_channel($_) : $_ } @{ $config->{blocked} // [] }];
 
     # normalise bot names
     $config->{bots} = [sort map {lc} @{ $config->{bots} }];

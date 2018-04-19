@@ -121,6 +121,25 @@ sub irc_connect {
     }
 }
 
+sub block_invite {
+    my ($source, $channel) = @_;
+    my $who = source_to_nick($source);
+
+    foreach my $blocked (@{ $config->{blocked} }) {
+        if (substr($blocked, 0, 1) eq '#') {
+            return 1 if $blocked eq $channel;
+
+        } else {
+            my $umask = quotemeta(lc($blocked));
+            $umask =~ s/\\\*/[\x01-\xFF]{0,}/g;
+            $umask =~ s/\\\?/[\x01-\xFF]{1,1}/g;
+            return 1 if lc($source) =~ /^$umask$/;
+        }
+    }
+
+    return 0;
+}
+
 sub init_logging {
     $log = Mojo::Log->new(
         path => ($config->{_internal}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
@@ -342,13 +361,15 @@ while (1) {
 
     # invited
     if ($message =~ /^:(\S+) INVITE \S+ :(#.+)/) {
-        my ($who, $channel) = (source_to_nick($1), normalise_channel($2));
+        my ($source, $channel) = ($1, normalise_channel($2));
 
-        if (any { $_ eq $channel } @{ $config->{blocked} }) {
-            say timestamp(), ' -- ignoring invite to blocked ', $channel, ' from ', $who;
-            $log->info('ignoring invite to blocked ' . $channel . ' from ' . $who);
+        if (block_invite($source, $channel)) {
+            say timestamp(), ' -- ignoring invite to blocked ', $channel, ' from ', $source;
+            $log->info('ignoring invite to blocked ' . $channel . ' from ' . $source);
             next;
         }
+
+        my $who = source_to_nick($source);
 
         if ($state->{channels_in}->{$channel}) {
             say timestamp(), ' -- ignoring invite to already-in ', $channel, ' from ', $who;
@@ -364,8 +385,9 @@ while (1) {
         }
 
         $state->{pending_invites}->{$channel} = {
-            who => lc($who),
-            ops => [],
+            who    => lc($who),
+            source => $source,
+            ops    => [],
         };
         irc_send('JOIN ' . $channel);
         next;
@@ -424,10 +446,10 @@ while (1) {
         }
 
         if (any { $_ eq $invite->{who} } @{ $invite->{ops} }) {
-            say timestamp(), ' -- joined ', $channel, ' via invite from ', $invite->{who};
-            $log->info('joined ' . $channel . ' via invite from ' . $invite->{who});
+            say timestamp(), ' -- joined ', $channel, ' via invite from ', $invite->{source};
+            $log->info('joined ' . $channel . ' via invite from ' . $invite->{source});
 
-            $config->{channels}->{$channel}->{invite} = timestamp() . ' <' . $invite->{who} . '>';
+            $config->{channels}->{$channel}->{invite} = timestamp() . ' <' . $invite->{source} . '>';
             delete $config->{channels}->{$channel}->{disabled};
             delete $config->{channels}->{$channel}->{archived};
             save_config($config);

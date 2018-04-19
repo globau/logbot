@@ -191,7 +191,8 @@ sub render {
 
     # exclude disabled channels
     if (@{ $config->{_internal}->{disabled} }) {
-        push @where, 'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{_internal}->{disabled} }) . '))';
+        push @where,
+            'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{_internal}->{disabled} }) . '))';
     }
 
     # build sql

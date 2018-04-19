@@ -1,16 +1,93 @@
 ---
-bots:
-  - bugbot
-  - pulsebot
-channels:
-  '#botdev': {}
-help: "I am glob's logbot - https://logs.glob.uno/"
+# sample config file for logbot
+# note: comments will be removed by the bot as it updates this file
+
+#
+# global
+#
+
+# network name (internal) and title (user visible)
+name: mozilla
+title: Mozilla
+
+# path to store the database, running files
+path: ~/store/mozilla
+
+#
+# irc
+#
+
 irc:
   host: ssl:irc.mozilla.org:6697
   nick: devbot
   password: secret
   real_name: 'devbot (logs.glob.com.au)'
-name: mozilla
-title: Mozilla
-path: ~/logbot-dev/development
+
+# response to any private message sent to the bot
+help: "I am glob's logbot - https://logs.glob.uno/"
+
+#
+# web interface
+#
+
+# base url
 url: https://mozilla.example.com/
+
+# other bots on the network
+bots:
+  - bugbot
+  - pulsebot
+
+#
+# channels
+#
+
+blocked:
+  # requests to join blocked channels are ignored
+  - '#never_log'
+  # requests from blocked users (umask) are ignored
+  - 'baduser'
+
+channels:
+  '#botdev': {}
+
+# channels have a number of fields, some must be set manually, while other are
+# set by the bot
+#
+# archived
+#   boolean
+#   set by logbot-nightly when a channel is inactive
+#   the bot will leave archived channels, and the channel will be moved to the
+#   archived section on the web site
+#
+# disabled
+#   boolean
+#   set by the bot when it is kicked from a channel
+#   the bot will not join disabled channels
+#   disabled channels are no longer visible on the web ui, unless web_only is
+#   set
+#
+# error
+#   text
+#   set by the bot, hold join failure error message
+#
+# invite
+#   text
+#   set by the bot to log who invited the bot to the channel, and when
+#
+# kick
+#   text
+#   set by the bot to log who kicked the bot from the channel, when, and why
+#
+# no_logs
+#   boolean
+#   manually set this to '1' to have the bot join a channel but not log any
+#   messages
+#
+# password
+#   text
+#   channel password
+#
+# web_only
+#   boolean
+#   manually set this to '1' to have disabled channels visible on the web ui
