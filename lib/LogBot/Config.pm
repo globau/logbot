@@ -48,14 +48,14 @@ sub load_config {
     say 'loading config: ' . $config_file if $ENV{DEBUG};
     my $config = YAML::Tiny->read($config_file)->[0];
 
-    # normalise channel keys
+    # normalise channel keys, and grab a list of disabled channels
+    my $disabled = [];
     my $channels = delete $config->{channels};
-    $config->{disabled} = [];
     foreach my $channel (keys %{$channels}) {
         if ($params{web}) {
             next if $channels->{$channel}->{no_logs};
             if ($channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only}) {
-                push @{ $config->{disabled} }, normalise_channel($channel);
+                push @{$disabled}, normalise_channel($channel);
                 next;
             }
         }
@@ -76,6 +76,7 @@ sub load_config {
         web      => $params{web},
         readonly => $params{web},
         is_dev   => substr(basename($config_file), 0, 1) eq '_',
+        disabled => $disabled,
     };
 
     # default timings
