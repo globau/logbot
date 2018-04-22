@@ -17,6 +17,7 @@ END {
 $| = 1;
 
 use File::Path qw( make_path );
+use List::Util qw( any );
 use LogBot::Config qw( find_config load_all_configs load_config );
 use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
 use LogBot::Util qw( event_to_string file_for plural pretty_size slurp timestamp );
@@ -41,6 +42,7 @@ syntax: logbot-util <config>|--all <command> [command args]
 commands:
     backup <path>   create backup database(s) in <path>
     delete <str>    delete log entries matching <str>
+    find-bots       find nicks ending in 'bot'
     log-rotate      rotate log files (all irc and web daemons)
     purge           delete orphaned data
     reload          signal to bot to reload config
@@ -165,6 +167,27 @@ if ($command eq 'backup') {
             kill('HUP', $pid);
         } else {
             say '"', $config->{name}, '" bot is not running';
+        }
+    }
+
+} elsif ($command eq 'find-bots') {
+    my $since = DateTime->now->subtract(months => 6)->epoch;
+
+    foreach my $config (@configs) {
+        say $config->{name};
+
+        my $dbh = dbh($config);
+        my @nicks =
+            sort
+            map {lc}
+            @{ $dbh->selectcol_arrayref("SELECT DISTINCT(nick) FROM logs WHERE time >= $since AND nick LIKE '%bot'") };
+
+        foreach my $nick (@nicks) {
+            if (any { $_ eq $nick } @{ $config->{bots} }) {
+                say "✓ $nick";
+            } else {
+                say "- $nick";
+            }
         }
     }
 
