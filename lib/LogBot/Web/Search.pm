@@ -31,7 +31,10 @@ sub render {
     }
 
     my $ch = $c->param('ch') // '';
-    $ch = normalise_channel($ch) if $ch ne '';
+    if ($ch ne '') {
+        $ch = normalise_channel($ch);
+        $ch = '' unless any { $_ eq $ch } keys %{ $config->{channels} };
+    }
 
     # searching for a ymd date redirects to that date
     if ($ch ne '' && $q =~ /^(\d\d\d\d)-?(\d\d)-?(\d\d)$/) {
