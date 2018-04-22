@@ -124,6 +124,7 @@ sub irc_connect {
 sub block_invite {
     my ($source, $channel) = @_;
     my $who = source_to_nick($source);
+    $config = reload_config($config);
 
     foreach my $blocked (@{ $config->{blocked} }) {
         if (substr($blocked, 0, 1) eq '#') {
