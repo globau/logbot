@@ -16,6 +16,7 @@ BEGIN {
 use DateTime ();
 use JSON     ();
 use JSON::XS qw( encode_json );
+use List::Util qw( any );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config save_config );
 use LogBot::Database qw( dbh replace_sql_placeholders );
 use LogBot::Util qw( file_for logbot_init nick_is_bot round spurt );
@@ -33,117 +34,86 @@ if (@ARGV && $ARGV[0] eq '--all') {
 }
 @configs || die "syntax: syntax: logbot-nightly <config file|--all>\n";
 
-my %configs = map { $_->{name} => $_ } @configs;
-
-foreach my $config_name (sort keys %configs) {
-    my $config = $configs{$config_name};
+foreach my $config (sort { $a->{name} cmp $b->{name} } @configs) {
     logbot_init($config, name => 'logbot-nightly', quiet => 1);
 
-    # generate network meta
-    generate_meta($config_name, file_for($config, 'meta', undef, 'meta'));
-    generate_hours($config_name, file_for($config, 'meta', undef, 'hours'));
+    # generate meta data
+    generate_meta($config) unless $ENV{NO_META};
+
+    # stop logging and leave stale channels
+    say $config->{name}, ': archiving stale channels' if $ENV{DEBUG};
+    archive_stale_channels($config);
+
+    # remove orphaned data
+    say $config->{name}, ': removing orphaned entries' if $ENV{DEBUG};
+    remove_orphaned_entries($config);
+}
+
+sub generate_meta {
+    my ($config) = @_;
+
+    # generate network meta (all channels)
+    generate_channel_meta($config, undef);
+    generate_hours_meta($config, undef);
 
     foreach my $channel ('_empty', sort keys %{ $config->{channels} }) {
         next if $config->{channels}->{$channel}->{no_logs};
 
-        say $config_name, ': ', $channel if $ENV{DEBUG};
+        say $config->{name}, ': ', $channel if $ENV{DEBUG};
 
         # generate data for about #channel
-        generate_meta($config_name, file_for($config, 'meta', $channel, 'meta'), $channel);
-        generate_hours($config_name, file_for($config, 'meta', $channel, 'hours'), $channel);
-        generate_nicks($config_name, file_for($config, 'meta', $channel, 'nicks'), $channel);
+        generate_channel_meta($config, $channel);
+        generate_hours_meta($config, $channel);
+        generate_nicks_meta($config, $channel);
     }
     delete $config->{channels}->{_empty};
-
-    # stop logging and leave stale channels
-    archive_stale_channels($config_name);
-
-    # remove stored topics for stale channels
-    remove_stale_topics($config_name);
 }
 
-sub query {
-    my %params = @_;
-    my @where =
-        exists($params{where})
-        ? (ref($params{where}) ? @{ $params{where} } : $params{where})
-        : ();
-    my @values;
-
-    if ($params{channel}) {
-        push @where,  'channel = ?';
-        push @values, $params{channel};
-    }
-
-    my $sql = 'SELECT ' . $params{select} . ' FROM logs';
-    $sql .= ' WHERE ' . join(' AND ', @where) if @where;
-    $sql .= ' ORDER BY ' . $params{order} if $params{order};
-
-    if ($params{row_count}) {
-        $sql = 'SELECT COUNT(*) FROM (' . $sql . ') t';
-    } else {
-        $sql .= ' LIMIT 1';
-    }
-
-    say '  ', replace_sql_placeholders($params{dbh}, $sql, \@values) if $ENV{DEBUG};
-    return $params{dbh}->selectrow_array($sql, undef, @values) // undef;
-}
-
-sub generate_meta {
-    my ($config_name, $output_file, $channel) = @_;
-    my $config = $configs{$config_name};
-    my $dbh    = dbh($config);
-    my $now    = DateTime->now();
+sub generate_channel_meta {
+    my ($config, $channel) = @_;
+    my $dbh         = dbh($config);
+    my $now         = DateTime->now();
+    my $output_file = file_for($config, 'meta', $channel, 'meta');
 
     my $six_months = $now->clone()->subtract(months => 6);
     my $one_month  = $now->clone()->subtract(months => 1);
 
-    my $json = {
-        first_time => query(
-            dbh     => $dbh,
-            channel => $channel,
-            select  => 'time',
-            order   => 'time ASC',
-        ),
+    my $meta = {};
 
-        active_events => query(
-            dbh     => $dbh,
-            channel => $channel,
-            select  => 'COUNT(*)',
-            where   => 'time >= ' . $six_months->epoch,
-        ),
+    #<<<
+    $meta->{first_time} = $dbh->selectrow_array(
+        'SELECT time FROM logs WHERE channel = ? ORDER BY time ASC LIMIT 1',
+        undef, $channel
+    );
+    $meta->{active_events} = $dbh->selectrow_array(
+        'SELECT COUNT(*) FROM logs WHERE channel = ? AND time >= ' . $six_months->epoch,
+        undef, $channel
+    );
+    $meta->{active_nicks} = $dbh->selectrow_array(
+        'SELECT COUNT(*) FROM ('
+            . 'SELECT DISTINCT nick FROM logs WHERE channel = ? AND time >= '
+            . $six_months->epoch . ')',
+        undef, $channel
+    );
+    #>>>
 
-        active_events_days => $six_months->delta_days($now)->in_units('days'),
-
-        active_nicks => query(
-            dbh       => $dbh,
-            channel   => $channel,
-            row_count => 1,
-            select    => 'DISTINCT nick',
-            where     => 'time >= ' . $six_months->epoch,
-        ),
-
-        event_count => query(
-            dbh     => $dbh,
-            channel => $channel,
-            select  => 'COUNT(*)',
-        ),
-    };
+    $meta->{active_events_days} = $six_months->delta_days($now)->in_units('days');
 
     # because we calculate the event count nightly for the network-wide stats,
     # round to nearest 1000 to make it clear it's an approximation
+    $meta->{event_count} = $dbh->selectrow_array('SELECT COUNT(*) FROM logs WHERE channel = ?', undef, $channel);
     if (!$channel) {
-        $json->{event_count} = round($json->{event_count} / 1000) * 1000;
+        $meta->{event_count} = round($meta->{event_count} / 1000) * 1000;
     }
 
-    say '  ', encode_json($json) if $ENV{DEBUG};
-    spurt($output_file, encode_json($json));
+    say '  ', encode_json($meta) if $ENV{DEBUG};
+    spurt($output_file, encode_json($meta));
 }
 
-sub generate_hours {
-    my ($config_name, $output_file, $channel) = @_;
-    my $config = $configs{$config_name};
-    my $dbh    = dbh($config);
+sub generate_hours_meta {
+    my ($config, $channel) = @_;
+    my $dbh = dbh($config);
+    my $output_file = file_for($config, 'meta', $channel, 'hours');
 
     my $sql = 'SELECT CAST(time % (24 * 3600) AS INT), COUNT(*) FROM logs';
     $sql .= ' WHERE channel = ?' if $channel;
@@ -176,10 +146,10 @@ sub generate_hours {
     spurt($output_file, encode_json($json));
 }
 
-sub generate_nicks {
-    my ($config_name, $output_file, $channel) = @_;
-    my $config = $configs{$config_name};
-    my $dbh    = dbh($config);
+sub generate_nicks_meta {
+    my ($config, $channel) = @_;
+    my $dbh = dbh($config);
+    my $output_file = file_for($config, 'meta', $channel, 'nicks');
 
     my $sql = 'SELECT nick, COUNT(*) AS count FROM logs';
     $sql .= ' WHERE channel = ?' if $channel;
@@ -203,8 +173,7 @@ sub generate_nicks {
 }
 
 sub archive_stale_channels {
-    my ($config_name) = @_;
-    my $config = $configs{$config_name};
+    my ($config) = @_;
 
     my $now    = time();
     my $reload = 0;
@@ -225,7 +194,6 @@ sub archive_stale_channels {
         $config = reload_config($config);
         $config->{channels}->{$channel}->{archived} = 1;
         save_config($config);
-        $configs{$config_name} = $config;
     }
 
     if ($reload) {
@@ -233,13 +201,23 @@ sub archive_stale_channels {
     }
 }
 
-sub remove_stale_topics {
-    my ($config_name) = @_;
-    my $config = $configs{$config_name};
+sub remove_orphaned_entries {
+    my ($config) = @_;
     my $dbh = dbh($config, read_write => 1);
 
     my @channels = sort keys %{ $config->{channels} };
-    my $sql = 'DELETE FROM topics WHERE NOT (channel in (' . join(',', ('?') x scalar(@channels)) . '))';
 
-    $dbh->do($sql, undef, @channels);
+    my $db_channels = $dbh->selectcol_arrayref('SELECT DISTINCT channel FROM logs ORDER BY channel');
+    my @orphans;
+    foreach my $channel (@{$db_channels}) {
+        next if any { $_ eq $channel } @channels;
+        push @orphans, $channel;
+    }
+    if (@orphans) {
+        say 'deleting orphaned channels: ', join(', ', @orphans) if $ENV{DEBUG};
+        $dbh->do('DELETE FROM logs WHERE channel in (' . join(',', ('?') x scalar(@orphans)) . ')', undef, @orphans);
+    }
+
+    $dbh->do('DELETE FROM topics WHERE NOT (channel in (' . join(',', ('?') x scalar(@channels)) . '))',
+        undef, @channels);
 }

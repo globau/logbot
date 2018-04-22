@@ -42,6 +42,8 @@ commands:
     backup <path>   create backup database(s) in <path>
     delete <str>    delete log entries matching <str>
     log-rotate      rotate log files (all irc and web daemons)
+    purge           delete orphaned data
+    reload          signal to bot to reload config
 EOF
 
 if ($command eq 'backup') {
@@ -145,6 +147,25 @@ if ($command eq 'backup') {
         next unless -e $file;
         chomp(my $pid = slurp($file));
         kill('USR2', $pid);
+    }
+
+} elsif ($command eq 'purge') {
+    $ENV{NO_META} = 1;
+    $ENV{DEBUG}   = 1;
+    foreach my $config (@configs) {
+        system($RealBin . '/logbot-nightly', $config->{_internal}->{file});
+    }
+
+} elsif ($command eq 'reload') {
+    foreach my $config (@configs) {
+        my $file = file_for($config, 'pid', 'logbot-irc');
+        if (-e $file) {
+            chomp(my $pid = slurp($file));
+            say 'sending HUP to ' . $pid;
+            kill('HUP', $pid);
+        } else {
+            say '"', $config->{name}, '" bot is not running';
+        }
     }
 
 } else {
