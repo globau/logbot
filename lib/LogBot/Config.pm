@@ -68,8 +68,8 @@ sub load_config {
     # normalise bot names
     $config->{bots} = [sort map {lc} @{ $config->{bots} }];
 
-    # internal values that don't need to be persisted
-    $config->{_internal} = {
+    # derived values that don't need to be persisted
+    $config->{_derived} = {
         file     => $config_file,
         root     => glob(q{'} . $config->{path} . q{'}),         # expand ~
         time     => (stat($config_file))[9],
@@ -88,7 +88,7 @@ sub load_config {
     $config->{timing}->{channel_reload_interval} ||= 60 * 60;
     $config->{timing}->{topic_reload_interval}   ||= 24 * 60 * 60;
 
-    make_path($config->{_internal}->{root});
+    make_path($config->{_derived}->{root});
     make_path(path_for($config, 'queue'));
 
     return $config;
@@ -96,19 +96,19 @@ sub load_config {
 
 sub reload_config {
     my ($config) = @_;
-    my $config_file = $config->{_internal}->{file};
-    return (stat($config_file))[9] == $config->{_internal}->{time}
+    my $config_file = $config->{_derived}->{file};
+    return (stat($config_file))[9] == $config->{_derived}->{time}
         ? $config
-        : load_config($config_file, web => $config->{_internal}->{web});
+        : load_config($config_file, web => $config->{_derived}->{web});
 }
 
 sub save_config {
     my ($config) = @_;
 
-    die 'cannot save to readonly config' if $config->{_internal}->{readonly};
+    die 'cannot save to readonly config' if $config->{_derived}->{readonly};
 
-    my $internal = delete $config->{_internal};
-    my $config_file = $internal->{file} // die;
+    my $derived = delete $config->{_derived};
+    my $config_file = $derived->{file} // die;
     say timestamp(), " -- saving config to $config_file" unless $ENV{CRON};
 
     try {
@@ -119,12 +119,12 @@ sub save_config {
         say timestamp(), " !! failed to write to $config_file: ", squash_error($_);
     };
 
-    $config->{_internal} = $internal;
+    $config->{_derived} = $derived;
 }
 
 sub config_filename {
     my ($config) = @_;
-    return $config->{_internal}->{file};
+    return $config->{_derived}->{file};
 }
 
 my ($all_configs_hash, $all_configs) = ('');

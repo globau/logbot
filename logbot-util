@@ -155,7 +155,7 @@ if ($command eq 'backup') {
     $ENV{NO_META} = 1;
     $ENV{DEBUG}   = 1;
     foreach my $config (@configs) {
-        system($RealBin . '/logbot-nightly', $config->{_internal}->{file});
+        system($RealBin . '/logbot-nightly', $config->{_derived}->{file});
     }
 
 } elsif ($command eq 'reload') {

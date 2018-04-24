@@ -166,7 +166,7 @@ sub file_for {
 
     } elsif ($type eq 'pid') {
         my ($executable) = @params;
-        return $config->{_internal}->{root} . '/' . $executable . '.pid';
+        return $config->{_derived}->{root} . '/' . $executable . '.pid';
 
     } elsif ($type eq 'connected') {
         return path_for($config, 'store') . '/connected';
@@ -180,11 +180,11 @@ sub path_for {
     my ($config, $type, @params) = @_;
 
     if ($type eq 'queue') {
-        return $config->{_internal}->{root} . '/queue';
+        return $config->{_derived}->{root} . '/queue';
 
     } elsif ($type eq 'meta') {
         my ($channel) = @params;
-        my $path = $config->{_internal}->{root} . '/meta';
+        my $path = $config->{_derived}->{root} . '/meta';
         if ($channel) {
             $channel =~ s/^#//;
             $path .= '/' . $channel;
@@ -193,7 +193,7 @@ sub path_for {
         return $path;
 
     } elsif ($type eq 'store') {
-        my $path = $config->{_internal}->{root};
+        my $path = $config->{_derived}->{root};
         make_path($path) unless -d $path;
         return $path;
 

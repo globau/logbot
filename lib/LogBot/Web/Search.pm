@@ -50,7 +50,7 @@ sub render {
     my $last_c = $c->cookie('last-c') // '';
     if ($last_c ne '') {
         $last_c = normalise_channel($last_c);
-        $last_c = '' if any { $_ eq $last_c } @{ $config->{_internal}->{disabled} };
+        $last_c = '' if any { $_ eq $last_c } @{ $config->{_derived}->{disabled} };
     }
 
     $c->stash(
@@ -193,9 +193,9 @@ sub render {
     }
 
     # exclude disabled channels
-    if (@{ $config->{_internal}->{disabled} }) {
+    if (@{ $config->{_derived}->{disabled} }) {
         push @where,
-            'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{_internal}->{disabled} }) . '))';
+            'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{_derived}->{disabled} }) . '))';
     }
 
     # build sql

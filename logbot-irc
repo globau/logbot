@@ -143,7 +143,7 @@ sub block_invite {
 
 sub init_logging {
     $log = Mojo::Log->new(
-        path => ($config->{_internal}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
+        path => ($config->{_derived}->{is_dev} ? 'log' : '/var/log/logbot') . '/irc_' . $config->{name} . '.log',
         level => 'info',
     );
 }

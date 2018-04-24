@@ -197,7 +197,7 @@ sub archive_stale_channels {
     }
 
     if ($reload) {
-        system("$RealBin/logbot-irc", $config->{_internal}->{file}, '--reload');
+        system("$RealBin/logbot-irc", $config->{_derived}->{file}, '--reload');
     }
 }
 
