@@ -30,13 +30,7 @@ Configure logbot
   to an IRC network named "cheesenet".
 
   1. copy `etc/_sample.yaml` to `etc/cheesenet.yaml`
-  2. edit `etc/cheesenet.yaml` and set values as required:
-     - `bots` is a list of bots on your network, these will be treated
-       differently in the web UI
-     - `name` is the internal unique name of this network
-     - `title` allows for the network name to be displayed differently
-     - `path` is the path to store data (databases, running files, etc).  Must
-       be writable by the logbot user.
+  2. edit `etc/cheesenet.yaml` and set values as per comments
 
 Configure Services and cron
 
@@ -60,8 +54,8 @@ Configure Services and cron
 
   If you want to use memcached configure it with the LOGBOT_MEMCACHE
   environmental variable - it must be in the form `server:port`. eg.
-  `localhost:11211`.  Restart memcached every time you redeploy to clear the
-  cache.
+  `localhost:11211`.  After each deploy you must touch the config file(s)
+  to clear memcached entries.
 
   Finally you need to configure `logbot-nightly --all` to run nightly; this
   process generates statistical data and archives stale channels.
@@ -71,7 +65,7 @@ Configure Services and cron
 Backups
 
   Should you want to backup logbot's data the safest way is to run the
-  `~/logbot/logbot-backup --all ~/store/backups` command.  This will use
+  `~/logbot/logbot-util backup --all ~/store/backups` command.  This will use
   SQLite's `backup` command to create a copy of the databases.  From there use
   your normal off-system backup mechanisms.
 
