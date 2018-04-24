@@ -154,7 +154,8 @@ get '/' => sub {
     } else {
 
         # index
-        $c->stash(cache_key => $c->stash('config')->{name});
+        my $config = $c->stash('config');
+        $c->stash(cache_key => $config->{_derived}->{time} . '.' . $config->{name});
         LogBot::Web::Index::render($c);
     }
 };
@@ -251,7 +252,8 @@ get '/#channel/:date' => [date => qr/\d{8}/] => sub {
         is_today => $date == $c->stash('today'),
     );
     if (!$c->stash('is_today')) {
-        $c->stash(cache_key => $c->stash('config')->{name} . $channel . ':' . $date->ymd(''));
+        my $config = $c->stash('config');
+        $c->stash(cache_key => $config->{_derived}->{time} . '.' . $config->{name} . $channel . '.' . $date->ymd(''));
     }
 
     # render
