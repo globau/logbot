@@ -70,7 +70,7 @@ plugin AccessLog => {
     log => ($is_production ? '/var/log/logbot/access.log' : 'log/access.log'),
     format => '%h %{X-Network}o - %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
 };
-my $memcache = LogBot::MemCache->new();
+my $memcache = LogBot::MemCache->new(binary => $is_production);
 
 # per-request initialisation
 under sub {

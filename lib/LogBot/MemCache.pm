@@ -12,7 +12,7 @@ use IO::Socket::INET ();
 use Memcached::libmemcached qw( /^memcached/ MEMCACHED_BEHAVIOR_BINARY_PROTOCOL );
 
 sub new {
-    my ($class) = @_;
+    my ($class, %params) = @_;
 
     my $server = $ENV{LOGBOT_MEMCACHE} // 'localhost:11211';
 
@@ -25,7 +25,7 @@ sub new {
 
     if (IO::Socket::INET->new(PeerHost => $host, PeerPort => $port, Proto => 'tcp', Timeout => 1)) {
         my $cache = memcached_create();
-        memcached_behavior_set($cache, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+        memcached_behavior_set($cache, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1) if $params{binary};
         memcached_server_add($cache, $host, $port);
         return bless({ cache => $cache }, $class);
     }
