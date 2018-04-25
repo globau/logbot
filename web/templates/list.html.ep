@@ -1,7 +1,7 @@
 % layout 'logbot';
 % use LogBot::Web::Util qw( url_for_channel );
 
-<% my $channel_li = begin %>
+% my $channel_li = begin
   % my ($channel, $topic) = @_;
   <li class="<%= 'archived' if $channel->{archived} %>" data-text="<%= $channel->{name} . ' ' . lc($topic) %>">
     <a href="<%= url_for_channel( channel => $channel->{name} ) %>" class="channel"><%= $channel->{name} %></a>
@@ -9,8 +9,9 @@
       <div class="topic"><%== linkify $topic %></div>
     % }
   </li>
-<% end %>
+% end
 
+%= cached 'list' => begin
 <div id="channel-list">
   <h3>Active Channels</h3>
 
@@ -45,3 +46,4 @@
     </div>
   % }
 </div>
+% end

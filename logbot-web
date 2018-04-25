@@ -93,19 +93,20 @@ under sub {
 
     # reload config, regenerating channel list if required
     $networks->[$config_index] = reload_config($networks->[$config_index]);
-    build_channel_list($networks->[$config_index]);
+    my $config = $networks->[$config_index];
+    build_channel_list($config);
 
     # store network name in response header for logging
-    $c->res->headers->add('X-Network' => $networks->[$config_index]->{name});
+    $c->res->headers->add('X-Network' => $config->{name});
 
     nick_colour_init();
 
     $c->stash(
-        config          => $networks->[$config_index],
+        config          => $config,
         networks        => $networks,
-        network         => $networks->[$config_index]->{name},
-        channels        => $networks->[$config_index]->{channel_list},
-        topics          => channel_topics($networks->[$config_index]),
+        network         => $config->{name},
+        channels        => $config->{channel_list},
+        topics          => channel_topics($config),
         font_s          => $c->cookie('font-s'),
         menu_c          => $c->cookie('menu-c'),
         nick_u          => $c->cookie('nick-u'),
@@ -123,7 +124,7 @@ under sub {
         is_stats        => 0,
         today           => DateTime->now()->truncate(to => 'day'),
         is_today        => 0,
-        cache_key       => '',
+        cache_prefix    => $config->{_derived}->{time} . '.' . $config->{name} . '.',
     );
     return 1;
 };
@@ -155,7 +156,6 @@ get '/' => sub {
 
         # index
         my $config = $c->stash('config');
-        $c->stash(cache_key => $config->{_derived}->{time} . '.' . $config->{name});
         LogBot::Web::Index::render($c);
     }
 };
@@ -251,10 +251,6 @@ get '/#channel/:date' => [date => qr/\d{8}/] => sub {
         is_logs  => 1,
         is_today => $date == $c->stash('today'),
     );
-    if (!$c->stash('is_today')) {
-        my $config = $c->stash('config');
-        $c->stash(cache_key => $config->{_derived}->{time} . '.' . $config->{name} . $channel . '.' . $date->ymd(''));
-    }
 
     # render
     LogBot::Web::Channel::logs($c);
@@ -317,26 +313,28 @@ my %cache;
 
 # static file with timestamp
 helper static => sub {
-    my ($self, $file) = @_;
+    my ($c, $file) = @_;
     return $cache{static}->{$file} //= '/static/' . $file . '?' . (stat($RealBin . '/web/public/static/' . $file))[9];
 };
 
 # inline svg
 helper svg => sub {
-    my ($self, $file) = @_;
+    my ($c, $file) = @_;
     return $cache{svg}->{$file} //= Mojo::ByteStream->new(slurp($RealBin . '/web/svg/' . $file . '.svg'));
 };
 
 # linkify text
 helper linkify => sub {
-    my ($self, $text) = @_;
+    my ($c, $text) = @_;
     return linkify($text);
 };
 
 # cache
 helper cached => sub {
-    my ($self, $key, $callback) = @_;
-    return Mojo::ByteStream->new($key ? $memcache->get($key, $callback) : $callback->());
+    my ($c, $key, $callback) = @_;
+    return $key eq ''
+        ? $callback->()
+        : Mojo::ByteStream->new($memcache->get($c->stash('cache_prefix') . $key, $callback));
 };
 
 hook after_render => sub {

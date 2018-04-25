@@ -1,7 +1,7 @@
 % layout 'logbot';
 % use LogBot::Web::Util qw( irc_host );
 
-%= cached $cache_key => begin
+%= cached 'index' => begin
 
 <div id="index">
     <div id="logo-large">

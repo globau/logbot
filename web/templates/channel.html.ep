@@ -5,7 +5,7 @@
 % use LogBot::Web::Util qw( nick_colour url_for_channel );
 % use Mojo::Util qw( trim );
 
-%= cached $cache_key => begin
+%= cached $is_today ? '' : $channel . '.' . $date->ymd('') => begin
 
 %= include 'shared/nick_styles', nick_hashes => $nick_hashes
 
