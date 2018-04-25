@@ -23,9 +23,9 @@ sub render {
     }
 
     $c->stash(
-        is_stats => 1,
-        url      => irc_host($config, channel => $c->stash('channel'), url => 1),
-        now      => time_to_datetimestr(DateTime->now()->epoch),
+        page => 'stats',
+        url  => irc_host($config, channel => $c->stash('channel'), url => 1),
+        now  => time_to_datetimestr(DateTime->now()->epoch),
     );
 
     return $c->render('stats');

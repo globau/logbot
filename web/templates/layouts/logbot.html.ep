@@ -7,15 +7,14 @@
   <link rel="stylesheet" href="<%= static('logbot.min.css') %>">
   <meta name="viewport" content="initial-scale=1">
 </head>
-<body class="<%= 'font-s ' if $font_s =%>
+<body class="<%= $page =%>
+             <%= 'font-s ' if $font_s =%>
              <%= 'nick-u ' if $nick_u =%>
              <%= 'nick-w ' if $nick_w =%>
              <%= 'menu-c ' if $menu_c =%>
              <%= 'hide-b ' if $hide_b =%>
              <%= 'norm-b ' if $norm_b =%>
-             <%= 'topic'   if $topic && $is_logs %>
-             <%= 'stats '  if $is_stats =%>
-             <%= 'search'  if $is_search =%>">
+             <%= 'topic'   if $topic && $page eq 'logs' %>">
 
   <noscript><h1>This site requires JavaScript</h1></noscript>
 
@@ -161,7 +160,7 @@
       </div>
     % }
 
-    % if ($channel && $is_stats) {
+    % if ($channel && $page eq 'stats') {
       <div id="logs-container" class="nav-button">
         <a id="channel-logs" class="button" title="<%= $channel %> Logs"
             href="<%= url_for_channel( channel => $channel )%>">
@@ -206,7 +205,7 @@
 
   </div>
 
-  <div id="main" class="<%= 'logs' if $is_logs %>">
+  <div id="main">
     % if ($error) {
       <div class="notification is-warning"><%= $error %></div>
     % }

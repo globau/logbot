@@ -54,7 +54,7 @@ sub render {
     }
 
     $c->stash(
-        is_search => 1,
+        page => 'search',
 
         q   => $q,                                  # query
         ch  => $ch,                                 # channel

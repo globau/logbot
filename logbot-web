@@ -119,9 +119,7 @@ under sub {
         error           => '',
         event_count     => 0,
         bot_event_count => 0,
-        is_logs         => 0,
-        is_search       => 0,
-        is_stats        => 0,
+        page            => '',
         today           => DateTime->now()->truncate(to => 'day'),
         is_today        => 0,
         cache_prefix    => $config->{_derived}->{time} . '.' . $config->{name} . '.',
@@ -248,7 +246,7 @@ get '/#channel/:date' => [date => qr/\d{8}/] => sub {
     $c->stash(
         channel  => $channel,
         date     => $date,
-        is_logs  => 1,
+        page     => 'logs',
         is_today => $date == $c->stash('today'),
     );
 
