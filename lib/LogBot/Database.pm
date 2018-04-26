@@ -39,7 +39,6 @@ sub dbh {
     }
 }
 
-## no critic (ProhibitInterpolationOfLiterals)
 sub _dbh_read_write {
     my ($config) = @_;
 
@@ -61,41 +60,40 @@ sub _dbh_read_write {
     # initialise db
     _do_multi(
         $dbh,
-        "CREATE TABLE IF NOT EXISTS logs(id INTEGER PRIMARY KEY, old_id INTEGER, time REAL, channel TEXT, nick TEXT, type INTEGER, text TEXT)",
-        "CREATE TABLE IF NOT EXISTS topics(id INTEGER PRIMARY KEY, time REAL, channel TEXT, topic TEXT)",
-        "CREATE INDEX IF NOT EXISTS idx_time ON logs(time)",
-        "CREATE INDEX IF NOT EXISTS idx_channel ON logs(channel)",
-        "CREATE INDEX IF NOT EXISTS idx_nick ON logs(nick COLLATE NOCASE)",
-        "CREATE INDEX IF NOT EXISTS idx_text ON logs(text)",
-        "CREATE INDEX IF NOT EXISTS idx_channel_time ON logs(channel, time)",
-        "CREATE INDEX IF NOT EXISTS idx_topic ON topics(channel)",
+        'CREATE TABLE IF NOT EXISTS logs(id INTEGER PRIMARY KEY, old_id INTEGER, time REAL, channel TEXT, nick TEXT, type INTEGER, text TEXT)',
+        'CREATE TABLE IF NOT EXISTS topics(id INTEGER PRIMARY KEY, time REAL, channel TEXT, topic TEXT)',
+        'CREATE INDEX IF NOT EXISTS idx_time ON logs(time)',
+        'CREATE INDEX IF NOT EXISTS idx_channel ON logs(channel)',
+        'CREATE INDEX IF NOT EXISTS idx_nick ON logs(nick COLLATE NOCASE)',
+        'CREATE INDEX IF NOT EXISTS idx_text ON logs(text)',
+        'CREATE INDEX IF NOT EXISTS idx_channel_time ON logs(channel, time)',
+        'CREATE INDEX IF NOT EXISTS idx_topic ON topics(channel)',
     );
 
     # initalise fts
     _do_multi(
         $dbh,
-        "CREATE VIRTUAL TABLE IF NOT EXISTS logs_fts USING fts5(text, time UNINDEXED, content=logs, content_rowid=id)",
-        "CREATE TRIGGER IF NOT EXISTS logs_ai AFTER INSERT ON logs BEGIN
+        'CREATE VIRTUAL TABLE IF NOT EXISTS logs_fts USING fts5(text, time UNINDEXED, content=logs, content_rowid=id)',
+        'CREATE TRIGGER IF NOT EXISTS logs_ai AFTER INSERT ON logs BEGIN
             INSERT INTO logs_fts(rowid, text) VALUES (new.id, new.text);
-        END",
-        "CREATE TRIGGER IF NOT EXISTS logs_ad AFTER DELETE ON logs BEGIN
-            INSERT INTO logs_fts(logs_fts, rowid, text) VALUES('delete', old.id, old.text);
-        END",
-        "CREATE TRIGGER IF NOT EXISTS logs_au AFTER UPDATE ON logs BEGIN
-            INSERT INTO logs_fts(logs_fts, rowid, text) VALUES('delete', old.id, old.text);
+        END',
+        'CREATE TRIGGER IF NOT EXISTS logs_ad AFTER DELETE ON logs BEGIN
+            INSERT INTO logs_fts(logs_fts, rowid, text) VALUES("delete", old.id, old.text);
+        END',
+        'CREATE TRIGGER IF NOT EXISTS logs_au AFTER UPDATE ON logs BEGIN
+            INSERT INTO logs_fts(logs_fts, rowid, text) VALUES("delete", old.id, old.text);
             INSERT INTO logs_fts(rowid, text) VALUES (new.id, new.text);
-        END;",
+        END;',
     );
 
     # use write-ahead log jounaling
-    $dbh->do("PRAGMA journal_mode=WAL");
+    $dbh->do('PRAGMA journal_mode=WAL');
 
     # sync at critical moments but less frequently than default
-    $dbh->do("PRAGMA synchronous=NORMAL");
+    $dbh->do('PRAGMA synchronous=NORMAL');
 
     return $dbh;
 }
-## use critic
 
 sub _dbh_read_only {
     my ($config) = @_;
