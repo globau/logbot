@@ -80,28 +80,48 @@ sub generate_channel_meta {
 
     my $meta = {};
 
-    #<<<
-    $meta->{first_time} = $dbh->selectrow_array(
-        'SELECT time FROM logs WHERE channel = ? ORDER BY time ASC LIMIT 1',
-        undef, $channel
-    );
-    $meta->{active_events} = $dbh->selectrow_array(
-        'SELECT COUNT(*) FROM logs WHERE channel = ? AND time >= ' . $six_months->epoch,
-        undef, $channel
-    );
-    $meta->{active_nicks} = $dbh->selectrow_array(
-        'SELECT COUNT(*) FROM ('
-            . 'SELECT DISTINCT nick FROM logs WHERE channel = ? AND time >= '
-            . $six_months->epoch . ')',
-        undef, $channel
-    );
-    #>>>
+    if ($channel) {
+        #<<<
+        $meta->{first_time} = $dbh->selectrow_array(
+            'SELECT time FROM logs WHERE channel = ? ORDER BY time ASC LIMIT 1',
+            undef, $channel
+        );
+        $meta->{active_events} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM logs WHERE channel = ? AND time >= ' . $six_months->epoch,
+            undef, $channel
+        );
+        $meta->{active_nicks} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM ('
+                . 'SELECT DISTINCT nick FROM logs WHERE channel = ? AND time >= ' . $six_months->epoch . ')',
+            undef, $channel
+        );
+        $meta->{event_count} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM logs WHERE channel = ?',
+            undef, $channel
+        );
+        #>>>
+    } else {
+        #<<<
+        $meta->{first_time} = $dbh->selectrow_array(
+            'SELECT time FROM logs ORDER BY time ASC LIMIT 1'
+        );
+        $meta->{active_events} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM logs WHERE time >= ' . $six_months->epoch
+        );
+        $meta->{active_nicks} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM ('
+                . 'SELECT DISTINCT nick FROM logs WHERE time >= ' . $six_months->epoch . ')'
+        );
+        $meta->{event_count} = $dbh->selectrow_array(
+            'SELECT COUNT(*) FROM logs'
+        );
+        #>>>
+    }
 
     $meta->{active_events_days} = $six_months->delta_days($now)->in_units('days');
 
     # because we calculate the event count nightly for the network-wide stats,
     # round to nearest 1000 to make it clear it's an approximation
-    $meta->{event_count} = $dbh->selectrow_array('SELECT COUNT(*) FROM logs WHERE channel = ?', undef, $channel);
     if (!$channel) {
         $meta->{event_count} = round($meta->{event_count} / 1000) * 1000;
     }
