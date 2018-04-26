@@ -21,12 +21,7 @@ use IO::Compress::Gzip qw( gzip );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config );
 use LogBot::MemCache ();
 use LogBot::Util qw( time_to_ymd );
-use LogBot::Web::Channel ();
-use LogBot::Web::Index   ();
-use LogBot::Web::List    ();
-use LogBot::Web::Search  ();
-use LogBot::Web::Stats   ();
-use LogBot::Web::Util qw( channel_from_param channel_topics date_from_param linkify nick_colour_init rewrite_old_urls );
+use LogBot::Web::Util qw( channel_from_param channel_topics linkify nick_colour_init render_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::Util qw( dumper );
 use Mojolicious::Lite qw( app );
@@ -71,6 +66,7 @@ plugin AccessLog => {
     format => '%h %{X-Network}o - %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
 };
 my $memcache = LogBot::MemCache->new(binary => $is_production);
+render_init($RealBin);
 
 # per-request initialisation
 under sub {
@@ -105,7 +101,7 @@ under sub {
         config          => $config,
         networks        => $networks,
         network         => $config->{name},
-        channels        => $config->{channel_list},
+        channels        => $config->{_derived}->{channel_list},
         topics          => channel_topics($config),
         font_s          => $c->cookie('font-s'),
         menu_c          => $c->cookie('menu-c'),
@@ -161,7 +157,7 @@ get '/' => sub {
 # config
 get '/_config' => sub {
     my ($c) = @_;
-    $c->render('config');
+    LogBot::Web::Config::render($c);
 };
 
 # channel list
@@ -178,12 +174,12 @@ get '/_stats' => sub {
 
 get '/_stats/meta' => sub {
     my ($c) = @_;
-    $c->render(json => LogBot::Web::Stats::meta($c));
+    LogBot::Web::Stats::render_meta($c);
 };
 
 get '/_stats/hours' => sub {
     my ($c) = @_;
-    $c->render(text => LogBot::Web::Stats::hours($c), format => 'json');
+    LogBot::Web::Stats::render_hours($c);
 };
 
 # debugging
@@ -227,75 +223,31 @@ get '/#channel' => sub {
 # /channel/date => show logs
 get '/#channel/:date' => [date => qr/\d{8}/] => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
-    # store last visited channel
-    $c->cookie(
-        'last-c' => $channel, {
-            path    => '/',
-            expires => time() + 60 * 60 * 24 * 365,
-        }
-    );
-
-    # find date
-    my $date = date_from_param($c);
-    if (!defined $date) {
-        return $c->redirect_to('/' . substr($channel, 1) . '/' . $c->stash('today')->ymd(''));
-    }
-
-    $c->stash(
-        channel  => $channel,
-        date     => $date,
-        page     => 'logs',
-        is_today => $date == $c->stash('today'),
-    );
-
-    # render
-    LogBot::Web::Channel::logs($c);
+    LogBot::Web::Channel::render_logs($c);
 };
 
 get '/#channel/:date/raw' => [date => qr/\d{8}/] => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
-    my $date = date_from_param($c);
-    if (!defined $date) {
-        return $c->redirect_to('/' . substr($channel, 1) . '/' . $c->stash('today')->ymd(''));
-    }
-
-    $c->stash(
-        date    => $date,
-        channel => $channel,
-    );
-    LogBot::Web::Channel::raw($c);
+    LogBot::Web::Channel::render_raw($c);
 };
 
 get '/#channel/stats' => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
-    $c->stash(channel => $channel);
-    LogBot::Web::Stats::render($c);
+    LogBot::Web::Stats::render($c, require_channel => 1);
 };
 
 get '/#channel/stats/meta' => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
-    $c->render(json => LogBot::Web::Stats::meta($c, $channel));
+    LogBot::Web::Stats::render_meta($c, require_channel => 1);
 };
 
 get '/#channel/stats/hours' => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
-    $c->render(text => LogBot::Web::Stats::hours($c, $channel), format => 'json');
+    LogBot::Web::Stats::render_hours($c);
 };
 
 get '/#channel/stats/nicks' => sub {
     my ($c) = @_;
-    my $channel = channel_from_param($c) // return;
-
     LogBot::Web::Stats::render_nicks($c);
 };
 
@@ -374,11 +326,11 @@ app->start;
 # build a quick channel list
 sub build_channel_list {
     my ($config) = @_;
-    return if exists $config->{channel_list};
+    return if exists $config->{_derived}->{channel_list};
 
-    $config->{channel_list} = [];
+    $config->{_derived}->{channel_list} = [];
     foreach my $channel (sort keys %{ $config->{channels} }) {
-        push @{ $config->{channel_list} },
+        push @{ $config->{_derived}->{channel_list} },
             { name => $channel, archived => $config->{channels}->{$channel}->{archived} };
     }
 }

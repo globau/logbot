@@ -14,6 +14,7 @@ sub render {
         );
     }
 
+    $c->stash(page => 'index');
     return $c->render('index');
 }
 

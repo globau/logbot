@@ -8,13 +8,13 @@ use DateTime ();
 use Encode qw( decode );
 use LogBot::Database qw( dbh execute_with_timeout );
 use LogBot::Util qw( event_to_short_string );
-use LogBot::Web::Util qw( preprocess_event );
+use LogBot::Web::Util qw( channel_from_param date_from_param preprocess_event );
 
 sub _get_logs {
-    my ($c, $dbh) = @_;
+    my ($c, $dbh, $channel, $date) = @_;
 
-    my $start_time = $c->stash('date')->epoch;
-    my $end_time = $c->stash('date')->clone->add(days => 1)->epoch;
+    my $start_time = $date->epoch;
+    my $end_time = $date->clone->add(days => 1)->epoch;
 
     ## no critic (ProhibitInterpolationOfLiterals)
     #<<<
@@ -26,7 +26,7 @@ sub _get_logs {
     #>>>
     ## use critic
 
-    my $logs = execute_with_timeout($dbh, $sql, [$c->stash('channel')], 5);
+    my $logs = execute_with_timeout($dbh, $sql, [$channel], 5);
     unless (defined $logs) {
         $c->stash(error => 'Request took too long to process and has been cancelled.',);
         $c->render('channel');
@@ -36,28 +36,30 @@ sub _get_logs {
     return ($logs, $sql);
 }
 
-sub logs {
-    my ($c, $params) = @_;
+sub render_logs {
+    my ($c) = @_;
     my $config = $c->stash('config');
 
-    if (my $error = $params->{error}) {
-        $c->stash(
-            channel => '',
-            error   => $error,
-        );
-    }
-    return $c->render('index') unless $c->stash('channel');
+    my $channel = channel_from_param($c) // return;
 
-    $c->stash(
-        logs      => undef,
-        last_date => undef,
-        skip_prev => undef,
-        skip_next => undef,
-    );
+    my $date = date_from_param($c);
+    if (!defined $date) {
+        return $c->redirect_to('/' . substr($channel, 1) . '/' . $c->stash('today')->ymd(''));
+    }
+    my $is_today = $date == $c->stash('today');
+    my $time     = $date->epoch;
 
     my $dbh = dbh($config, cached => 1);
-    my ($logs, $sql) = _get_logs($c, $dbh);
+    my ($logs, $sql) = _get_logs($c, $dbh, $channel, $date);
     return unless defined($logs);
+
+    # store last visited channel
+    $c->cookie(
+        'last-c' => $channel, {
+            path    => '/',
+            expires => time() + 60 * 60 * 24 * 365,
+        }
+    );
 
     # process each event
     my $bot_event_count = 0;
@@ -68,30 +70,36 @@ sub logs {
     }
 
     # calc navigation dates
-    if (@{$logs} && $c->stash('is_today')) {
+
+    $c->stash(
+        last_date => undef,
+        skip_prev => undef,
+        skip_next => undef,
+    );
+
+    if (@{$logs} && $is_today) {
         $c->stash(last_date => DateTime->from_epoch(epoch => $logs->[-1]->{time}));
     }
 
-    my $time = $c->stash('date')->epoch;
-
     my $skip_prev_time =
         $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time < ? ORDER BY time DESC LIMIT 1',
-        undef, $c->stash('channel'), $time);
+        undef, $channel, $time);
     if ($skip_prev_time) {
         $c->stash(skip_prev => DateTime->from_epoch(epoch => $skip_prev_time)->truncate(to => 'day'));
     }
 
-    my $skip_next_time = $dbh->selectrow_array(
-        'SELECT time FROM logs WHERE channel = ? AND time >= ? ORDER BY time ASC LIMIT 1',
-        undef,
-        $c->stash('channel'),
-        $time + 60 * 60 * 24
-    );
+    my $skip_next_time =
+        $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? AND time >= ? ORDER BY time ASC LIMIT 1',
+        undef, $channel, $time + 60 * 60 * 24);
     if ($skip_next_time) {
         $c->stash(skip_next => DateTime->from_epoch(epoch => $skip_next_time)->truncate(to => 'day'));
     }
 
     $c->stash(
+        channel         => $channel,
+        date            => $date,
+        page            => 'logs',
+        is_today        => $is_today,
         logs            => $logs,
         event_count     => scalar(@{$logs}),
         bot_event_count => $bot_event_count,
@@ -101,20 +109,19 @@ sub logs {
     $c->render('channel');
 }
 
-sub raw {
-    my ($c, $params) = @_;
+sub render_raw {
+    my ($c) = @_;
     my $config = $c->stash('config');
 
-    if (my $error = $params->{error}) {
-        $c->stash(
-            channel => '',
-            error   => $error,
-        );
+    my $channel = channel_from_param($c) // return;
+
+    my $date = date_from_param($c);
+    if (!defined $date) {
+        return $c->redirect_to('/' . substr($channel, 1) . '/' . $c->stash('today')->ymd(''));
     }
-    return $c->render('index') unless $c->stash('channel');
 
     my $dbh = dbh($config, cached => 1);
-    my ($logs) = _get_logs($c, $dbh);
+    my ($logs) = _get_logs($c, $dbh, $channel, $date);
 
     my @lines;
     foreach my $event (@{$logs}) {

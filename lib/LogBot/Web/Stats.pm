@@ -8,18 +8,16 @@ use DateTime ();
 use JSON::XS qw( decode_json );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( commify file_for plural slurp time_to_datetimestr );
-use LogBot::Web::Util qw( irc_host );
+use LogBot::Web::Util qw( channel_from_param irc_host );
 use Time::Duration qw( ago );
 
 sub render {
-    my ($c, $params) = @_;
+    my ($c, %params) = @_;
     my $config = $c->stash('config');
 
-    if (my $error = $params->{error}) {
-        $c->stash(
-            channel => '',
-            error   => $error,
-        );
+    if ($params{require_channel}) {
+        my $channel = channel_from_param($c) // return;
+        $c->stash(channel => $channel);
     }
 
     $c->stash(
@@ -37,9 +35,14 @@ sub event_time_to_str {
     return (time_to_datetimestr(int($time)), ago(time() - $time, $accuracy // 2));
 }
 
-sub meta {
-    my ($c, $channel) = @_;
+sub render_meta {
+    my ($c, %params) = @_;
     my $config = $c->stash('config');
+
+    my $channel;
+    if ($params{require_channel}) {
+        $channel = channel_from_param($c) // return;
+    }
 
     my $dbh = dbh($config, cached => 1);
 
@@ -88,41 +91,46 @@ sub meta {
     my $channels_in = scalar(grep { !($_->{archived} || $_->{blocked} || $_->{disabled}) } values $config->{channels});
     my $archived = scalar(grep { $_->{archived} && !($_->{blocked} || $_->{disabled}) } values $config->{channels});
 
-    return {
-        first_ago      => $first_ago,
-        last_ago       => $last_ago,
-        event_count    => commify($event_count),
-        active_events  => plural($active_events, 'event') . '/day',
-        active_nicks   => plural($active_nicks, 'active user'),
-        channels_in    => 'Logging ' . plural($channels_in, 'channel'),
-        channels_total => plural($archived, 'archived channel'),
-    };
+    $c->render(
+        json => {
+            first_ago      => $first_ago,
+            last_ago       => $last_ago,
+            event_count    => commify($event_count),
+            active_events  => plural($active_events, 'event') . '/day',
+            active_nicks   => plural($active_nicks, 'active user'),
+            channels_in    => 'Logging ' . plural($channels_in, 'channel'),
+            channels_total => plural($archived, 'archived channel'),
+        }
+    );
 }
 
-sub hours {
-    my ($c, $channel) = @_;
+sub render_hours {
+    my ($c, %params) = @_;
     my $config = $c->stash('config');
 
+    my $channel;
+    if ($params{require_channel}) {
+        $channel = channel_from_param($c) // return;
+    }
+
     my $file = file_for($config, 'meta', $channel, 'hours');
-    return -e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'hours'));
+    $c->render(
+        text => -e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'hours')),
+        format => 'json',
+    );
 }
 
 sub render_nicks {
-    my ($c, $params) = @_;
+    my ($c) = @_;
     my $config = $c->stash('config');
 
-    if (my $error = $params->{error}) {
-        $c->stash(
-            channel => '',
-            error   => $error,
-        );
-    }
+    my $channel = channel_from_param($c) // return;
 
     my $file = file_for($config, 'meta', $c->stash('channel'), 'nicks');
     my $data = decode_json(-e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'nicks')));
 
     $c->stash(nicks => $data);
-    return $c->render('stats_nicks');
+    $c->render('stats_nicks');
 }
 
 1;

@@ -8,8 +8,10 @@ use Date::Parse qw( str2time );
 use DateTime ();
 use Digest::xxHash qw( xxhash32 );
 use Encode qw ( decode );
+use File::Basename qw( basename );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
+use Module::Load qw( load );
 use Mojo::Path ();
 use Mojo::URL  ();
 use Mojo::Util qw( html_unescape xml_escape );
@@ -17,6 +19,7 @@ use Readonly;
 use URI::Find ();
 
 our @EXPORT_OK = qw(
+    render_init
     nick_hash nick_colour nick_colour_init
     rewrite_old_urls
     url_for_channel irc_host
@@ -26,6 +29,14 @@ our @EXPORT_OK = qw(
     channel_topics
 );
 use parent 'Exporter';
+
+sub render_init {
+    my ($path) = @_;
+    foreach my $file (glob($path . '/lib/LogBot/Web/*.pm')) {
+        next if basename($file) eq 'Util.pm';
+        load($file);
+    }
+}
 
 sub nick_hash {
     my ($nick) = @_;
