@@ -48,17 +48,9 @@ sub load_config {
     say 'loading config: ' . $config_file if $ENV{DEBUG};
     my $config = YAML::Tiny->read($config_file)->[0];
 
-    # normalise channel keys, and grab a list of disabled channels
-    my $disabled = [];
+    # normalise channel names
     my $channels = delete $config->{channels};
     foreach my $channel (keys %{$channels}) {
-        if ($params{web}) {
-            next if $channels->{$channel}->{no_logs};
-            if ($channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only}) {
-                push @{$disabled}, normalise_channel($channel);
-                next;
-            }
-        }
         $config->{channels}->{ normalise_channel($channel) } = $channels->{$channel};
     }
 
@@ -76,8 +68,24 @@ sub load_config {
         web      => $params{web},
         readonly => $params{web},
         is_dev   => substr(basename($config_file), 0, 1) eq '_',
-        disabled => $disabled,
     };
+
+    if ($params{web}) {
+
+        # build sorted channel list, and list of disabled channels
+        my (@visible, @disabled);
+        foreach my $channel (sort keys %{ $config->{channels} }) {
+            next if $channels->{$channel}->{no_logs};
+            if ($channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only}) {
+                push @disabled, normalise_channel($channel);
+                next;
+            }
+            push @visible, { name => $channel, archived => $config->{channels}->{$channel}->{archived} };
+        }
+
+        $config->{_derived}->{visible_channels}  = \@visible;
+        $config->{_derived}->{disabled_channels} = \@disabled;
+    }
 
     # default timings
     $config->{timing}->{initial_ping_delay}      ||= 3 * 60;

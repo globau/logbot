@@ -22,7 +22,6 @@
   % my @archived;
   <ul id="active-channels">
     % foreach my $channel (@{$channels}) {
-      % next if $channel->{disabled} || $channel->{no_logs};
       % if ($channel->{archived}) {
       %   push @archived, $channel;
       %   next;

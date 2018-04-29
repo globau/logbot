@@ -44,9 +44,6 @@ my $networks = [];
         }
     }
 
-    foreach my $config (@{$networks}) {
-        build_channel_list($config);
-    }
     $networks = [sort { $a->{name} cmp $b->{name} } @{$networks}];
 }
 
@@ -87,10 +84,9 @@ under sub {
         }
     }
 
-    # reload config, regenerating channel list if required
+    # reload config
     $networks->[$config_index] = reload_config($networks->[$config_index]);
     my $config = $networks->[$config_index];
-    build_channel_list($config);
 
     # store network name in response header for logging
     $c->res->headers->add('X-Network' => $config->{name});
@@ -101,7 +97,7 @@ under sub {
         config          => $config,
         networks        => $networks,
         network         => $config->{name},
-        channels        => $config->{_derived}->{channel_list},
+        channels        => $config->{_derived}->{visible_channels},
         topics          => channel_topics($config),
         font_s          => $c->cookie('font-s'),
         menu_c          => $c->cookie('menu-c'),
@@ -322,15 +318,3 @@ hook after_render => sub {
 };
 
 app->start;
-
-# build a quick channel list
-sub build_channel_list {
-    my ($config) = @_;
-    return if exists $config->{_derived}->{channel_list};
-
-    $config->{_derived}->{channel_list} = [];
-    foreach my $channel (sort keys %{ $config->{channels} }) {
-        push @{ $config->{_derived}->{channel_list} },
-            { name => $channel, archived => $config->{channels}->{$channel}->{archived} };
-    }
-}
