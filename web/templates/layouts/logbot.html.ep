@@ -1,5 +1,10 @@
 <!doctype html>
 % use LogBot::Web::Util qw( url_for_channel );
+% my @body_classes = ($page);
+% foreach my $cookie (qw( font-s nick-u nick-w menu-c hide-b norm-b )) {
+%   push @body_classes, $cookie if $c->cookie($cookie);
+% }
+% push @body_classes, 'topic' if $c->cookie('topic') && $page eq 'logs';
 <html>
 <head>
   <title><%= $channel ? $channel : 'LogBot' %></title>
@@ -7,14 +12,7 @@
   <link rel="stylesheet" href="<%= static('logbot.min.css') %>">
   <meta name="viewport" content="initial-scale=1">
 </head>
-<body class="<%= $page =%>
-             <%= 'font-s ' if $font_s =%>
-             <%= 'nick-u ' if $nick_u =%>
-             <%= 'nick-w ' if $nick_w =%>
-             <%= 'menu-c ' if $menu_c =%>
-             <%= 'hide-b ' if $hide_b =%>
-             <%= 'norm-b ' if $norm_b =%>
-             <%= 'topic'   if $topic && $page eq 'logs' %>">
+<body class="<%= join(' ', @body_classes) %>">
 
   <noscript><h1>This site requires JavaScript</h1></noscript>
 
@@ -123,7 +121,7 @@
 
       <div id="end-container" class="nav-button">
         <a id="channel-end" class="button" title="Scroll to last message"
-            href="#end" <%= 'disabled' if ($event_count == 0) || ($hide_b && ($event_count == $bot_event_count)) %>>
+            href="#end" <%= 'disabled' if ($event_count == 0) || ($c->cookie('hide-b') && ($event_count == $bot_event_count)) %>>
           <svg class="svg-channel-end" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M230.9 64c8.8 0 16 7.2 16 16v144h93.9c7.1 0 10.7 8.6 5.7 13.6L203.3 381.2c-6.3 6.3-16.4 6.3-22.7 0l-143-143.6c-5-5-1.5-13.6 5.7-13.6h93.9V80c0-8.8 7.2-16 16-16h77.7m0-32h-77.7c-26.5 0-48 21.5-48 48v112H43.3c-35.5 0-53.5 43-28.3 68.2l143 143.6c18.8 18.8 49.2 18.8 68 0l143.1-143.5c25.1-25.1 7.3-68.2-28.3-68.2h-61.9V80c0-26.5-21.6-48-48-48zM384 468v-8c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v8c0 6.6 5.4 12 12 12h360c6.6 0 12-5.4 12-12z"/></svg>
         </a>
       </div>
@@ -194,7 +192,7 @@
     </div>
 
     % if ($channel) {
-      <div id="topic" <%== 'style="display: none"' unless $topic %>>
+      <div id="topic" <%== 'style="display: none"' unless $c->cookie('topic') %>>
         % if (($topics->{$channel} // '') eq '') {
           <i>No topic</i>
         % } else {
@@ -218,19 +216,19 @@
     <div class="modal-content">
       <div id="settings-container">
         <div data-setting="font-s" class="setting">
-          <input type="checkbox" <%= "checked" if $font_s %>> Use smaller text
+          <input type="checkbox" <%= "checked" if $c->cookie('font-s') %>> Use smaller text
         </div>
         <div data-setting="nick-u" class="setting">
-          <input type="checkbox" <%= "checked" if $nick_u %>> Don't colourise nicknames
+          <input type="checkbox" <%= "checked" if $c->cookie('nick-u') %>> Don't colourise nicknames
         </div>
         <div data-setting="nick-w" class="setting">
-          <input type="checkbox" <%= "checked" if $nick_w %>> Use wider column for nicknames
+          <input type="checkbox" <%= "checked" if $c->cookie('nick-w') %>> Use wider column for nicknames
         </div>
         <div data-setting="hide-b" class="setting">
-          <input type="checkbox" <%= "checked" if $hide_b %>> Hide IRC bots
+          <input type="checkbox" <%= "checked" if $c->cookie('hide-b') %>> Hide IRC bots
         </div>
         <div data-setting="norm-b" class="setting">
-          <input type="checkbox" <%= "checked" if $norm_b %>> Don't desaturate bots
+          <input type="checkbox" <%= "checked" if $c->cookie('norm-b') %>> Don't desaturate bots
         </div>
         <div id="settings-close-container">
           <a id="settings-close" class="button" title="Close">Close</a>
