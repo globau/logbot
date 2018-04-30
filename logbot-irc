@@ -233,7 +233,6 @@ $job_queue = LogBot::JobQueue->new($config);
 # init signals and state
 $SIG{HUP} = sub {
     $state->{next_channel_reload} = time();
-    $state->{next_topic_reload}   = time();
 };
 $SIG{USR1} = sub { $state->{dump}  = 1 };
 $SIG{USR2} = sub { $state->{relog} = 1 };
