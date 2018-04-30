@@ -53,6 +53,11 @@ $(function() {
 
     set_sidebar_collapse_title();
 
+    // highlight active channel
+    if ($('body').hasClass('logs')) {
+        $('#ch-' + current_channel.substring(1)).addClass('is-active');
+    }
+
     // about
 
     $('#about')

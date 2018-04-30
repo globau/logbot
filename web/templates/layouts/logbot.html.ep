@@ -65,16 +65,12 @@
             %   push @archived, $c->{name};
             %   next;
             % }
-            % if ($c->{name} eq $channel) {
-              <li><a class="is-active" href="<%= url_for_channel( channel => $c->{name} ) %>" title="<%= $topics->{$c->{name}} %>" ><%= $c->{name} %></a></li>
-            % } else {
-              <li><a href="<%= url_for_channel( channel => $c->{name}, date => $date ) %>" title="<%= $topics->{$c->{name}} %>"><%= $c->{name} %></a></li>
-            % }
+            <li><a id="ch-<%= substr($c->{name}, 1) %>" href="<%= url_for_channel( channel => $c->{name} ) %>" title="<%= $topics->{$c->{name}} %>" ><%= $c->{name} %></a></li>
           % }
           % if (@archived) {
             <li id="archived" title="Archived channels are no longer logged due to inactivity">Archived</li>
             % foreach my $c (@archived) {
-              <li class="archived"><a<%== ' class="is-active"' if $c eq $channel %> title="<%= $topics->{$c} %>" href="/<%= substr($c, 1) %>"><%= $c %></a></li>
+              <li class="archived"><a id="ch-<%= substr($c, 1) %>" title="<%= $topics->{$c} %>" href="<%= <%= url_for_channel( channel => $c ) %>"><%= $c %></a></li>
             % }
           % }
         </ul>
