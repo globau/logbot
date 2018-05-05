@@ -4,22 +4,49 @@ use v5.10;
 use strict;
 use warnings;
 
+use List::Util qw( any );
 use Mojo::Server::Morbo ();
 use Time::HiRes qw( sleep );
 
 $| = 1;
+my @switches = grep {/^-/} @ARGV;
 $ENV{DEBUG} = 1;
-$ENV{LOGBOT_CONFIG} = join(',', @ARGV) || '_development';
+$ENV{LOGBOT_CONFIG} = join(',', grep { !/^-/ } @ARGV) || '_development';
 
 die "failed to find makefile\n" unless -e 'makefile';
 
 # asset watch
-my $pid = fork();
-if (defined($pid) && $pid == 0) {
-    my $make = Make->new();
-    while (1) {
-        $make->execute() if $make->updated();
-        sleep(0.25);
+{
+    my $pid = fork();
+    if (defined($pid) && $pid == 0) {
+        my $make = Make->new();
+        while (1) {
+            $make->execute() if $make->updated();
+            sleep(0.25);
+        }
+    }
+}
+
+# memcached
+if (!any { $_ eq '--no-cache' } @switches) {
+    my $pid = fork();
+    if (defined($pid) && $pid == 0) {
+        my $verbose = any { $_ eq '-v' || $_ eq '--verbose' } @switches;
+        ## no critic (InputOutput::RequireBriefOpen)
+        open(my $mc, '-|', 'memcached -vv 2>&1') || die "failed to start memcached: $!\n";
+        say 'memcached listening on :11211' unless $verbose;
+        while (<$mc>) {
+            next unless $verbose;
+            next
+                if /^slab class/
+                || /^<\d+ new auto-negotiating/
+                || /^<\d+ connection closed/
+                || /^\d+ Client using/;
+            print 'memcached: ', $_;
+        }
+        close($mc) || die $!;
+        ## use critic
+        exit;
     }
 }
 
@@ -38,7 +65,7 @@ use lib "$RealBin/lib";
 
 use File::Find qw( find );
 use File::Spec ();
-use LogBot::Util qw( run );
+use LogBot::Util qw( file_time run );
 
 sub new {
     my ($class) = @_;
@@ -59,9 +86,9 @@ sub execute {
 sub updated {
     my ($self) = @_;
 
-    if ((stat 'makefile')[9] != $self->{ts}) {
+    if (file_time('makefile') != $self->{ts}) {
         $self->{clean}    = $self->{ts} != 0;
-        $self->{ts}       = (stat 'makefile')[9];
+        $self->{ts}       = file_time('makefile');
         $self->{files}    = $self->_prerequisites();
         $self->{files_ts} = {};
     }
@@ -72,7 +99,7 @@ sub updated {
             $self->{ts} = 0;
             $updated = 1;
         } else {
-            my $ts = (stat $file)[9];
+            my $ts = file_time($file);
             if ($ts != ($self->{files_ts}->{$file} // 0)) {
                 $updated = 1;
             }
