@@ -45,7 +45,7 @@
   % push @nav, begin
     <div class="time-nav-item">
       &laquo;
-      <a title="Skip empty days"
+      <a title="Skip empty days" id="skip-prev"
           href="<%= url_for_channel( channel => $channel, date => $skip_prev )%>"><%= time_ago($date->epoch - $skip_prev->epoch, 'earlier') %></a>
     </div>
   % end
@@ -53,7 +53,7 @@
 % if ($skip_next) {
   % push @nav, begin
     <div class="time-nav-item">
-      <a title="Skip empty days"
+      <a title="Skip empty days" id="skip-next"
          href="<%= url_for_channel( channel => $channel, date => $skip_next )%>"><%= time_ago($skip_next->epoch - $date->epoch, 'later') %></a>
       &raquo;
     </div>

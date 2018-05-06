@@ -21,16 +21,53 @@ $(function() {
 
     $('body')
         .keyup(function(e) {
+            // if a text input field has focus
+            if (document.activeElement.nodeName === 'INPUT' &&
+                document.activeElement.getAttribute('type') === 'text'
+            ) {
+                if (e.which === 27) {
+                    // escape should clear field
+                    $(document.activeElement).val('').keyup();
+                }
+                // and other shortcuts shouldn't work
+                return;
+            }
+
             if (e.which === 27) { // esc
-                if (document.activeElement.id === 'filter') {
-                    // clear channel-list filter
-                    $('#filter').val('').keyup();
-                } else if ($('#settings-dialog:visible').length) {
+                if ($('#settings-dialog:visible').length) {
                     // close settings
                     $('#settings-close').click();
                 } else {
                     // toggle sidebar
                     $('#collapse-sidebar').click();
+                }
+
+            } else if (e.key === '#') {
+                // # --> show channel list
+                if (!$('body').hasClass('list')) {
+                    $('#channel-list-action').click();
+                }
+
+            } else if (e.key === 'ArrowLeft') {
+                // left-arrow --> previous date
+                if (document.activeElement.nodeName !== 'BODY') {
+                    return;
+                }
+                if ($('#skip-prev').length) {
+                    $('#skip-prev')[0].click();
+                } else if ($('#date-prev:not(.hidden)').length) {
+                    $('#date-prev')[0].click();
+                }
+
+            } else if (e.key === 'ArrowRight') {
+                // right-arrow --> next date
+                if (document.activeElement.nodeName !== 'BODY') {
+                    return;
+                }
+                if ($('#skip-next').length) {
+                    $('#skip-next')[0].click();
+                } else if ($('#date-next:not(.hidden)').length) {
+                    $('#date-next')[0].click();
                 }
             }
         });
