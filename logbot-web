@@ -20,7 +20,7 @@ use DateTime ();
 use IO::Compress::Gzip qw( gzip );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config );
 use LogBot::MemCache ();
-use LogBot::Util qw( file_time time_to_ymd );
+use LogBot::Util qw( file_for file_time time_to_ymd );
 use LogBot::Web::Util qw( channel_from_param channel_topics linkify nick_colour_init render_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::Util qw( dumper );
@@ -91,6 +91,9 @@ under sub {
     # store network name in response header for logging
     $c->res->headers->add('X-Network' => $config->{name});
 
+    # for client-side list cache
+    my $topics_lastmod = file_time(file_for($config, 'topics_lastmod')) // 0;
+
     nick_colour_init();
 
     $c->stash(
@@ -108,6 +111,8 @@ under sub {
         today           => DateTime->now()->truncate(to => 'day'),
         is_today        => 0,
         cache_prefix    => $config->{_derived}->{time} . '.' . $config->{name} . '.',
+        channel_list_id => $config->{_derived}->{time} . '.' . $topics_lastmod,
+        topics_lastmod  => $topics_lastmod,
     );
     return 1;
 };
@@ -153,6 +158,11 @@ get '/_config' => sub {
 get '/_channels' => sub {
     my ($c) = @_;
     LogBot::Web::List::render($c);
+};
+
+get '/_channels_body' => sub {
+    my ($c) = @_;
+    LogBot::Web::List::render($c, { body_only => 1 });
 };
 
 # network stats

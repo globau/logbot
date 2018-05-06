@@ -7,7 +7,7 @@ use warnings;
 sub render {
     my ($c, $params) = @_;
     $c->stash(page => 'list');
-    return $c->render('list');
+    return $c->render($params->{body_only} ? '_list' : 'list');
 }
 
 1;

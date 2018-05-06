@@ -1,0 +1,48 @@
+% use LogBot::Web::Util qw( url_for_channel );
+
+% my $channel_li = begin
+  % my ($channel, $topic) = @_;
+  <li class="match <%= 'archived' if $channel->{archived} %>" data-text="<%= $channel->{name} . ' ' . lc($topic) %>">
+    <a href="<%= url_for_channel( channel => $channel->{name} ) %>" class="channel"><%= $channel->{name} %></a>
+    % if ($topic ne '') {
+      <div class="topic"><%== linkify $topic %></div>
+    % }
+  </li>
+% end
+
+%= cached 'list' => begin
+<div id="channel-list">
+  <div id="filter-container">
+    <input id="filter" type="text" placeholder="Filter" autocomplete="off">
+  </div>
+
+  <div id="no-results" style="display:none">
+    No matching channels.
+  </div>
+
+  <div id="active-channels">
+    <h3>Active Channels</h3>
+    % my @archived;
+    <ul>
+      % foreach my $channel (@{$channels}) {
+        % if ($channel->{archived}) {
+        %   push @archived, $channel;
+        %   next;
+        % }
+        <%= $channel_li->($channel, $topics->{$channel->{name}} // '') %>
+      % }
+    </ul>
+  </div>
+
+  % if (@archived) {
+    <div id="archived-channels">
+      <h3>Archived Channels</h3>
+      <ul>
+        % foreach my $channel (@archived) {
+          <%= $channel_li->($channel, $topics->{$channel->{name}} // '') %>
+        % }
+      </ul>
+    </div>
+  % }
+</div>
+% end

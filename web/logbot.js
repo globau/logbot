@@ -251,14 +251,9 @@ $(function() {
 
     function update_filtered() {
         var filter = $('#filter').val().trim().toLowerCase();
-        if (filter === '') {
-            $('#archived-channels').show();
-        } else {
-            $('#archived-channels').hide();
-        }
 
         var filter_words = filter.split(/ +/);
-        $('#active-channels li').each(function() {
+        $('#channel-list li').each(function() {
             var $this = $(this);
             var this_text = $this.data('text');
             var match = true;
@@ -269,19 +264,33 @@ $(function() {
                 }
             }
             if (match) {
-                $this.show();
+                $this.addClass('match');
             } else {
-                $this.hide();
+                $this.removeClass('match');
             }
         });
-        if ($('#active-channels li:visible').length === 0) {
+
+        var active_count = $('#active-channels li.match').length;
+        var archived_count = $('#archived-channels li.match').length;
+
+        if (active_count === 0) {
+            $('#active-channels').hide();
+        } else {
+            $('#active-channels').show();
+        }
+        if (archived_count === 0) {
+            $('#archived-channels').hide();
+        } else {
+            $('#archived-channels').show();
+        }
+        if (active_count === 0 && archived_count === 0) {
             $('#no-results').show();
         } else {
             $('#no-results').hide();
         }
     }
 
-    if ($('body').hasClass('list')) {
+    function init_list() {
         $('#filter')
             .focus()
             .select()
@@ -289,8 +298,8 @@ $(function() {
             .keypress(function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
-                    if ($('#active-channels li:visible').length === 1) {
-                        document.location = $('#active-channels li:visible a').attr('href');
+                    if ($('#channel-list li.match').length === 1) {
+                        document.location = $('#channel-list li.match a').attr('href');
                     }
                 }
             });
@@ -299,6 +308,46 @@ $(function() {
             update_filtered();
             $('#filter').focus();
         });
+    }
+
+    $(document).on('list-preloaded', function() {
+        $('#channel-list-action').on('click', function(e) {
+            if (e.metaKey) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            $('#main').html(localStorage.getItem('list-html'));
+            $('body')
+                .addClass('list')
+                .removeClass('search');
+            history.pushState({}, '', this.href);
+            init_list();
+        });
+    });
+
+    if ($('body').hasClass('list')) {
+        init_list();
+    } else {
+        try {
+            var list_id = $('#list-id').data('id');
+            if (localStorage.getItem('list-id') !== list_id) {
+                $.ajax({
+                    url: '/_channels_body',
+                    method: 'GET',
+                    dataType: 'html',
+                    success: function(html) {
+                        localStorage.setItem('list-html', html);
+                        localStorage.setItem('list-id', list_id);
+                        $('body').trigger('list-preloaded');
+                    }
+                });
+            } else {
+                $('body').trigger('list-preloaded');
+            }
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     // highlight

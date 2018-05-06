@@ -5,7 +5,7 @@
 %   push @body_classes, $cookie if $c->cookie($cookie);
 % }
 % push @body_classes, 'topic' if $c->cookie('topic') && $page eq 'logs';
-<html>
+<html lang="en">
 <head>
   <title><%= $channel ? $channel : 'LogBot' %></title>
   <link rel="shortcut icon" href="<%= static('logbot-favicon.svg') %>">
@@ -13,11 +13,12 @@
   <meta name="viewport" content="initial-scale=1">
 </head>
 <body class="<%= join(' ', @body_classes) %>">
+  <div id="list-id" data-id="<%= $channel_list_id %>"></div>
 
   <noscript><h1>This site requires JavaScript</h1></noscript>
 
   <div id="sidebar">
-    %= cached 'sidebar' => begin
+    %= cached 'sidebar.' . $topics_lastmod => begin
 
     <div id="actions">
       <a id="collapse-sidebar" class="button" title="Toggle Sidebar">

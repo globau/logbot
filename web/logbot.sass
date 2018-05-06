@@ -796,11 +796,11 @@ body
 // channel list
 
 #channel-list
+  margin: 16px 0 0 0
   padding-left: 8px
 
   #filter
     font-size: 1rem
-    margin-left: 16px
 
   #no-results
     margin-left: 16px
@@ -823,6 +823,9 @@ body
 
     li
       margin-bottom: 1rem
+
+      &:not(.match)
+        display: none
 
 // channel stats
 
@@ -904,25 +907,24 @@ body
 
 // config
 
-body
-  #config
-    padding-left: 8px
+#config
+  padding-left: 8px
 
-    .section
-      margin-left: 1rem
+  .section
+    margin-left: 1rem
 
-      .label, .value
-        display: inline-block
+    .label, .value
+      display: inline-block
 
-      .label
-        font-size: inherit
-        margin-right: 1rem
-        text-align: right
-        width: 5rem
+    .label
+      font-size: inherit
+      margin-right: 1rem
+      text-align: right
+      width: 5rem
 
-      ul
-        list-style: none
-        padding-left: 1rem
+    ul
+      list-style: none
+      padding-left: 1rem
 
 // small screens
 
