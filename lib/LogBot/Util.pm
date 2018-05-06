@@ -176,6 +176,9 @@ sub file_for {
     } elsif ($type eq 'connected') {
         return path_for($config, 'store') . '/connected';
 
+    } elsif ($type eq 'topics_lastmod') {
+        return path_for($config, 'store') . '/topics.lastmod';
+
     } else {
         die $type;
     }

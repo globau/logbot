@@ -16,7 +16,7 @@ use Encode qw( encode );
 use LogBot::Config qw( find_config load_config reload_config );
 use LogBot::Database qw( dbh execute_with_retry );
 use LogBot::JobQueue ();
-use LogBot::Util qw( event_to_string logbot_init timestamp );
+use LogBot::Util qw( event_to_string file_for logbot_init timestamp touch );
 
 my $config = load_config(find_config(shift)) // die "syntax: logbot-consumer <config file>\n";
 logbot_init($config);
@@ -73,6 +73,7 @@ while (!$quit) {
                 } elsif ($event->{time} > $time && $event->{text} ne $topic) {
                     $dbh->do('UPDATE topics SET time=?, topic=? WHERE id=?',
                         undef, $event->{time}, $event->{text}, $id);
+                    touch(file_for($config, 'topics_lastmod'));
                 }
 
                 return 1;
