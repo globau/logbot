@@ -41,7 +41,7 @@ if (!any { $_ eq '--no-cache' } @switches) {
                 if /^slab class/
                 || /^<\d+ new auto-negotiating/
                 || /^<\d+ connection closed/
-                || /^\d+ Client using/;
+                || /^\d+: Client using/;
             print 'memcached: ', $_;
         }
         close($mc) || die $!;
