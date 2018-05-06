@@ -20,7 +20,7 @@ use DateTime ();
 use IO::Compress::Gzip qw( gzip );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config );
 use LogBot::MemCache ();
-use LogBot::Util qw( time_to_ymd );
+use LogBot::Util qw( file_time time_to_ymd );
 use LogBot::Web::Util qw( channel_from_param channel_topics linkify nick_colour_init render_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::Util qw( dumper );
@@ -253,7 +253,7 @@ my %cache;
 # static file with timestamp
 helper static => sub {
     my ($c, $file) = @_;
-    return $cache{static}->{$file} //= '/static/' . $file . '?' . (stat($RealBin . '/web/public/static/' . $file))[9];
+    return $cache{static}->{$file} //= '/static/' . $file . '?' . file_time($RealBin . '/web/public/static/' . $file);
 };
 
 # inline svg

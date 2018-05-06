@@ -10,7 +10,7 @@ use lib "$RealBin/lib";
 BEGIN { $ENV{TZ} = 'UTC' }
 
 use LogBot::Config qw( find_config load_config );
-use LogBot::Web::Util qw( rewrite_old_urls );
+use LogBot::Web::Util qw( file_time rewrite_old_urls );
 use Mojo::URL ();
 use Mojolicious::Lite qw( app );
 
@@ -51,7 +51,7 @@ sub redirect {
 my %cache;
 helper static => sub {
     my ($self, $file) = @_;
-    return $cache{static}->{$file} //= '/static/' . $file . '?' . (stat($RealBin . '/web/public/static/' . $file))[9];
+    return $cache{static}->{$file} //= '/static/' . $file . '?' . file_time($RealBin . '/web/public/static/' . $file);
 };
 
 # configure mojo

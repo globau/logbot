@@ -11,7 +11,7 @@ use Cwd qw( abs_path );
 use File::Basename qw( basename );
 use File::Find qw( find );
 use List::Util qw( any );
-use LogBot::Util qw( run );
+use LogBot::Util qw( file_time run );
 use Mojo::File ();
 use Mojo::Util qw( trim );
 use Perl::Critic ();
@@ -337,7 +337,7 @@ sub is_modified {
     my ($file) = @_;
     _init_modified();
 
-    my $mtime    = (stat($file))[9];
+    my $mtime    = file_time($file);
     my $abs_file = abs_path($file);
     $lastmod->{$abs_file} //= 0;
 
@@ -348,7 +348,7 @@ sub set_modified {
     my ($file) = @_;
     _init_modified();
 
-    $lastmod->{ abs_path($file) } = (stat($file))[9];
+    $lastmod->{ abs_path($file) } = file_time($file);
     _write_modified();
 }
 

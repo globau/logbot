@@ -9,7 +9,7 @@ use lib "$RealBin/lib";
 
 use File::Basename qw( basename );
 use File::Path qw( make_path );
-use LogBot::Util qw( normalise_channel path_for squash_error timestamp );
+use LogBot::Util qw( file_time normalise_channel path_for squash_error timestamp );
 use Try::Tiny qw( catch try );
 use YAML::Tiny ();
 
@@ -64,7 +64,7 @@ sub load_config {
     $config->{_derived} = {
         file     => $config_file,
         root     => glob(q{'} . $config->{path} . q{'}),         # expand ~
-        time     => (stat($config_file))[9],
+        time     => file_time($config_file),
         web      => $params{web},
         readonly => $params{web},
         is_dev   => substr(basename($config_file), 0, 1) eq '_',
@@ -105,7 +105,7 @@ sub load_config {
 sub reload_config {
     my ($config) = @_;
     my $config_file = $config->{_derived}->{file};
-    return (stat($config_file))[9] == $config->{_derived}->{time}
+    return file_time($config_file) == $config->{_derived}->{time}
         ? $config
         : load_config($config_file, web => $config->{_derived}->{web});
 }
@@ -152,7 +152,7 @@ sub load_all_configs {
 
     my $hash = '';
     foreach my $file (@files) {
-        $hash .= $file . '.' . ((stat($file))[9]);
+        $hash .= $file . '.' . file_time($file);
     }
 
     if ($all_configs_hash ne $hash) {

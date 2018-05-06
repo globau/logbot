@@ -10,7 +10,7 @@ our @EXPORT_OK = qw(
     logbot_init
     nick_is_bot
     normalise_channel source_to_nick
-    slurp spurt touch
+    slurp spurt touch file_time
     squash_error
     date_string_to_ymd timestamp time_to_ymd time_to_datestr time_to_datetimestr ymd_to_time
     path_for file_for
@@ -152,6 +152,11 @@ sub touch {
         open(my $fh, '>', $file) or die "create $file: $!\n";
         close($fh) or die "close $file: $!\n";
     }
+}
+
+sub file_time {
+    my ($file) = @_;
+    return -e $file ? (stat($file))[9] : undef;
 }
 
 sub file_for {
