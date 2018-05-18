@@ -28,7 +28,7 @@ find(
         my $file = substr($File::Find::name, 2);
         return if $file =~ m{/} && $file !~ m{^(?:lib|web)/};
         return if basename($file) =~ /^\./ || $file =~ /\.(bak|swp|png|ttf)$/;
-        return if $file eq 'makefile';
+        return if $file eq 'makefile' or $file eq 'perltidy.ERR';
 
         my $content = Mojo::File->new("$RealBin/$file")->slurp();
         return unless $content =~ /\t/;
