@@ -285,7 +285,7 @@ helper cached => sub {
     my ($c, $key, $callback) = @_;
     return $key eq ''
         ? $callback->()
-        : Mojo::ByteStream->new($memcache->get($c->stash('cache_prefix') . $key, $callback));
+        : Mojo::ByteStream->new($memcache->cached($c->stash('cache_prefix') . $key, $callback));
 };
 
 hook after_render => sub {

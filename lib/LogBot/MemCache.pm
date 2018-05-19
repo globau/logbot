@@ -34,7 +34,7 @@ sub new {
     return LogBot::MemCache::None->new();
 }
 
-sub get {
+sub cached {
     my ($self, $key, $callback) = @_;
     my $cache = $self->{cache};
 
@@ -59,7 +59,7 @@ sub new {
     return bless({}, $class);
 }
 
-sub get {
+sub cached {
     my (undef, undef, $callback) = @_;
     return $callback->();
 }
