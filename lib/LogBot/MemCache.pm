@@ -46,6 +46,19 @@ sub cached {
     return $value;
 }
 
+sub get {
+    my ($self, $key) = @_;
+    my $cache = $self->{cache};
+    my $cached = memcached_get($cache, $key);
+    return defined $cached ? decode('UTF-8', $cached) : undef;
+}
+
+sub set {
+    my ($self, $key, $value) = @_;
+    my $cache = $self->{cache};
+    memcached_set($cache, $key, encode('UTF-8', $value));
+}
+
 1;
 
 package LogBot::MemCache::None;
@@ -62,6 +75,13 @@ sub new {
 sub cached {
     my (undef, undef, $callback) = @_;
     return $callback->();
+}
+
+sub get {
+    return undef;
+}
+
+sub set {
 }
 
 1;

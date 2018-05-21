@@ -95,6 +95,7 @@ sub load_config {
     $config->{timing}->{ping_timeout_attempts}   ||= 5;
     $config->{timing}->{channel_reload_interval} ||= 60 * 60;
     $config->{timing}->{topic_reload_interval}   ||= 24 * 60 * 60;
+    $config->{timing}->{invite_cooldown}         ||= 3 * 60;
 
     make_path($config->{_derived}->{root});
     make_path(path_for($config, 'queue'));

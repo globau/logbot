@@ -22,6 +22,7 @@ use List::MoreUtils qw( natatime );
 use List::Util qw( any min );
 use LogBot::Config qw( find_config load_config reload_config save_config );
 use LogBot::JobQueue;
+use LogBot::MemCache ();
 use LogBot::Util qw( file_for logbot_init normalise_channel slurp source_to_nick squash_error timestamp touch );
 use Mojo::Log ();
 use Readonly;
@@ -29,7 +30,7 @@ use Time::HiRes ();
 use Try::Tiny qw( catch try );
 
 # globals
-my ($config, $state, $connection, $job_queue, $log);
+my ($config, $state, $connection, $job_queue, $log, $memcache);
 
 #
 
@@ -124,7 +125,6 @@ sub irc_connect {
 sub block_invite {
     my ($source, $channel) = @_;
     my $who = source_to_nick($source);
-    $config = reload_config($config);
 
     foreach my $blocked (@{ $config->{blocked} }) {
         if (substr($blocked, 0, 1) eq '#') {
@@ -229,6 +229,7 @@ $pid && die 'logbot-irc (' . $config->{name} . ") is already running\n";
 logbot_init($config);
 init_logging();
 $job_queue = LogBot::JobQueue->new($config);
+$memcache = LogBot::MemCache->new(binary => !$config->{_derived}->{is_dev});
 
 # init signals and state
 $SIG{HUP} = sub {
@@ -362,15 +363,17 @@ while (1) {
     # invited
     if ($message =~ /^:(\S+) INVITE \S+ :(#.+)/) {
         my ($source, $channel) = ($1, normalise_channel($2));
+        my $who = source_to_nick($source);
+        $config = reload_config($config);
 
+        # honour invite blocklist
         if (block_invite($source, $channel)) {
             say timestamp(), ' -- ignoring invite to blocked ', $channel, ' from ', $source;
             $log->info('ignoring invite to blocked ' . $channel . ' from ' . $source);
             next;
         }
 
-        my $who = source_to_nick($source);
-
+        # ignore no-op invites
         if ($state->{channels_in}->{$channel}) {
             say timestamp(), ' -- ignoring invite to already-in ', $channel, ' from ', $who;
             $log->info('ignoring invite to already-in ' . $channel . ' from ' . $who);
@@ -384,10 +387,23 @@ while (1) {
             next;
         }
 
+        # cooldown
+        my $cooldown_key = $config->{name} . $channel . ',' . $source;
+        if (my $last_request = $memcache->get($cooldown_key)) {
+            if ($time - $last_request < $config->{timing}->{invite_cooldown}) {
+                irc_send_message($who, "unable to join $channel: please wait longer before asking again");
+                $log->info("rejecting invite to $channel from $who: cooldown expires in "
+                        . ($config->{timing}->{invite_cooldown} - ($time - $last_request))
+                        . 's');
+                next;
+            }
+        }
+
         $state->{pending_invites}->{$channel} = {
-            who    => lc($who),
-            source => $source,
-            ops    => [],
+            who          => lc($who),
+            source       => $source,
+            ops          => [],
+            cooldown_key => $cooldown_key,
         };
         irc_send('JOIN ' . $channel);
         next;
@@ -463,11 +479,12 @@ while (1) {
             publish(0, $config->{irc}->{nick}, $channel, $announcement);
 
         } else {
-            say timestamp(), ' -- join ', $channel, ' rejected - non-op invite from ', $who;
-            $log->info('join ' . $channel . ' rejected - non-op invite from ' . $who);
+            say timestamp(), ' -- join ', $channel, ' rejected - non-op invite from ', $invite->{source};
+            $log->info('join ' . $channel . ' rejected - non-op invite from ' . $invite->{source});
 
             irc_send('PART ' . $channel);
             irc_send_message($invite->{who}, 'unable to join ' . $channel . ': you are not a channel op');
+            $memcache->set($invite->{cooldown_key} => $time);
 
         }
         next;
