@@ -22,6 +22,11 @@
     No messages for <%= time_to_datestr($date->epoch) %>.
   </div>
 % }
+% if ($event_count - $bot_event_count == 0) {
+  <div class="notification no-events default-display-none" id="no-visible-events">
+    No visible messages for <%= time_to_datestr($date->epoch) %>.
+  </div>
+% }
 
 </div>
 % end

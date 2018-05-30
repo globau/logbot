@@ -485,6 +485,16 @@ $(function() {
             }
         });
 
+    // no-event messages
+
+    $(document).on('setting:hide-b', function(e, enabled) {
+        if (enabled) {
+            $('#no-visible-events').show();
+        } else {
+            $('#no-visible-events').hide();
+        }
+    });
+
     // settings dialog
 
     function toggle_setting($setting, name) {
