@@ -10,7 +10,8 @@ use lib "$RealBin/lib";
 BEGIN { $ENV{TZ} = 'UTC' }
 
 use LogBot::Config qw( find_config load_config );
-use LogBot::Web::Util qw( file_time rewrite_old_urls );
+use LogBot::Util qw( file_time );
+use LogBot::Web::Util qw( rewrite_old_urls );
 use Mojo::URL ();
 use Mojolicious::Lite qw( app );
 
