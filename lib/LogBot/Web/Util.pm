@@ -14,7 +14,7 @@ use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
 use Module::Load qw( load );
 use Mojo::Path ();
 use Mojo::URL  ();
-use Mojo::Util qw( html_unescape xml_escape );
+use Mojo::Util qw( html_unescape url_escape xml_escape );
 use Readonly;
 use URI::Find ();
 
@@ -158,7 +158,7 @@ sub rewrite_old_urls {
 
 sub url_for_channel {
     my %params = @_;
-    my @path = substr($params{channel}, 1);
+    my @path = url_escape(substr($params{channel}, 1));
     if ($params{date}) {
         push @path, ref($params{date}) ? $params{date}->ymd('') : $params{date};
     }
