@@ -72,19 +72,23 @@ sub load_config {
 
     if ($params{web}) {
 
-        # build sorted channel list, and list of disabled channels
-        my (@visible, @disabled);
+        # build sorted channel list, and list of hidden/disabled channels
+        my (@visible, @hidden);
         foreach my $channel (sort keys %{ $config->{channels} }) {
             next if $channels->{$channel}->{no_logs};
             if ($channels->{$channel}->{disabled} && !$channels->{$channel}->{web_only}) {
-                push @disabled, normalise_channel($channel);
+                push @hidden, normalise_channel($channel);
+                next;
+            }
+            if ($channels->{$channel}->{hidden}) {
+                push @hidden, normalise_channel($channel);
                 next;
             }
             push @visible, { name => $channel, archived => $config->{channels}->{$channel}->{archived} };
         }
 
-        $config->{_derived}->{visible_channels}  = \@visible;
-        $config->{_derived}->{disabled_channels} = \@disabled;
+        $config->{_derived}->{visible_channels} = \@visible;
+        $config->{_derived}->{hidden_channels}  = \@hidden;
     }
 
     # default timings

@@ -91,3 +91,7 @@ channels:
 # web_only
 #   boolean
 #   manually set this to '1' to have disabled channels visible on the web ui
+#
+# hidden
+#   boolean
+#   hide from channel list and search results.  can navigate directly to channel.

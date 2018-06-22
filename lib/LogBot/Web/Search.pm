@@ -50,7 +50,7 @@ sub render {
     my $last_c = $c->cookie('last-c') // '';
     if ($last_c ne '') {
         $last_c = normalise_channel($last_c);
-        $last_c = '' if any { $_ eq $last_c } @{ $config->{_derived}->{disabled_channels} };
+        $last_c = '' if any { $_ eq $last_c } @{ $config->{_derived}->{hidden_channels} };
     }
 
     $c->stash(
@@ -192,11 +192,10 @@ sub render {
         push @where, 'NOT(nick COLLATE NOCASE IN (' . join(',', map { $dbh->quote($_) } @bots) . '))';
     }
 
-    # exclude disabled channels
-    if (@{ $config->{_derived}->{disabled_channels} }) {
+    # exclude hidden channels
+    if (@{ $config->{_derived}->{hidden_channels} }) {
         push @where,
-            'NOT(channel IN ('
-            . join(',', map { $dbh->quote($_) } @{ $config->{_derived}->{disabled_channels} }) . '))';
+            'NOT(channel IN (' . join(',', map { $dbh->quote($_) } @{ $config->{_derived}->{hidden_channels} }) . '))';
     }
 
     # build sql

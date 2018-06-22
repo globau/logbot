@@ -92,7 +92,24 @@ $(function() {
 
     // highlight active channel
     if ($('body').hasClass('logs')) {
-        $('#ch-' + current_channel.substring(1)).addClass('is-active');
+        var ch = current_channel.substring(1);
+        var $ch = $('#ch-' + ch);
+        if ($ch.length) {
+            $ch.addClass('is-active');
+        } else {
+            // hidden channel, add to top of channel list
+            var $li = $('#channel-menu li:first');
+            if ($li.length) {
+                $li = $li.clone();
+                $li.find('a')
+                    .addClass('is-active')
+                    .attr('id', 'ch-' + ch)
+                    .attr('href', '/' + ch)
+                    .attr('title', $('#topic').text().trim())
+                    .text(current_channel);
+                $('#channel-menu').prepend($li);
+            }
+        }
     }
 
     // about
