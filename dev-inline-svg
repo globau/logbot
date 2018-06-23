@@ -7,7 +7,7 @@ use warnings;
 use File::Find qw( find );
 use FindBin qw( $RealBin );
 use Mojo::File ();
-use Mojo::Util qw( getopt );
+use Mojo::Util qw( getopt trim );
 use YAML::Tiny ();
 
 $| = 1;
@@ -91,7 +91,12 @@ sub import_svg {
     # update svg icons from font-awesome pro
 
     $source_path =~ s{/$}{};
-    $source_path .= '/advanced-options/raw-svg';
+    foreach my $dir (qw( svgs advanced-options/raw-svg )) {
+        if (-d "$source_path/$dir") {
+            $source_path .= "/$dir";
+            last;
+        }
+    }
     die "failed to find font-awesome pro icons\n" unless -d "$source_path/solid";
 
     my $mapping = YAML::Tiny->read("$fa_path/mapping.yaml")->[0];
@@ -100,6 +105,9 @@ sub import_svg {
         my $output_file = "$fa_path/$output_name.svg";
 
         my $input = Mojo::File->new($input_file)->slurp;
+        $input =~ s/<!--.*-->//sg;
+        $input = trim($input);
+
         my $output = -e $output_file ? Mojo::File->new($output_file)->slurp : '';
 
         if ($input eq $output) {
