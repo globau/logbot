@@ -133,11 +133,11 @@
   <div class="date"><%= time_to_datestr($date_block->{date}) %></div>
   <ul>
     % foreach my $channel (sort keys %$channels) {
-      <li class="channel"><%= $channel %></li>
+      <li class="channel"><a href="<%= url_for_channel( channel => $channel, date => $date ) %>"><%= $channel %></a></li>
       % foreach my $event (@{ $channels->{$channel} }) {
-      %= include 'shared/event', event => $event, search => 1, search => 1, channel => $channel, date => $date
+        %= include 'shared/event', event => $event, search => 1, search => 1, channel => $channel, date => $date
+      % }
     % }
-  % }
   </ul>
 % }
 
