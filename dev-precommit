@@ -49,6 +49,7 @@ foreach my $file (glob('web/*.sass')) {
 
     my @original = split(/\n/, Mojo::File->new($file)->slurp());
     my @output;
+    my @variables;
     my $chunk = {};
 
     reset_chunk($chunk);
@@ -60,6 +61,10 @@ foreach my $file (glob('web/*.sass')) {
             push @output, '';
             $chunk->{indent} = $indent;
             next;
+        }
+
+        if ($line =~ /^(\$[^:]+):.+$/) {
+            push @variables, $1;
         }
 
         if ($indent != $chunk->{indent}) {
@@ -100,6 +105,12 @@ foreach my $file (glob('web/*.sass')) {
         say ' unchanged';
     }
     set_modified($file);
+
+    foreach my $var (@variables) {
+        my $count = 0;
+        $count++ while $output =~ /\Q$var\E/g;
+        say "\e[33munused sass variable: ", $var, "\e[0m" if $count == 1;
+    }
 }
 
 # tidy all the perl as per .perltidy
