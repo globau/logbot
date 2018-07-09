@@ -7,36 +7,29 @@ use warnings;
 use File::Find qw( find );
 use FindBin qw( $RealBin );
 use Mojo::File ();
-use Mojo::Util qw( getopt trim );
+use Mojo::Util qw( trim );
 use YAML::Tiny ();
 
 $| = 1;
 
-my ($inline, $import);
-#<<<
-getopt
-    'inline'   => \$inline,
-    'import:s' => \$import;
-#>>>
-die <<'EOF' unless $inline || $import;
-syntax:
-    dev-inline-svg --inline
-    dev-inline-svg --import <font-awesome pro path>
+my ($command, @args) = (lc(shift // ''), @ARGV);
+$command || die <<'EOF';
+syntax: dev-util <command> [command args]
+
+commands:
+    svg-inline          update templates to inline svg
+    svg-import <path>   update svg source from font-awesome
 EOF
 
-my $templates_path = "$RealBin/web/templates";
+#my $templates_path = "$RealBin/web/templates";
+#my $svg_path = $RealBin . '/web/svg';
+#my $fa_path  = $svg_path . '/font-awesome';
+#die "failed to find $fa_path\n" unless -d $fa_path;
 
-my $svg_path = $RealBin . '/web/svg';
-my $fa_path  = $svg_path . '/font-awesome';
-die "failed to find $fa_path\n" unless -d $fa_path;
-
-if ($inline) {
-    inline_svg();
-} else {
-    import_svg($import);
-}
-
-sub inline_svg {
+if ($command eq 'svg-inline') {
+    my $svg_path       = $RealBin . '/web/svg';
+    my $fa_path        = $svg_path . '/font-awesome';
+    my $templates_path = "$RealBin/web/templates";
 
     # inlines svg images into templates
     # to use, create an svg element with a class name "svg-filename"
@@ -44,6 +37,19 @@ sub inline_svg {
     # only the svg-filename class will be carried over into the inline svg element,
     # other classes and ids will be lost
     # eg. <svg class="svg-sidebar-collapse"></svg>
+
+    sub load_svg {
+        my ($name) = @_;
+        my $file =
+            -e "$fa_path/$name.svg"
+            ? "$fa_path/$name.svg"
+            : "$svg_path/$name.svg";
+        die "failed to find $name.svg\n" unless -e $file;
+        my $svg = Mojo::File->new($file)->slurp();
+        $svg =~ s/^<svg /<svg class="svg-$name" /;
+        $svg =~ s/\s+$//;
+        return $svg;
+    }
 
     my @files;
     find(
@@ -70,23 +76,12 @@ sub inline_svg {
         Mojo::File->new($file)->spurt($tmpl);
         say "inline-svg: \e[34mupdated\e[0m ", substr($file, length($RealBin) + 1);
     }
-}
 
-sub load_svg {
-    my ($name) = @_;
-    my $file =
-        -e "$fa_path/$name.svg"
-        ? "$fa_path/$name.svg"
-        : "$svg_path/$name.svg";
-    die "failed to find $name.svg\n" unless -e $file;
-    my $svg = Mojo::File->new($file)->slurp();
-    $svg =~ s/^<svg /<svg class="svg-$name" /;
-    $svg =~ s/\s+$//;
-    return $svg;
-}
-
-sub import_svg {
-    my ($source_path) = @_;
+} elsif ($command eq 'svg-import') {
+    my ($source_path)  = @_;
+    my $svg_path       = $RealBin . '/web/svg';
+    my $fa_path        = $svg_path . '/font-awesome';
+    my $templates_path = "$RealBin/web/templates";
 
     # update svg icons from font-awesome pro
 

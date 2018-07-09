@@ -94,7 +94,7 @@ web/build/hind.min.css: web/hind/hind.sass
 # templates
 
 web/build/inline-svg.updated: web/svg/*.svg web/svg/font-awesome/*.svg web/templates/*.html.ep web/templates/layouts/*.html.ep
-	./dev-inline-svg --inline
+	./dev-util svg-inline
 	touch web/build/inline-svg.updated
 
 # svg
