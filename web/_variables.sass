@@ -1,0 +1,65 @@
+// see 'sass-make' in dev-util for details on how light and dark mode css are
+// built from logbot.sass and this file.
+
+// light colours
+
+$black-colour: #000
+$dark-colour: #444
+$medium-colour: #999
+$light-colour: #eee
+$white-colour: #fff
+
+$hilite-colour: #ffb
+$link-colour: #00e
+$link-light-colour: lighten($link-colour, 25)
+$link-visited-colour: #939
+$nick-colour: #844
+$overlay-colour: rgba(#000, .86)
+$warning-colour: #fd5
+
+// dark colours
+
+$night-black-colour: #aaa
+$night-dark-colour: #999
+$night-medium-colour: #777
+$night-light-colour: #333
+$night-white-colour: #222
+
+$night-hilite-colour: #dd9
+$night-link-colour: #39c
+$night-link-light-colour: #479
+$night-link-visited-colour: #87f
+$night-nick-colour: #848
+$night-overlay-colour: rgba(#fff, .5)
+$night-warning-colour: #411
+
+// dark mode overrides
+
+body.dark
+  .nc
+    filter: hue-rotate(60deg) grayscale(25%)
+
+  #stats #hours-now
+    filter: none !important
+
+  .pika-prev, .pika-next
+    filter: invert(100%)
+
+// sizes
+
+$sidebar-width-closed: 34px
+$sidebar-width-open: 165px
+
+$nav-height: 30px
+$network-height: 32px
+$topic-height: 30px
+
+$nick-width-small: 7.0em
+$time-width-small: 3em
+
+$nick-width-large: 7.5em
+$time-width-large: 3em
+
+// timing
+
+$transition-time: 50ms

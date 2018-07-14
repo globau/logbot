@@ -116,7 +116,7 @@
 % }
 
 % if ($log_count) {
-  <div id="search-count" class="notification">
+  <div id="search-count" class="notification is-bordered">
     Found <%= 'more than' if $limited %> <%= $log_count %>
     <%= 'recent' if $w eq 'r' %>
     result<%= 's' unless $log_count == 1 %><%= ' in ' . $ch if $ch ne '' %>.
@@ -142,7 +142,7 @@
 % }
 
 % if ($searched && !$log_count) {
-  <div class="notification">
+  <div class="notification is-bordered">
     No <%= 'recent' if $w eq 'r' %> results found<%= ' in ' . $ch if $ch ne '' %>.
   </div>
 % }

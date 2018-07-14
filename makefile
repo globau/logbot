@@ -77,8 +77,8 @@ web/public/static/logbot.min.css: web/build/logbot.min.css $(EXT_CSS)
 	perl -pi -e 'BEGIN { $$/ = undef } s#/\*.*?\*/##gs' web/build/*.min.css
 	cat $(EXT_CSS) web/build/logbot.min.css > web/public/static/logbot.min.css
 
-web/build/logbot.min.css: web/logbot.sass
-	$(call sass,logbot,logbot)
+web/build/logbot.min.css: web/logbot.sass web/_variables.sass
+	./dev-util sass-make | sass --stdin --style compressed web/build/logbot.min.css
 
 web/build/pikaday.min.css: web/pikaday/pikaday.scss
 	$(call scss,pikaday/pikaday,pikaday)

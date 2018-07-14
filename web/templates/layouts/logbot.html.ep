@@ -1,7 +1,7 @@
 <!doctype html>
 % use LogBot::Web::Util qw( url_for_channel );
-% my @body_classes = ($page);
-% foreach my $cookie (qw( font-s nick-u nick-w menu-c hide-b norm-b )) {
+% my @body_classes = ('root', $page);
+% foreach my $cookie (qw( font-s nick-u nick-w menu-c hide-b norm-b dark )) {
 %   push @body_classes, $cookie if $c->cookie($cookie);
 % }
 % push @body_classes, 'topic' if $c->cookie('topic') && $page eq 'logs';
@@ -212,6 +212,9 @@
     <div class="modal-background"></div>
     <div class="modal-content">
       <div id="settings-container">
+        <div data-setting="dark" class="setting">
+          <input type="checkbox" <%= "checked" if $c->cookie('dark') %>> Use dark theme
+        </div>
         <div data-setting="font-s" class="setting">
           <input type="checkbox" <%= "checked" if $c->cookie('font-s') %>> Use smaller text
         </div>

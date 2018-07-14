@@ -19,12 +19,8 @@ syntax: dev-util <command> [command args]
 commands:
     svg-inline          update templates to inline svg
     svg-import <path>   update svg source from font-awesome
+    sass-make           create sass dark mode css
 EOF
-
-#my $templates_path = "$RealBin/web/templates";
-#my $svg_path = $RealBin . '/web/svg';
-#my $fa_path  = $svg_path . '/font-awesome';
-#die "failed to find $fa_path\n" unless -d $fa_path;
 
 if ($command eq 'svg-inline') {
     my $svg_path       = $RealBin . '/web/svg';
@@ -112,4 +108,72 @@ if ($command eq 'svg-inline') {
             say "inline-svg: $output_name \e[34mupdated\e[0m";
         }
     }
+
+} elsif ($command eq 'sass-make') {
+    chdir($RealBin);
+
+    # build css that contains light and dark modes
+
+    # the combined sass looks like:
+    #   variables
+    #   body
+    #       logbot.sass unmodified
+    #   body.dark
+    #       logbot.sass with colour variables prefixed by `night-`
+    #
+    # to avoid duplicate styles in the body.dark section, non-colour styles are
+    # then commented out.  the sass processor will remove these comments from
+    # the final minified css.
+
+    my @variables = split(/\n/, Mojo::File->new("$RealBin/web/_variables.sass")->slurp);
+    my @sass      = split(/\n/, Mojo::File->new("$RealBin/web/logbot.sass")->slurp);
+
+    # remove @import from main sass as we'll be inlining here
+    @sass = grep { !/^\@import\s+variables/ } @sass;
+
+    # indent sass
+    foreach my $line (@sass) {
+
+        # existing body definitions need special treatment
+        if ($line eq 'body') {
+            $line = '&.root';
+        }
+        $line = '  ' . $line;
+    }
+
+    # build duplicate styles, light and dark
+    my @combined;
+    push @combined, @variables;
+    push @combined, '';
+    push @combined, 'body';
+    push @combined, @sass;
+    push @combined, 'body.dark';
+    foreach my $line (@sass) {
+        $line =~ s/\$(.+?-colour)/\$night-$1/;
+        push @combined, $line;
+    }
+
+    # convert to css (easier to parse)
+    open(my $sass_cmd, '|-', 'sass', '--stdin', '--indented', 'web/build/logbot.combined.css') or die $!;
+    print $sass_cmd join("\n", @combined);
+    close($sass_cmd) or die $!;
+
+    # commend out body.dark selectors that don't involve colour
+    my @css = split(/\n/, Mojo::File->new("$RealBin/web/build/logbot.combined.css")->slurp);
+    my $selector = '';
+    foreach my $line (@css) {
+        next if $line =~ /^\s*}/;
+        if ($line =~ /{$/) {
+            ($selector = $line) =~ s/^\s+//;
+        } else {
+            next unless $selector =~ /^body\.dark\b/;
+            next
+                if $line =~ /#[a-z0-9]{3,6}/
+                || $line =~ /\brgba?\(/
+                || $line =~ /^\s*filter:/;
+            $line = "/* $line */";
+        }
+    }
+
+    say join("\n", @css);
 }

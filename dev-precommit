@@ -40,6 +40,7 @@ find(
 # tidy sass (sort selectors)
 
 foreach my $file (glob('web/*.sass')) {
+    next if basename($file) =~ /^_/;
     print $file;
 
     if (!is_modified($file)) {
@@ -200,7 +201,7 @@ foreach my $js_file (qw( web/logbot.js web/redirect.js )) {
 
 # run make
 
-run('make');
+run('make', '-B');
 
 sub sort_use {
     my ($input) = @_;

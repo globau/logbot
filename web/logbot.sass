@@ -1,39 +1,10 @@
-$link-color-bot: #7f7ff7
-$link-colour: #00e
-$link-invert: #eee
-$link-visited-colour: #939
-
-$sidebar-width-closed: 34px
-$sidebar-width-open: 165px
-
-$nav-height: 30px
-$network-height: 32px
-$topic-height: 30px
-
-$nick-width-small: 7.0em
-$time-width-small: 3em
-
-$nick-width-large: 7.5em
-$time-width-large: 3em
-
-$hover-colour: #ebebeb
-
-$transition-time: 50ms
-
-// pika
-
-.pika-button
-  &:hover
-    background: #444
-
-.pika-table
-  abbr
-    text-decoration: none
+@import variables.sass
 
 // global
 
 body
-  color: #000
+  background-color: $white-colour
+  color: $black-colour
   font-family: "Hind", BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif
   font-size: medium
   margin: 0
@@ -51,13 +22,18 @@ a
     color: $link-visited-colour
 
 .notification
-  background-color: #f5f5f5
+  background-color: $light-colour
   border-radius: 3px
+  color: $black-colour
   margin: 4px 18px 4px 4px
   padding: .25rem 1.5rem .25rem .5rem
 
+  &.is-bordered
+    border: 1px solid $light-colour
+
   &.is-warning
-    background-color: #ffdd57
+    background-color: $warning-colour
+    color: $black-colour
 
 .button
   border-radius: 4px
@@ -68,16 +44,30 @@ a
   text-align: center
   width: 32px
 
+  svg
+    path
+      fill: $black-colour
+
   &:hover
-    background-color: $hover-colour
+    background-color: $light-colour
+    color: $black-colour
     text-decoration: none
+
+    svg
+      path
+        fill: $black-colour
 
   &[disabled]
     cursor: not-allowed
     opacity: 0.25
 
     &:hover
-      background-color: #fff
+      background-color: $white-colour
+      color: $black-colour
+
+      svg
+        path
+          fill: $black-colour
 
   svg
     height: 18px
@@ -92,7 +82,6 @@ a
   display: none
 
 #content
-  background: #fff
   clear: both
   padding: 0 5px 1.5em 5px
 
@@ -102,8 +91,12 @@ a
   max-width: 42rem
   padding-left: 8px
 
+  svg
+    path
+      fill: $black-colour
+
   #logo-large
-    color: #444
+    color: $dark-colour
     font-size: xx-large
     font-weight: bold
 
@@ -112,8 +105,8 @@ a
       vertical-align: middle
       width: 128px
 
-      #bot
-        fill: #444
+      path
+        fill: $dark-colour
 
   ul.link-list
     list-style: none
@@ -133,20 +126,20 @@ a
     margin-bottom: 2em
 
   h3
-    color: #444
+    color: $dark-colour
     margin-bottom: 0.5em
     margin-top: 2em
 
   p
-    color: #444
     margin-bottom: 0.5em
     margin-top: 0
 
 // topic
 
 #topic
-  background-color: #eee
+  background-color: $light-colour
   clear: both
+  color: $black-colour
   height: $topic-height
   line-height: $topic-height
   overflow: hidden
@@ -166,7 +159,7 @@ body
       top: $nav-height + $topic-height
 
     #channel-topic
-      border-bottom: 1px solid #000
+      border-bottom: 1px solid $dark-colour
 
 
 // logs
@@ -183,21 +176,23 @@ body
       padding: 3px 1rem 3px 4px
 
       &:hover
-        background: $hover-colour
+        background-color: $light-colour
+        color: $black-colour
 
       &.hl
-        background: #ffffb7
+        background-color: $hilite-colour
+        color: $black-colour
 
     .time
-      color: #999
+      color: $medium-colour
       display: inline
       position: absolute
 
       a
-        color: #999
+        color: $medium-colour
 
     .nick, .notice
-      color: #844
+      color: $nick-colour
       display: inline
       font-weight: 500
       overflow: hidden
@@ -205,9 +200,10 @@ body
       text-overflow: ellipsis
       white-space: nowrap
       width: 7em
+      z-index: 1
 
       &:hover
-        background: $hover-colour
+        background-color: $light-colour
         overflow: visible
         padding-right: 5px
         width: auto !important
@@ -217,10 +213,10 @@ body
       word-wrap: break-word
 
       .a
-        color: #999
+        color: $medium-colour
 
       .nc
-        color: #844
+        color: $nick-colour
         font-weight: 500
 
     .text
@@ -231,21 +227,21 @@ body
       font-style: italic
 
 .time-nav
-  color: #999
+  color: $medium-colour
   margin-top: 1rem
   padding-left: 4px
 
   a
-    color: #999
+    color: $medium-colour
 
   .time-nav-item
     display: inline-block
 
     &.static
-      color: #444
+      color: $dark-colour
 
     &:not(:last-child)
-      border-right: 1px dotted #ddd
+      border-right: 1px dotted $light-colour
       margin-right: 8px
       padding-right: 8px
 
@@ -255,28 +251,29 @@ body
 
 // settings
 
-=overlay
-  bottom: 0
-  left: 0
-  position: absolute
-  right: 0
-  top: 0
-
 .modal
-  +overlay
   align-items: center
+  bottom: 0
   display: none
   justify-content: center
+  left: 0
   overflow: hidden
+  position: absolute
   position: fixed
+  right: 0
+  top: 0
   z-index: 20
 
   &.is-active
     display: flex
 
 .modal-background
-  +overlay
-  background-color: rgba(#000, 0.86)
+  background-color: $overlay-colour
+  bottom: 0
+  left: 0
+  position: absolute
+  right: 0
+  top: 0
 
 .modal-content
   margin: 0
@@ -285,15 +282,11 @@ body
   position: relative
   width: 100%
 
-  @media screen and (min-width: 769px)
-    max-height: calc(100vh - 40px)
-    width: 640px
-
 .modal-close
   background: none
   border-radius: 100%
   border: none
-  color: #fff
+  color: $white-colour
   cursor: pointer
   font-size: large
   height: 40px
@@ -303,7 +296,7 @@ body
   width: 40px
 
   &:hover
-    background-color: #000
+    background-color: $black-colour
 
 body
   // small text
@@ -357,14 +350,11 @@ body
     #logs, #search-logs
       li
         &.bot
-          .nick, .notice, .anick
-            color: #999
-
-          .text, .action
-            color: #999
+          .nick, .notice, .anick, .text, .action
+            color: $medium-colour
 
             a
-              color: $link-color-bot
+              color: $link-light-colour
 
   // wider nick column
   &.nick-w
@@ -382,7 +372,7 @@ body
           margin-left: calc(#{$time-width-large} + 4px + #{$nick-width-large} + 2em + 4px)
 
 #settings-container
-  background: #fff
+  background-color: $white-colour
   border-radius: 5px
   font-size: 1rem
   line-height: 200%
@@ -392,50 +382,34 @@ body
     cursor: default
 
   .not-implemented
-    color: #ddd
+    color: $medium-colour
 
   input
-    background: #fff  // for chrome
+    background-color: $white-colour  // for chrome
 
     &.hover
-      box-shadow: 0 0 2px #444
+      box-shadow: 0 0 2px $dark-colour
 
   #settings-close-container
     text-align: right
 
     #settings-close
-      background-color: #444
+      background-color: $dark-colour
       border-radius: 3px
-      color: #eee
+      color: $white-colour
       cursor: pointer
       display: inline
       line-height: 1.5
       padding: 5px 12px
 
       &:hover
-        background-color: #000
+        background-color: $white-colour
         text-decoration: none
 
 // sidebar
 
-.menu-list
-  line-height: 1.25
-
-  a
-    color: #4a4a4a
-    display: block
-    padding: 0.5em 0.75em
-
-    &:hover
-      background-color: $hover-colour
-      color: #4a4a4a
-
-    &.is-active
-      background-color: #4a4a4a
-      color: #fff
-
 #sidebar
-  border-right: 1px solid #eee
+  border-right: 1px solid $light-colour
   min-height: 100vh
   position: fixed
   top: 0
@@ -449,7 +423,6 @@ body
       width: 100%
 
   #actions
-    background-color: #fff
     height: $nav-height
     position: fixed
     width: $sidebar-width-open
@@ -459,31 +432,41 @@ body
       float: right
 
   #menu
+    line-height: 1.25
+
     a
-      color: #4a4a4a
+      color: $black-colour
+      display: block
+      padding: 0.5em 0.75em
 
       &:hover
-        background-color: $hover-colour
-        color: #000
+        background-color: $light-colour
+        color: $black-colour
         text-decoration: none !important
 
       &.is-active
-        background-color: #4a4a4a
-        color: #fff
+        background-color: $dark-colour
+        color: $white-colour
 
         &:hover
-          background-color: #4a4a4a
-          color: #fff
+          background-color: $dark-colour
+          color: $white-colour
 
     #archived
-      background-color: #eee
+      background-color: $light-colour
+      color: $black-colour
       font-weight: 500
       margin-top: 1em
       padding: .5em .75em
 
     .archived
       a
-        color: #999
+        background-color: $white-colour
+        color: $medium-colour
+
+        &:hover
+          background-color: $light-colour
+          color: $medium-colour
 
 body
   &.menu-c
@@ -559,13 +542,13 @@ body
     border-bottom-right-radius: 0
     border-top-left-radius: 3px
     border-top-right-radius: 3px
-    border: 1px solid $hover-colour
-    color: #4a4a4a
+    border: 1px solid $light-colour
+    color: $black-colour
     height: 32px
     margin-bottom: 0
 
     &:hover
-      border-color: #888
+      border-color: $medium-colour
 
   #current-network-toggle
     float: right
@@ -573,10 +556,13 @@ body
     svg
       transform: translateY(25%)
 
+      path
+        fill: $black-colour
+
   #other-networks
     border-bottom-left-radius: 3px
     border-bottom-right-radius: 3px
-    border: 1px solid $hover-colour
+    border: 1px solid $light-colour
     margin: 0 2px 4px 2px
 
     border-top: none
@@ -585,7 +571,8 @@ body
       margin: 0
 
       &:hover
-        background: $hover-colour
+        background-color: $light-colour
+        color: $black-colour
         text-decoration: none
 
   &.collapsed
@@ -605,7 +592,8 @@ body
       display: none
 
   .network
-    color: #4a4a4a
+    background-color: $white-colour
+    color: $dark-colour
     cursor: pointer
     display: block
     line-height: 2
@@ -630,21 +618,51 @@ body
     overflow-x: hidden
     padding: 0
 
+// pika
+
+.pika-single
+  background-color: $white-colour
+  border-color: $light-colour
+  color: $black-colour
+
+.pika-label
+  background-color: $white-colour
+  color: $black-colour
+
+.pika-button
+  background-color: $light-colour
+  color: $black-colour
+
+  &:hover
+    background-color: $dark-colour
+    color: $white-colour
+
+.is-selected
+  .pika-button
+    background-color: $dark-colour
+    box-shadow: none
+    color: $white-colour
+
+.pika-table
+  abbr
+    text-decoration: none
+
 // navigation
 
 #nav
-  background-color: #fff
-  border-bottom: 1px solid #eee
-  border-left: 1px solid #eee
+  background-color: $white-colour
+  border-bottom: 1px solid $light-colour
+  border-left: 1px solid $light-colour
+  color: $black-colour
   height: $nav-height
   margin-left: $sidebar-width-open
   position: fixed
   top: 0
   width: calc(100% - #{$sidebar-width-open})
-  z-index: 1
+  z-index: 2
 
   #date-container
-    border-right: 1px solid #eee
+    border-right: 1px solid $light-colour
     float: left
     font-size: medium
     margin-left: 4px
@@ -674,6 +692,13 @@ body
     margin-left: 4px
     margin-top: 2px
 
+    input
+      background-color: inherit
+      border-radius: 2px
+      border: 1px solid $light-colour
+      color: $black-colour
+      padding: 3px
+
   #search-button-container
     float: left
 
@@ -691,18 +716,18 @@ body
     position: absolute
     right: 10px
 
-    background: #444
+    background-color: $dark-colour
     font-size: medium
     margin: 1px
     padding: 0 5px
 
     a
-      color: #fff
+      color: $white-colour
 
 // main content
 
 #main
-  border-left: 1px solid #eee
+  border-left: 1px solid $light-colour
   margin-left: $sidebar-width-open
   min-width: calc(100% - #{$sidebar-width-open + 1px})
   padding-bottom: 1rem
@@ -734,7 +759,9 @@ body
     white-space: nowrap
 
   input
-    border: 1px solid #aaa
+    background-color: inherit
+    border: 1px solid $light-colour
+    color: $black-colour
     font-size: 100%
     padding: 5px
 
@@ -751,18 +778,43 @@ body
     width: 100% !important
 
   #search-form-submit
-    background: #fff
+    background-color: inherit
     border-radius: 2px
+    border: 1px solid $light-colour
     cursor: pointer
 
     &:hover
-      background: $hover-colour
+      background-color: $light-colour
+      color: $black-colour
 
-.chosen-container-multi .chosen-choices
-  background-image: none
+.chosen-container-multi
+  .chosen-choices
+    background-color: $white-colour
+    background-image: none
+    border-color: $light-colour
+    color: $black-colour
 
-.chosen-container-multi .chosen-choices li.search-field input[type="text"]
-  font-family: inherit
+    li
+      &.search-field
+        input[type="text"]
+          font-family: inherit
+
+      &.search-choice
+        background-color: $light-colour
+        background-image: none
+        border-color: $light-colour
+        border-radius: none
+        box-shadow: none
+        color: $dark-colour
+
+.chosen-container
+  .chosen-drop
+    border-color: $light-colour
+    box-shadow: none
+
+  .chosen-results
+    background-color: $white-colour
+    color: $black-colour
 
 #search_channels_chosen .chosen-search-input.default
   padding: 0
@@ -770,24 +822,23 @@ body
 // search results
 
 #search-count
-  border: 1px solid #444
   margin-top: 1em
 
 #search-logs
   div
     &.date
-      background: #444
-      color: #fff
+      background-color: $dark-colour
+      color: $white-colour
       margin-top: 1rem
       padding-left: 4px
 
   ul
     li.channel
       a
-        color: #000
+        color: $black-colour
 
-      background: #eee
-      color: #000
+      background-color: $light-colour
+      color: $black-colour
       margin: 2px 0
 
 // hide nav search form on search pages
@@ -813,16 +864,16 @@ body
     padding-left: 16px
 
     .channel
-      color: #000
+      color: $black-colour
 
     .topic
-      border-left: 1px solid #ddd
-      color: #888
+      border-left: 1px solid $light-colour
+      color: $medium-colour
       margin-left: 8px
       padding-left: 8px
 
       a
-        color: #88f
+        color: $link-light-colour
 
     li
       margin-bottom: 1rem
@@ -836,7 +887,7 @@ body
   padding-left: 8px
 
   .loading
-    color: #ccc
+    color: $medium-colour
 
   .loading-hide
     display: none
@@ -845,7 +896,7 @@ body
     margin-top: 8px
 
     a
-      color: #000
+      color: $black-colour
       font-weight: bold
 
   #main
@@ -873,8 +924,8 @@ body
     width: 800px
 
   #hours-now
-    border-left: 2px solid #444
-    filter: drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff) drop-shadow(0px 0px 1px #fff)
+    border-left: 2px solid $dark-colour
+    filter: drop-shadow(0px 0px 1px $white-colour) drop-shadow(0px 0px 1px $white-colour) drop-shadow(0px 0px 1px $white-colour)
     font-size: small
     padding-left: 1px
     position: absolute
@@ -885,13 +936,10 @@ body
     tr
       &.bot
         .nick
-          color: #999 !important
-        .bar
-          div
-            background-color: #ccc !important
+          color: $medium-colour !important
 
     .nick
-      color: #844
+      color: $nick-colour
       font-weight: 500
       padding-right: 8px
       white-space: nowrap
@@ -904,8 +952,8 @@ body
       width: 100%
 
       div
-        background-color: #b4b4b4
-        border: 1px solid #444
+        background-color: $light-colour
+        border: 1px solid $medium-colour
         height: 1em
 
 // config
@@ -930,6 +978,11 @@ body
       padding-left: 1rem
 
 // small screens
+
+@media screen and (min-width: 769px)
+  .modal-content
+    max-height: calc(100vh - 40px)
+    width: 640px
 
 @media (max-width: 479px)
   body
