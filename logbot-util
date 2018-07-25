@@ -20,10 +20,11 @@ use File::Path qw( make_path );
 use List::Util qw( any );
 use LogBot::Config qw( find_config load_all_configs load_config );
 use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
-use LogBot::Util qw( event_to_string file_for plural pretty_size slurp timestamp );
+use LogBot::Util qw( event_to_string file_for plural pretty_size slurp timestamp touch );
 use Mojo::Util qw( trim );
 use Term::ReadKey qw( ReadKey ReadMode );
 use Text::ParseWords qw( quotewords );
+use Try::Tiny qw( finally try );
 
 my @configs;
 
@@ -105,42 +106,49 @@ if ($command eq 'backup') {
         my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
         say 'found ', plural($count, 'match', 'es');
 
-        my $all = 0;
-        my $sth = $dbh->prepare($sql_select);
-        $sth->execute(@values);
-        while (my $event = $sth->fetchrow_hashref) {
-            say event_to_string($event);
+        my $dirty = 0;
+        try {
+            my $all = 0;
+            my $sth = $dbh->prepare($sql_select);
+            $sth->execute(@values);
+            while (my $event = $sth->fetchrow_hashref) {
+                say event_to_string($event);
 
-            my $key;
-            if ($all) {
-                $key = 'y';
-            } else {
-                print '(y)es (n)o (a)ll (q)uit ? ';
-                $key = confirm();
-            }
+                my $key;
+                if ($all) {
+                    $key = 'y';
+                } else {
+                    print '(y)es (n)o (a)ll (q)uit ? ';
+                    $key = confirm();
+                }
 
-            if ($key eq 'a') {
-                $all = 1;
-                $key = 'y';
-            }
+                if ($key eq 'a') {
+                    $all = 1;
+                    $key = 'y';
+                }
 
-            if ($key eq 'y') {
-                execute_with_retry(
-                    $config,
-                    sub {
-                        my ($_dbh) = @_;
-                        $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
-                        return 1;
-                    }
-                ) // die;
-                say 'deleted';
-            } elsif ($key eq 'n') {
-                print "\r\e[K";
-            } else {
-                say '';
-                exit;
+                if ($key eq 'y') {
+                    execute_with_retry(
+                        $config,
+                        sub {
+                            my ($_dbh) = @_;
+                            $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
+                            return 1;
+                        }
+                    ) // die;
+                    say 'deleted';
+                    $dirty = 1;
+                } elsif ($key eq 'n') {
+                    print "\r\e[K";
+                } else {
+                    say '';
+                    exit;
+                }
             }
         }
+        finally {
+            touch($config->{_derived}->{file}) if $dirty;
+        };
     }
 
 } elsif ($command eq 'log-rotate') {
