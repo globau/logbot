@@ -264,9 +264,8 @@ sub render {
         }
 
         if ($current_channel ne $channel) {
-            $current_channel           = $channel;
-            $channel_events            = [];
-            $date_channels->{$channel} = $channel_events;
+            $current_channel = $channel;
+            $channel_events = $date_channels->{$channel} //= [];
         }
 
         preprocess_event($config, $event, $nick_hashes);
