@@ -105,14 +105,14 @@
     </div>
   </div>
 
+  % if ($c->param('debug')) {
+    <input type="hidden" name="debug" value="1">
+  % }
   </form>
 </div>
 
-% if ($debug ne '') {
-  <pre id="debug"><%= $debug %></pre>
-% }
 % if ($c->param('debug')) {
-  <input type="hidden" name="debug" value="1">
+  <pre id="debug"><%= $debug %></pre>
 % }
 
 % if ($log_count) {
