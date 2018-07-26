@@ -74,7 +74,7 @@ if ($command eq 'svg-inline') {
     }
 
 } elsif ($command eq 'svg-import') {
-    my ($source_path)  = @_;
+    my ($source_path)  = @args;
     my $svg_path       = $RealBin . '/web/svg';
     my $fa_path        = $svg_path . '/font-awesome';
     my $templates_path = "$RealBin/web/templates";
