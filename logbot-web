@@ -21,7 +21,7 @@ use IO::Compress::Gzip qw( gzip );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config );
 use LogBot::MemCache ();
 use LogBot::Util qw( file_for file_time time_to_ymd );
-use LogBot::Web::Util qw( channel_from_param channel_topics linkify nick_colour_init render_init rewrite_old_urls );
+use LogBot::Web::Util qw( channel_from_param channel_topics linkify render_init rewrite_old_urls );
 use Mojo::ByteStream ();
 use Mojo::Log        ();
 use Mojo::Util qw( dumper );
@@ -95,8 +95,6 @@ under sub {
 
     # for client-side list cache
     my $topics_lastmod = file_time(file_for($config, 'topics_lastmod')) // 0;
-
-    nick_colour_init();
 
     $c->stash(
         config          => $config,

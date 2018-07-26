@@ -2,7 +2,8 @@
 
 % use DateTime ();
 % use LogBot::Util qw( time_to_datestr time_ago );
-% use LogBot::Web::Util qw( nick_colour url_for_channel );
+% use LogBot::Web::Colour qw( nick_colour );
+% use LogBot::Web::Util qw( url_for_channel );
 % use Mojo::Util qw( trim );
 
 %= cached $is_today ? '' : $channel . '.' . $date->ymd('') => begin

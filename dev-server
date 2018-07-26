@@ -52,7 +52,7 @@ if (!any { $_ eq '--no-cache' } @switches) {
 
 # web server
 my $morbo = Mojo::Server::Morbo->new();
-$morbo->backend->watch(['web/templates/', 'web/templates/layouts/', 'lib/LogBot']);
+$morbo->backend->watch(['web/templates/', 'web/templates/layouts/', 'lib/LogBot', 'lib/Logbot/Web']);
 $morbo->run('logbot-web');
 
 package Make;

@@ -20,7 +20,7 @@ use List::Util qw( any );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config save_config );
 use LogBot::Database qw( dbh replace_sql_placeholders );
 use LogBot::Util qw( file_for logbot_init nick_is_bot round spurt );
-use LogBot::Web::Util qw( nick_hash );
+use LogBot::Web::Colour qw( nick_hash );
 use Readonly;
 
 Readonly::Scalar my $ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months

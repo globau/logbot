@@ -2,7 +2,8 @@
 
 % use List::Util qw( any uniq );
 % use LogBot::Util qw( time_to_ymd time_to_datestr );
-% use LogBot::Web::Util qw( nick_colour url_for_channel );
+% use LogBot::Web::Colour qw( nick_colour );
+% use LogBot::Web::Util qw( url_for_channel );
 
 % my $last_channel = $ch eq '' ? $last_c : $ch;
 

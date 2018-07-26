@@ -1,7 +1,7 @@
 <table id="top-nicks">
 % use List::Util qw( uniq );
+% use LogBot::Web::Colour qw( nick_colour );
 % use LogBot::Util qw( commify );
-% use LogBot::Web::Util qw( nick_colour );
 
 <style>
 % foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$nicks) {

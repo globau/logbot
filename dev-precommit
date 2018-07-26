@@ -252,7 +252,7 @@ sub find_unused_imports {
 
     my @issues;
     foreach my $module (sort keys %modules) {
-        next if $input =~ /\b$module(?:->|::)/;
+        next if $input =~ /\b$module(?:->|::)/ || $input =~ /'$module'/;
         push @issues, "package $module is unused";
     }
     foreach my $import (sort keys %imports) {

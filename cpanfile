@@ -13,6 +13,7 @@ requires 'JSON::XS', '3.03';
 requires 'List::MoreUtils', '0.419';
 requires 'List::Util', '1.33';
 requires 'Memcached::libmemcached', '1.001801';
+requires 'Memoize::ExpireLRU', '0.56';
 requires 'Mojolicious', '7.65';
 requires 'Mojolicious::Plugin::AccessLog', '0.010';
 requires 'Net::DNS::Native', '0.15';

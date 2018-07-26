@@ -6,11 +6,11 @@ use warnings;
 
 use Date::Parse qw( str2time );
 use DateTime ();
-use Digest::xxHash qw( xxhash32 );
 use Encode qw ( decode );
 use File::Basename qw( basename );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( nick_is_bot normalise_channel time_to_ymd ymd_to_time );
+use LogBot::Web::Colour qw( nick_hash );
 use Module::Load qw( load );
 use Mojo::Path ();
 use Mojo::URL  ();
@@ -20,7 +20,6 @@ use URI::Find ();
 
 our @EXPORT_OK = qw(
     render_init
-    nick_hash nick_colour nick_colour_init
     rewrite_old_urls
     url_for_channel irc_host
     channel_from_param date_from_param
@@ -33,50 +32,9 @@ use parent 'Exporter';
 sub render_init {
     my ($path) = @_;
     foreach my $file (glob($path . '/lib/LogBot/Web/*.pm')) {
-        next if basename($file) eq 'Util.pm';
+        next if basename($file) =~ /^(?:Colour|Util)\.pm$/;
         load($file);
     }
-}
-
-sub nick_hash {
-    my ($nick) = @_;
-    $nick = lc($nick);
-    $nick =~ s/[`_]+$//;
-    $nick =~ s/\|.*$//;
-
-    return xxhash32($nick, 0);
-}
-
-my $nick_colour_cache = {};
-Readonly::Scalar my $MAX_NICK_CACHE_COUNT => 1_000;
-
-# don't let the cache grow above a specified size
-sub nick_colour_init {
-    my $count = scalar keys %{$nick_colour_cache};
-    return if $count < $MAX_NICK_CACHE_COUNT;
-    my @hashes = sort { $nick_colour_cache->{$a}->[0] <=> $nick_colour_cache->{$b}->[0] } keys %{$nick_colour_cache};
-    splice(@hashes, 0, $MAX_NICK_CACHE_COUNT);
-    foreach my $hash (@hashes) {
-        delete $nick_colour_cache->{$hash};
-    }
-}
-
-sub nick_colour {
-    my ($hash) = @_;
-
-    if (my $cached = $nick_colour_cache->{$hash}) {
-        return $cached->[1];
-    }
-    $hash = $hash + 0;
-
-    my $h = $hash % 360;
-    my $l = $h >= 30 && $h <= 210 ? 30 : 50;
-    my $s = 20 + $hash % 80;
-
-    my $colour = 'hsl(' . $h . ',' . $s . '%,' . $l . '%)';
-
-    $nick_colour_cache->{$hash} = [time(), $colour];
-    return $colour;
 }
 
 sub rewrite_old_urls {
