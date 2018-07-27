@@ -619,19 +619,7 @@ $(function() {
 
     // channel stats
 
-    if ($('body').hasClass('stats')) {
-        var channel = $('#stats').data('channel');
-        var base = channel ? 'stats/' : '_stats/';
-
-        $.getJSON(base + 'meta', function(data) {
-            $.each(data, function(name, value) {
-                $('#' + name)
-                    .text(value)
-                    .removeClass('loading');
-            });
-            $('.loading-hide').removeClass('loading-hide');
-        });
-
+    function update_hours_plot() {
         $.ajax({
             url: base + 'hours',
             method: 'GET',
@@ -661,7 +649,7 @@ $(function() {
                         grid: {
                             borderWidth: 0
                         },
-                        colors: ['#444']
+                        colors: [$('#loc-container').css('background-color')]
                     }
                 );
 
@@ -676,6 +664,23 @@ $(function() {
                 $container.append('<div id="hours-now" style="' + style + '">Now</div>');
             }
         });
+    }
+
+    if ($('body').hasClass('stats')) {
+        var channel = $('#stats').data('channel');
+        var base = channel ? 'stats/' : '_stats/';
+
+        $.getJSON(base + 'meta', function(data) {
+            $.each(data, function(name, value) {
+                $('#' + name)
+                    .text(value)
+                    .removeClass('loading');
+            });
+            $('.loading-hide').removeClass('loading-hide');
+        });
+
+        update_hours_plot();
+        $(document).on('setting:dark', update_hours_plot);
 
         if (channel) {
             $.ajax({

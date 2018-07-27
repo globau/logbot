@@ -149,7 +149,7 @@ if ($command eq 'svg-inline') {
     push @combined, @sass;
     push @combined, 'body.dark';
     foreach my $line (@sass) {
-        $line =~ s/\$(.+?-colour)/\$night-$1/;
+        $line =~ s/\$(.+?-colour)/\$night-$1/g;
         push @combined, $line;
     }
 

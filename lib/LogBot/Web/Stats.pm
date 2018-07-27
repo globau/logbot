@@ -6,6 +6,7 @@ use warnings;
 
 use DateTime ();
 use JSON::XS qw( decode_json );
+use List::Util qw( uniq );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( commify file_for plural slurp time_to_datetimestr );
 use LogBot::Web::Util qw( channel_from_param irc_host );
@@ -129,7 +130,12 @@ sub render_nicks {
     my $file = file_for($config, 'meta', $c->stash('channel'), 'nicks');
     my $data = decode_json(-e $file ? slurp($file) : slurp(file_for($config, 'meta', '_empty', 'nicks')));
 
-    $c->stash(nicks => $data);
+    my @nick_hashes;
+    foreach my $nick (@{$data}) {
+        push @nick_hashes, $nick->{hash};
+    }
+
+    $c->stash(nicks => $data, nick_hashes => [uniq @nick_hashes]);
     $c->render('stats_nicks');
 }
 

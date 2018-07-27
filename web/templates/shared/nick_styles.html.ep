@@ -1,5 +1,8 @@
+% use LogBot::Web::Colour qw( nick_colour );
 <style>
 % foreach my $hash (@{$nick_hashes}) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
+%   my ($light, $dark) = nick_colour($hash);
+body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= $light %>!important}
+body:not(.nick-u).dark .nc[data-hash="<%= $hash %>"]{color:<%= $dark %>!important}
 % }
 </style>

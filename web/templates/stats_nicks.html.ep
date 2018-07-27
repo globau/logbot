@@ -1,13 +1,7 @@
 <table id="top-nicks">
-% use List::Util qw( uniq );
-% use LogBot::Web::Colour qw( nick_colour );
 % use LogBot::Util qw( commify );
 
-<style>
-% foreach my $hash (uniq grep { $_ } map { $_->{hash} } @$nicks) {
-body:not(.nick-u) .nc[data-hash="<%= $hash %>"]{color:<%= nick_colour($hash) %>!important}
-% }
-</style>
+%= include 'shared/nick_styles', nick_hashes => $nick_hashes
 
 % if (@$nicks) {
   % my $top_count = $nicks->[0]->{count};
