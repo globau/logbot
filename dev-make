@@ -238,7 +238,18 @@ sub logbot_css {
     @sass = grep { !/^\@import\s+variables/ } @sass;
 
     # indent sass
+    my @top_level;
+    my $is_top_level = 0;
     foreach my $line (@sass) {
+
+        # don't touch top-level :: selectors
+        $is_top_level = 1 if $line =~ /^::/;
+        if ($is_top_level) {
+            $is_top_level = 0 if $line eq '';
+            push @top_level, $line;
+            $line = '';
+            next;
+        }
 
         # existing body definitions need special treatment
         if ($line eq 'body') {
@@ -251,6 +262,7 @@ sub logbot_css {
     my @combined;
     push @combined, @variables;
     push @combined, '';
+    push @combined, @top_level;
     push @combined, 'body';
     push @combined, @sass;
     push @combined, 'body.dark';

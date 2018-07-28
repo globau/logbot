@@ -2,6 +2,14 @@
 
 // global
 
+::selection
+  background-color: $selection-bg-colour
+  color: $selection-colour
+
+::-moz-selection
+  background-color: $selection-bg-colour
+  color: $selection-colour
+
 body
   background-color: $white-colour
   color: $black-colour
@@ -803,7 +811,7 @@ body
         background-color: $light-colour
         background-image: none
         border-color: $light-colour
-        border-radius: none
+        border-radius: 0px
         box-shadow: none
         color: $dark-colour
 
