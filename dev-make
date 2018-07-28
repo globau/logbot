@@ -1,0 +1,320 @@
+#!/usr/bin/perl
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+use File::Basename qw( basename );
+use File::Copy qw( copy );
+use File::Find qw( find );
+use List::Util qw( any );
+use LogBot::Util qw( file_time run slurp spurt touch );
+
+$| = 1;
+
+my $FORCE = any { $_ eq '-B' } @ARGV;
+my $DEPS  = any { $_ eq 'deps' } @ARGV;
+my $QUIET = !$DEPS && any { $_ eq '-q' } @ARGV;
+my $DEBUG = $ENV{DEBUG};
+
+#<<<
+my $def = {
+    'web/public/static/logbot.min.js' => [
+        { 'web/build/jquery.min.js'  => { js => 'web/jquery/jquery-3.2.1.min.js' } },
+        { 'web/build/pikaday.min.js' => { js => 'web/pikaday/pikaday.js' } },
+        { 'web/build/chosen.min.js'  => { js => 'web/chosen/chosen.jquery.js' } },
+        { 'web/build/flot.min.js'    => { js => 'web/flot/jquery.flot.js' } },
+        { 'web/build/logbot.min.js'  => { js => 'web/logbot.js' } },
+    ],
+    'web/public/static/logbot.min.css' => [
+        { 'web/build/pikaday.min.css' => { css    => 'web/pikaday/pikaday.scss' } },
+        { 'web/build/hind.min.css'    => { css    => 'web/hind/hind.sass' } },
+        { 'web/build/chosen.min.css'  => { css    => 'web/chosen/chosen.css' } },
+        { 'web/build/logbot.min.css'  => { lb_css => [qw( web/logbot.sass web/_variables.sass )] } },
+    ],
+    _svg => [
+        qw(
+            web/svg/*.svg
+            web/svg/font-awesome/*
+            web/templates/*.html.ep
+            web/templates/layouts/*.html.ep
+            web/templates/shared/*.html.ep
+        )
+    ],
+    _cp => [
+        qw(
+            web/chosen/chosen-sprite.png
+            web/chosen/chosen-sprite@2x.png
+            web/hind/hind-bold.ttf
+            web/hind/hind-medium.ttf
+            web/hind/hind-regular.ttf
+            web/svg/logbot-favicon.svg
+        )
+    ],
+};
+#>>>
+
+mkdir("$RealBin/web/build");
+
+# switching debug mode on/off forces a rebuild
+my $last_mode_file = "$RealBin/web/build/last_mode";
+my $last_mode      = -e $last_mode_file ? slurp($last_mode_file) : '';
+my $this_mode      = $DEBUG ? 'debug' : 'production';
+$FORCE ||= $this_mode ne $last_mode;
+
+my @deps;
+foreach my $target (sort keys %{$def}) {
+
+    if ($target eq '_cp') {
+
+        # copy file
+        foreach my $source_file (@{ $def->{_cp} }) {
+            $source_file = "$RealBin/$source_file";
+            (push(@deps, $source_file), next) if $DEPS;
+            cp($source_file, "$RealBin/web/public/static/" . basename($source_file));
+        }
+
+    } elsif ($target eq '_svg') {
+
+        # if any svg or templates are changed, inline svg
+        my $target_file = "$RealBin/web/build/inline-svg.updated";
+        foreach my $source_file (expand($def->{_svg})) {
+            (push(@deps, $source_file), next) if $DEPS;
+            next unless update($source_file, $target_file);
+            inline_svg();
+            touch($target_file);
+            last;
+        }
+
+    } else {
+
+        # concatenated targets
+        my $target_file = "$RealBin/$target";
+        my @content;
+        my $dirty = 0;
+        foreach my $sub (@{ $def->{$target} }) {
+            my $sub_target      = (keys %{$sub})[0];
+            my $sub_target_file = "$RealBin/$sub_target";
+            my $action          = (keys %{ $sub->{$sub_target} })[0];
+            my $action_source   = $sub->{$sub_target}->{$action};
+
+            if ($action eq 'css') {
+                my $sub_source_file = "$RealBin/$action_source";
+                (push(@deps, $sub_source_file), next) if $DEPS;
+                css($sub_source_file, $sub_target_file) && ($dirty = 1);
+
+            } elsif ($action eq 'lb_css') {
+                foreach my $sub_source_file (expand($action_source)) {
+                    (push(@deps, $sub_source_file), next) if $DEPS;
+                    next unless update($sub_source_file, $sub_target_file);
+                    logbot_css("$RealBin/web/build/logbot.full.css");
+                    css("$RealBin/web/build/logbot.full.css", $sub_target_file);
+                    $dirty = 1;
+                    last;
+                }
+
+            } elsif ($action eq 'js') {
+                my $sub_source_file = "$RealBin/$action_source";
+                (push(@deps, $sub_source_file), next) if $DEPS;
+                js($sub_source_file, $sub_target_file) && ($dirty = 1);
+
+            } else {
+                die $action;
+            }
+
+            push @content, slurp($sub_target_file) unless $DEPS;
+        }
+
+        if ($dirty && !$DEPS) {
+            l(undef, $target_file);
+            spurt($target_file, join('', @content));
+        }
+    }
+}
+
+(say(join("\n", @deps)), exit) if $DEPS;
+spurt($last_mode_file, $this_mode);
+
+sub cp {
+    my ($source_file, $target_file) = @_;
+    return unless update($source_file, $target_file);
+    l($source_file, $target_file);
+
+    copy($source_file, $target_file) || die "$!\n";
+
+    return 1;
+}
+
+sub css {
+    my ($source_file, $target_file) = @_;
+    return unless update($source_file, $target_file);
+    l($source_file, $target_file);
+
+    if ($ENV{DEBUG}) {
+        run('sass', '--style', 'expanded', $source_file, $target_file);
+    } else {
+        run('sass', '--style', 'compressed', $source_file, $target_file);
+    }
+
+    my $css = slurp($target_file);
+    $css =~ s{/\*.*?\*/}{}gs;
+    spurt($target_file, $css);
+
+    return 1;
+}
+
+sub js {
+    my ($source_file, $target_file) = @_;
+    return unless update($source_file, $target_file);
+    l($source_file, $target_file);
+
+    if ($ENV{DEBUG}) {
+        run('uglifyjs', $source_file, '--beautify', '--output', $target_file);
+    } else {
+        run('uglifyjs', $source_file, '--compress', '--mangle', '--output', $target_file);
+    }
+
+    return 1;
+}
+
+sub inline_svg {
+
+    # inlines svg images into templates
+    # to use, create an svg element with a class name "svg-filename"
+    # the filename will be loaded from web/svg and replace the svg element
+    # only the svg-filename class will be carried over into the inline svg element,
+    # other classes and ids will be lost
+    # eg. <svg class="svg-sidebar-collapse"></svg>
+
+    my @files;
+    find(
+        sub {
+            my $file = $File::Find::name;
+            return unless -f $file && -s $file;
+            return unless $file =~ /\.html\.ep$/;
+            push @files, $file;
+        },
+        "$RealBin/web/templates"
+    );
+
+    foreach my $file (sort @files) {
+        my $orig = slurp($file);
+        (my $tmpl = $orig) =~ s{
+            <svg\sclass="svg-([^"]+)".+?</svg>
+        }{
+            load_svg($1)
+        }gxe;
+
+        next if $orig eq $tmpl;
+        spurt($file, $tmpl);
+        $file =~ s/^\Q$RealBin//;
+        l(undef, $file);
+    }
+}
+
+sub logbot_css {
+    my ($target_file) = @_;
+
+    # build css that contains light and dark modes
+
+    # the combined sass looks like:
+    #   variables
+    #   body
+    #       logbot.sass unmodified
+    #   body.dark
+    #       logbot.sass with colour variables prefixed by `night-`
+    #
+    # to avoid duplicate styles in the body.dark section, non-colour styles are
+    # then commented out.  the sass processor will remove these comments from
+    # the final minified css.
+
+    my @variables = split(/\n/, slurp("$RealBin/web/_variables.sass"));
+    my @sass      = split(/\n/, slurp("$RealBin/web/logbot.sass"));
+
+    # remove @import from main sass as we'll be inlining here
+    @sass = grep { !/^\@import\s+variables/ } @sass;
+
+    # indent sass
+    foreach my $line (@sass) {
+
+        # existing body definitions need special treatment
+        if ($line eq 'body') {
+            $line = '&.root';
+        }
+        $line = '  ' . $line;
+    }
+
+    # build duplicate styles, light and dark
+    my @combined;
+    push @combined, @variables;
+    push @combined, '';
+    push @combined, 'body';
+    push @combined, @sass;
+    push @combined, 'body.dark';
+    foreach my $line (@sass) {
+        $line =~ s/\$(.+?-colour)/\$night-$1/g;
+        push @combined, $line;
+    }
+
+    # convert to css (easier to parse)
+    open(my $sass_cmd, '|-', 'sass', '--stdin', '--indented', 'web/build/logbot.combined.css') or die $!;
+    print $sass_cmd join("\n", @combined);
+    close($sass_cmd) or die $!;
+
+    # commend out body.dark selectors that don't involve colour
+    my @css = split(/\n/, slurp("$RealBin/web/build/logbot.combined.css"));
+    my $selector = '';
+    foreach my $line (@css) {
+        next if $line =~ /^\s*}/;
+        if ($line =~ /{$/) {
+            ($selector = $line) =~ s/^\s+//;
+        } else {
+            next unless $selector =~ /^body\.dark\b/;
+            next
+                if $line =~ /#[a-z0-9]{3,6}/
+                || $line =~ /\brgba?\(/
+                || $line =~ /^\s*filter:/;
+            $line = "/* $line */";
+        }
+    }
+
+    spurt($target_file, join("\n", @css));
+}
+
+sub update {
+    my ($source_file, $target_file) = @_;
+    return 1 if $FORCE;
+    return 1 if !-e $target_file;
+    return file_time($source_file) > file_time($target_file);
+}
+
+sub expand {
+    my ($ra_spec) = @_;
+    my @files;
+    foreach my $spec (@{$ra_spec}) {
+        push @files, glob("'$RealBin/$spec'");
+    }
+    return @files;
+}
+
+sub l {
+    my ($source_file, $target_file) = @_;
+    return if $QUIET;
+    $source_file =~ s{^\Q$RealBin/}{} if $source_file;
+    $target_file =~ s{^\Q$RealBin/}{};
+    say $source_file ? "$source_file → $target_file" : "→ $target_file";
+}
+
+sub load_svg {
+    my ($name) = @_;
+    my $file =
+        -e "$RealBin/web/svg/$name.svg" ? "$RealBin/web/svg/$name.svg" : "$RealBin/web/svg/font-awesome/$name.svg";
+    die "failed to find $name.svg\n" unless -e $file;
+    my $svg = slurp($file);
+    $svg =~ s/^<svg /<svg class="svg-$name" /;
+    $svg =~ s/\s+$//;
+    return $svg;
+}

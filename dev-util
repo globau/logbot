@@ -17,63 +17,11 @@ $command || die <<'EOF';
 syntax: dev-util <command> [command args]
 
 commands:
-    svg-inline          update templates to inline svg
     svg-import <path>   update svg source from font-awesome
     sass-make           create sass dark mode css
 EOF
 
-if ($command eq 'svg-inline') {
-    my $svg_path       = $RealBin . '/web/svg';
-    my $fa_path        = $svg_path . '/font-awesome';
-    my $templates_path = "$RealBin/web/templates";
-
-    # inlines svg images into templates
-    # to use, create an svg element with a class name "svg-filename"
-    # the filename will be loaded from web/svg and replace the svg element
-    # only the svg-filename class will be carried over into the inline svg element,
-    # other classes and ids will be lost
-    # eg. <svg class="svg-sidebar-collapse"></svg>
-
-    sub load_svg {
-        my ($name) = @_;
-        my $file =
-            -e "$fa_path/$name.svg"
-            ? "$fa_path/$name.svg"
-            : "$svg_path/$name.svg";
-        die "failed to find $name.svg\n" unless -e $file;
-        my $svg = Mojo::File->new($file)->slurp();
-        $svg =~ s/^<svg /<svg class="svg-$name" /;
-        $svg =~ s/\s+$//;
-        return $svg;
-    }
-
-    my @files;
-    find(
-        sub {
-            my $file = $File::Find::name;
-            return unless -f $file && -s $file;
-            return unless $file =~ /\.html\.ep$/;
-
-            push @files, $file;
-        },
-        $templates_path
-    );
-
-    foreach my $file (sort @files) {
-        my $orig = Mojo::File->new($file)->slurp();
-        (my $tmpl = $orig) =~ s{
-            <svg\sclass="svg-([^"]+)".+?</svg>
-        }{
-            load_svg($1)
-        }gxe;
-
-        next if $orig eq $tmpl;
-        say substr($file, length($templates_path) + 1);
-        Mojo::File->new($file)->spurt($tmpl);
-        say "inline-svg: \e[34mupdated\e[0m ", substr($file, length($RealBin) + 1);
-    }
-
-} elsif ($command eq 'svg-import') {
+if ($command eq 'svg-import') {
     my ($source_path)  = @args;
     my $svg_path       = $RealBin . '/web/svg';
     my $fa_path        = $svg_path . '/font-awesome';
@@ -109,71 +57,4 @@ if ($command eq 'svg-inline') {
         }
     }
 
-} elsif ($command eq 'sass-make') {
-    chdir($RealBin);
-
-    # build css that contains light and dark modes
-
-    # the combined sass looks like:
-    #   variables
-    #   body
-    #       logbot.sass unmodified
-    #   body.dark
-    #       logbot.sass with colour variables prefixed by `night-`
-    #
-    # to avoid duplicate styles in the body.dark section, non-colour styles are
-    # then commented out.  the sass processor will remove these comments from
-    # the final minified css.
-
-    my @variables = split(/\n/, Mojo::File->new("$RealBin/web/_variables.sass")->slurp);
-    my @sass      = split(/\n/, Mojo::File->new("$RealBin/web/logbot.sass")->slurp);
-
-    # remove @import from main sass as we'll be inlining here
-    @sass = grep { !/^\@import\s+variables/ } @sass;
-
-    # indent sass
-    foreach my $line (@sass) {
-
-        # existing body definitions need special treatment
-        if ($line eq 'body') {
-            $line = '&.root';
-        }
-        $line = '  ' . $line;
-    }
-
-    # build duplicate styles, light and dark
-    my @combined;
-    push @combined, @variables;
-    push @combined, '';
-    push @combined, 'body';
-    push @combined, @sass;
-    push @combined, 'body.dark';
-    foreach my $line (@sass) {
-        $line =~ s/\$(.+?-colour)/\$night-$1/g;
-        push @combined, $line;
-    }
-
-    # convert to css (easier to parse)
-    open(my $sass_cmd, '|-', 'sass', '--stdin', '--indented', 'web/build/logbot.combined.css') or die $!;
-    print $sass_cmd join("\n", @combined);
-    close($sass_cmd) or die $!;
-
-    # commend out body.dark selectors that don't involve colour
-    my @css = split(/\n/, Mojo::File->new("$RealBin/web/build/logbot.combined.css")->slurp);
-    my $selector = '';
-    foreach my $line (@css) {
-        next if $line =~ /^\s*}/;
-        if ($line =~ /{$/) {
-            ($selector = $line) =~ s/^\s+//;
-        } else {
-            next unless $selector =~ /^body\.dark\b/;
-            next
-                if $line =~ /#[a-z0-9]{3,6}/
-                || $line =~ /\brgba?\(/
-                || $line =~ /^\s*filter:/;
-            $line = "/* $line */";
-        }
-    }
-
-    say join("\n", @css);
 }

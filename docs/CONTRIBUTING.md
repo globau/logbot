@@ -12,9 +12,10 @@ The very high level install steps for a development setup are:
 - run `./logbot-irc development` to start the irc server
 - run `./logbot-consumer development` to start the message->database consumer
 
-`dev-server` will automatically run `make` when web resources are updated.
-If `dev-server` is not running you must run `make` manually.  Some changes
-require a full rebuild of the resources with `make -B`.
+`dev-server` will automatically run `dev-make` when web resources are updated.
+If `dev-server` is not running you must run `dev-make` manually.  Some changes
+require a full rebuild of the resources with `dev-make -B`.
 
 Run `dev-precommit` before creating any pull requests; this will auto-format
-perl, sass, and javascript, and report possible perl or javascript issues.
+perl, sass, and javascript, report possible perl or javascript issues, and
+run `dev-make -B`.

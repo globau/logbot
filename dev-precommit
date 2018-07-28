@@ -199,9 +199,9 @@ foreach my $js_file (qw( web/logbot.js web/redirect.js )) {
     run('jshint', $js_file);
 }
 
-# run make
+# make static assets
 
-run('make', '-B');
+run("$RealBin/dev-make", '-B');
 
 sub sort_use {
     my ($input) = @_;

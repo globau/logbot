@@ -5,7 +5,7 @@
 # in production runs as a daemon behind a reverse proxy, which handles requests
 # for static assets (web/public/static)
 #
-# use `make` to build static assets
+# use `dev-make` to build static assets
 use local::lib;
 use v5.10;
 use strict;

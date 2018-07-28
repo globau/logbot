@@ -13,8 +13,6 @@ my @switches = grep {/^-/} @ARGV;
 $ENV{DEBUG} = 1;
 $ENV{LOGBOT_CONFIG} = join(',', grep { !/^-/ } @ARGV) || '_development';
 
-die "failed to find makefile\n" unless -e 'makefile';
-
 # asset watch
 {
     my $pid = fork();
@@ -63,32 +61,25 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
-use File::Find qw( find );
-use File::Spec ();
 use LogBot::Util qw( file_time run );
 
 sub new {
     my ($class) = @_;
-    return bless({ ts => 0, first => 1 }, $class);
+    return bless({ make => "$RealBin/dev-make", ts => 0, first => 1 }, $class);
 }
 
 sub execute {
     my ($self) = @_;
-    if ($self->{clean}) {
-        run('make', 'clean');
-        delete $self->{clean};
-    }
-    my @command = ('make');
-    push @command, '--quiet' if delete $self->{first};
-    run(@command);
+
+    run($self->{make}, delete $self->{first} ? '-q' : '', delete $self->{all} ? '-B' : '');
 }
 
 sub updated {
     my ($self) = @_;
 
-    if (file_time('makefile') != $self->{ts}) {
-        $self->{clean}    = $self->{ts} != 0;
-        $self->{ts}       = file_time('makefile');
+    if (file_time($self->{make}) != $self->{ts}) {
+        $self->{all}      = $self->{ts} != 0;
+        $self->{ts}       = file_time($self->{make});
         $self->{files}    = $self->_prerequisites();
         $self->{files_ts} = {};
     }
@@ -111,17 +102,10 @@ sub updated {
 
 sub _prerequisites {
     my ($self) = @_;
-    my $web_path = $RealBin . '/web';
-    my @files;
-    find(
-        sub {
-            return unless /\.(?:js|sass|svg)$/;
-            my $rel_file = File::Spec->abs2rel($File::Find::name, $web_path);
-            return if $rel_file =~ m{^(?:public/static|build)/};
-            push @files, $File::Find::name;
-        },
-        $web_path
-    );
+
+    open(my $dm, '-|', $self->{make}, 'deps') or die $!;
+    chomp(my @files = <$dm>);
+    close($dm) or die $!;
     return \@files;
 }
 
