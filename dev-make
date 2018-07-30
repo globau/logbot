@@ -12,13 +12,26 @@ use File::Copy qw( copy );
 use File::Find qw( find );
 use List::Util qw( any );
 use LogBot::Util qw( file_time run slurp spurt touch );
+use Mojo::Util qw( getopt );
 
 $| = 1;
 
-my $FORCE = any { $_ eq '-B' } @ARGV;
-my $DEPS  = any { $_ eq 'deps' } @ARGV;
-my $QUIET = !$DEPS && any { $_ eq '-q' } @ARGV;
-my $DEBUG = $ENV{DEBUG};
+my %args;
+getopt(\%args, 'rebuild|B|b', 'quiet|q', 'debug|d', 'help|h|?');
+$args{debug} ||= $ENV{DEBUG};
+$args{deps} = shift // '' eq 'deps';
+$args{help} && die <<'EOF';
+dev-make [options] ['deps']
+
+build web assets for logbot.
+
+options:
+  --rebuild|-B|-b  : force rebuild
+  --quiet|-q       : no output
+  --debug|-d       : build debug assets (non-compressed)
+
+  'deps'           : show build dependencies
+EOF
 
 #<<<
 my $def = {
@@ -27,6 +40,7 @@ my $def = {
         { 'web/build/pikaday.min.js' => { js => 'web/pikaday/pikaday.js' } },
         { 'web/build/chosen.min.js'  => { js => 'web/chosen/chosen.jquery.js' } },
         { 'web/build/flot.min.js'    => { js => 'web/flot/jquery.flot.js' } },
+        { 'web/build/css-esc.min.js' => { js => 'web/css-escape/css.escape.js' } },
         { 'web/build/logbot.min.js'  => { js => 'web/logbot.js' } },
     ],
     'web/public/static/logbot.min.css' => [
@@ -62,8 +76,11 @@ mkdir("$RealBin/web/build");
 # switching debug mode on/off forces a rebuild
 my $last_mode_file = "$RealBin/web/build/last_mode";
 my $last_mode      = -e $last_mode_file ? slurp($last_mode_file) : '';
-my $this_mode      = $DEBUG ? 'debug' : 'production';
-$FORCE ||= $this_mode ne $last_mode;
+my $this_mode      = $args{debug} ? 'debug' : 'production';
+if ($this_mode ne $last_mode) {
+    $args{rebuild} = 1;
+    l(undef, "$this_mode assets");
+}
 
 my @deps;
 foreach my $target (sort keys %{$def}) {
@@ -73,7 +90,7 @@ foreach my $target (sort keys %{$def}) {
         # copy file
         foreach my $source_file (@{ $def->{_cp} }) {
             $source_file = "$RealBin/$source_file";
-            (push(@deps, $source_file), next) if $DEPS;
+            (push(@deps, $source_file), next) if $args{deps};
             cp($source_file, "$RealBin/web/public/static/" . basename($source_file));
         }
 
@@ -82,7 +99,7 @@ foreach my $target (sort keys %{$def}) {
         # if any svg or templates are changed, inline svg
         my $target_file = "$RealBin/web/build/inline-svg.updated";
         foreach my $source_file (expand($def->{_svg})) {
-            (push(@deps, $source_file), next) if $DEPS;
+            (push(@deps, $source_file), next) if $args{deps};
             next unless update($source_file, $target_file);
             inline_svg();
             touch($target_file);
@@ -103,12 +120,12 @@ foreach my $target (sort keys %{$def}) {
 
             if ($action eq 'css') {
                 my $sub_source_file = "$RealBin/$action_source";
-                (push(@deps, $sub_source_file), next) if $DEPS;
+                (push(@deps, $sub_source_file), next) if $args{deps};
                 css($sub_source_file, $sub_target_file) && ($dirty = 1);
 
             } elsif ($action eq 'lb_css') {
                 foreach my $sub_source_file (expand($action_source)) {
-                    (push(@deps, $sub_source_file), next) if $DEPS;
+                    (push(@deps, $sub_source_file), next) if $args{deps};
                     next unless update($sub_source_file, $sub_target_file);
                     logbot_css("$RealBin/web/build/logbot.full.css");
                     css("$RealBin/web/build/logbot.full.css", $sub_target_file);
@@ -118,24 +135,24 @@ foreach my $target (sort keys %{$def}) {
 
             } elsif ($action eq 'js') {
                 my $sub_source_file = "$RealBin/$action_source";
-                (push(@deps, $sub_source_file), next) if $DEPS;
+                (push(@deps, $sub_source_file), next) if $args{deps};
                 js($sub_source_file, $sub_target_file) && ($dirty = 1);
 
             } else {
                 die $action;
             }
 
-            push @content, slurp($sub_target_file) unless $DEPS;
+            push @content, slurp($sub_target_file) unless $args{deps};
         }
 
-        if ($dirty && !$DEPS) {
+        if ($dirty && !$args{deps}) {
             l(undef, $target_file);
             spurt($target_file, join('', @content));
         }
     }
 }
 
-(say(join("\n", @deps)), exit) if $DEPS;
+(say(join("\n", @deps)), exit) if $args{deps};
 spurt($last_mode_file, $this_mode);
 
 sub cp {
@@ -153,7 +170,7 @@ sub css {
     return unless update($source_file, $target_file);
     l($source_file, $target_file);
 
-    if ($ENV{DEBUG}) {
+    if ($args{debug}) {
         run('sass', '--style', 'expanded', $source_file, $target_file);
     } else {
         run('sass', '--style', 'compressed', $source_file, $target_file);
@@ -171,7 +188,7 @@ sub js {
     return unless update($source_file, $target_file);
     l($source_file, $target_file);
 
-    if ($ENV{DEBUG}) {
+    if ($args{debug}) {
         run('uglifyjs', $source_file, '--beautify', '--output', $target_file);
     } else {
         run('uglifyjs', $source_file, '--compress', '--mangle', '--output', $target_file);
@@ -298,7 +315,7 @@ sub logbot_css {
 
 sub update {
     my ($source_file, $target_file) = @_;
-    return 1 if $FORCE;
+    return 1 if $args{rebuild};
     return 1 if !-e $target_file;
     return file_time($source_file) > file_time($target_file);
 }
@@ -314,7 +331,7 @@ sub expand {
 
 sub l {
     my ($source_file, $target_file) = @_;
-    return if $QUIET;
+    return if $args{quiet};
     $source_file =~ s{^\Q$RealBin/}{} if $source_file;
     $target_file =~ s{^\Q$RealBin/}{};
     say $source_file ? "$source_file → $target_file" : "→ $target_file";

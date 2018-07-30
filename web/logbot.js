@@ -352,7 +352,13 @@ $(function() {
             .keypress(function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
-                    if ($('#channel-list li.match').length === 1) {
+
+                    var filter = $('#filter').val().trim().toLowerCase().replace(/^#/, '');
+                    var exact_match = $('#active-channels a.channel[href="/' + CSS.escape(filter) + '"]');
+                    if (exact_match.length) {
+                        document.location = exact_match.attr('href');
+
+                    } else if ($('#channel-list li.match').length === 1) {
                         document.location = $('#channel-list li.match a').attr('href');
                     }
                 }
