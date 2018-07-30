@@ -91,7 +91,7 @@ if ($command eq 'backup') {
                 push @values, $value;
             }
             if (!@parts) {
-                my ($condition, $value) = like_value(text => $word);
+                my ($condition, $value) = like_value(text => $query);
                 push @parts,  $condition;
                 push @values, $value;
             }
