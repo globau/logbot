@@ -90,6 +90,11 @@ if ($command eq 'backup') {
                 push @parts,  $condition;
                 push @values, $value;
             }
+            if (!@parts) {
+                my ($condition, $value) = like_value(text => $word);
+                push @parts,  $condition;
+                push @values, $value;
+            }
             push @where, join(' AND ', @parts);
         }
         if ($nick) {
