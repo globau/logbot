@@ -113,23 +113,28 @@ if ($command eq 'backup') {
 
         my $dirty = 0;
         try {
-            my $all = 0;
+            my $all_y = my $all_n = 0;
             my $sth = $dbh->prepare($sql_select);
             $sth->execute(@values);
             while (my $event = $sth->fetchrow_hashref) {
                 say event_to_string($event);
 
                 my $key;
-                if ($all) {
+                if ($all_y) {
                     $key = 'y';
+                } elsif ($all_n) {
+                    $key = 'n';
                 } else {
-                    print '(y)es (n)o (a)ll (q)uit ? ';
+                    print '(y)es (n)o (Y)es to all (N)o to all (q)uit ? ';
                     $key = confirm();
                 }
 
-                if ($key eq 'a') {
-                    $all = 1;
-                    $key = 'y';
+                if ($key eq 'Y') {
+                    $all_y = 1;
+                    $key   = 'y';
+                } elsif ($key eq 'N') {
+                    $all_n = 1;
+                    $key   = 'n';
                 }
 
                 if ($key eq 'y') {
@@ -218,8 +223,7 @@ sub confirm {
             ReadMode(0);
             exit;
         }
-        $key = lc($key);
-    } until $key =~ /^[ynaq]$/;
+    } until $key =~ /^[ynYNq]$/;
     ReadMode(0);
     return $key;
 }
