@@ -110,6 +110,7 @@ if ($command eq 'backup') {
 
         my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
         say 'found ', plural($count, 'match', 'es');
+        return unless $count;
 
         my $dirty = 0;
         try {
