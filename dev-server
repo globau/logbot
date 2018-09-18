@@ -10,8 +10,9 @@ use Time::HiRes qw( sleep );
 
 $| = 1;
 my @switches = grep {/^-/} @ARGV;
-$ENV{DEBUG} = 1;
-$ENV{LOGBOT_CONFIG} = join(',', grep { !/^-/ } @ARGV) || '_development';
+$ENV{DEBUG}                  = 1;
+$ENV{LOGBOT_CONFIG}          = join(',', grep { !/^-/ } @ARGV) || '_development';
+$ENV{LOGBOT_STATUS_PASSWORD} = '';
 
 # asset watch
 {

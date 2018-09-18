@@ -16,6 +16,7 @@ requires 'Memcached::libmemcached', '==1.001801';
 requires 'Memoize::ExpireLRU', '==0.56';
 requires 'Mojolicious', '==7.65';
 requires 'Mojolicious::Plugin::AccessLog', '==0.010';
+requires 'Mojolicious::Plugin::Status', '==0.03';
 requires 'Net::DNS::Native', '==0.15';
 requires 'Readonly', '==2.05';
 requires 'Term::ReadKey', '==2.37';

@@ -64,6 +64,20 @@ plugin AccessLog => {
     log => ($is_production ? '/var/log/logbot/access.log' : 'log/access.log'),
     format => '%h %{X-Network}o - %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i"',
 };
+plugin 'Status' => {
+    route => app->routes->under(
+        '_status' => sub {
+            my ($c) = @_;
+            my $password = $ENV{'LOGBOT_STATUS_PASSWORD'} // 'status';
+            return 1 if $password eq '';
+            return 1 if ($c->req->url->to_abs->userinfo // '') eq 'logbot:' . $password;
+            $c->res->headers->www_authenticate('Basic');
+            $c->render(text => 'Authentication required', status => 401);
+            return undef;
+        }
+    )
+};
+
 my $memcache = LogBot::MemCache->new(binary => $is_production);
 render_init($RealBin);
 
@@ -143,7 +157,6 @@ get '/' => sub {
     } else {
 
         # index
-        my $config = $c->stash('config');
         LogBot::Web::Index::render($c);
     }
 };

@@ -57,6 +57,11 @@ Configure Services and cron
   `localhost:11211`.  After each deploy you must touch the config file(s)
   to clear memcached entries.
 
+  A status page is available on /_status.  By default it's password protected
+  with the username `logbot` and the password `status`.  To change the password
+  set it in the LOGBOT_STATUS_PASSWORD environmental variable.  Setting this
+  variable to an empty string will disable authentication.
+
   Finally you need to configure `logbot-nightly --all` to run nightly; this
   process generates statistical data and archives stale channels.
 
