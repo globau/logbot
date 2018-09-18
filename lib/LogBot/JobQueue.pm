@@ -7,8 +7,8 @@ use warnings;
 use FindBin qw( $RealBin );
 use lib "$RealBin/lib";
 
+use Cpanel::JSON::XS qw( decode_json encode_json );
 use File::Basename qw( basename );
-use JSON::XS qw( decode_json encode_json );
 use LogBot::Util qw( path_for slurp spurt timestamp );
 use Time::HiRes qw( time );
 

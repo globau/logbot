@@ -13,9 +13,8 @@ BEGIN {
     $ENV{CRON} = !$ENV{DEBUG};
 }
 
+use Cpanel::JSON::XS qw( encode_json );
 use DateTime ();
-use JSON     ();
-use JSON::XS qw( encode_json );
 use List::Util qw( any );
 use LogBot::Config qw( find_config load_all_configs load_config reload_config save_config );
 use LogBot::Database qw( dbh replace_sql_placeholders );
@@ -159,8 +158,8 @@ sub generate_hours_meta {
     my $json = {
         data  => \@data,
         lines => {
-            show => JSON::true,
-            fill => JSON::true,
+            show => \1,
+            fill => \1,
         },
     };
     spurt($output_file, encode_json($json));

@@ -1,4 +1,5 @@
 # cpanm --verbose --local-lib ~/perl5/ --notest --installdeps .
+requires 'Cpanel::JSON::XS', '==4.06';
 requires 'DBD::SQLite', '==1.54';
 requires 'DBI', '==1.636';
 requires 'Date::Parse', '==2.30';
@@ -8,8 +9,6 @@ requires 'EV', '==4.22';
 requires 'IO::Socket::SSL', '==2.049';
 requires 'IO::Socket::Socks', '==0.74';
 requires 'IO::Socket::Timeout', '==0.32';
-requires 'JSON', '==2.94';
-requires 'JSON::XS', '==3.03';
 requires 'List::MoreUtils', '==0.419';
 requires 'List::Util', '==1.50';
 requires 'Memcached::libmemcached', '==1.001801';

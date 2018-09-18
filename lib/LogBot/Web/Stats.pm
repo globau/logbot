@@ -4,8 +4,8 @@ use v5.10;
 use strict;
 use warnings;
 
+use Cpanel::JSON::XS qw( decode_json );
 use DateTime ();
-use JSON::XS qw( decode_json );
 use List::Util qw( uniq );
 use LogBot::Database qw( dbh );
 use LogBot::Util qw( commify file_for plural slurp time_to_datetimestr );
