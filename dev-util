@@ -6,7 +6,8 @@ use warnings;
 
 use File::Find qw( find );
 use FindBin qw( $RealBin );
-use Mojo::File ();
+use Mojo::File qw( path );
+use Mojo::UserAgent ();
 use Mojo::Util qw( trim );
 use YAML::Tiny ();
 
@@ -18,7 +19,7 @@ syntax: dev-util <command> [command args]
 
 commands:
     svg-import <path>   update svg source from font-awesome
-    sass-make           create sass dark mode css
+    perl-upgrades       reports on newer versions of perl modules
 EOF
 
 if ($command eq 'svg-import') {
@@ -43,18 +44,36 @@ if ($command eq 'svg-import') {
         my $input_file  = "$source_path/" . $mapping->{$output_name} . '.svg';
         my $output_file = "$fa_path/$output_name.svg";
 
-        my $input = Mojo::File->new($input_file)->slurp;
+        my $input = path($input_file)->slurp;
         $input =~ s/<!--.*-->//sg;
         $input = trim($input);
 
-        my $output = -e $output_file ? Mojo::File->new($output_file)->slurp : '';
+        my $output = -e $output_file ? path($output_file)->slurp : '';
 
         if ($input eq $output) {
             say "inline-svg: $output_name unchanged";
         } else {
-            Mojo::File->new($output_file)->spurt($input);
+            path($output_file)->spurt($input);
             say "inline-svg: $output_name \e[34mupdated\e[0m";
         }
     }
 
+} elsif ($command eq 'perl-upgrades') {
+    my $ua = Mojo::UserAgent->new();
+    foreach my $line (split(/\n/, path('cpanfile')->slurp)) {
+        next unless $line =~ /^\s*requires '([^']+)', '==([^']+)';/;
+        my ($module, $installed_version) = ($1, $2);
+        print "$module $installed_version: ";
+
+        my $res = $ua->get("http://cpanmetadb.plackperl.org/v1.0/package/$module")->result;
+        die $res->message unless $res->is_success;
+        my $cpan = YAML::Tiny->read_string($res->body)->[0];
+
+        if ($cpan->{version} eq $installed_version) {
+            say 'ok';
+        } else {
+            (my $dist = $module) =~ s/::/-/g;
+            say "\e[34m", $cpan->{version}, "\e[0m - https://metacpan.org/changes/distribution/$dist";
+        }
+    }
 }
