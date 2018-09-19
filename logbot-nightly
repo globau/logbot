@@ -20,9 +20,16 @@ use LogBot::Config qw( find_config load_all_configs load_config reload_config sa
 use LogBot::Database qw( dbh replace_sql_placeholders );
 use LogBot::Util qw( file_for logbot_init nick_is_bot round spurt );
 use LogBot::Web::Colour qw( nick_hash );
+use Mojo::Log ();
 use Readonly;
 
-Readonly::Scalar my $ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);  # 6 months
+# channels with activity are archived after 6 months.
+Readonly::Scalar my $ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);
+
+# newly logged channels have 21 days for activity before they are deleted.
+# a channel is considered empty if there's fewer than EMPTY_THRESHOLD messages.
+Readonly::Scalar my $EMPTY_THRESHOLD => 5;
+Readonly::Scalar my $DELETE_TIME     => 60 * 60 * 24 * 21;
 
 my @configs;
 if (@ARGV && $ARGV[0] eq '--all') {
@@ -32,6 +39,8 @@ if (@ARGV && $ARGV[0] eq '--all') {
     push @configs, load_config(find_config(shift));
 }
 @configs || die "syntax: syntax: logbot-nightly <config file|--all>\n";
+
+my $log = Mojo::Log->new(path => "$RealBin/log/nightly.log");
 
 foreach my $config (sort { $a->{name} cmp $b->{name} } @configs) {
     logbot_init($config, name => 'logbot-nightly', quiet => 1);
@@ -201,18 +210,49 @@ sub archive_stale_channels {
         next if $config->{channels}->{$channel}->{archived};
 
         my $dbh = dbh($config);
-        my $last_time =
-            $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? ORDER BY time DESC LIMIT 1', undef,
-            $channel);
 
+        # some messages are always ignored when determining channel activity
+        my @ignore;
+
+        # notices from the irc network itself
+        # just stripping ^irc. isn't ideal but works for most networks.
+        (my $network = $config->{irc}->{host}) =~ s/^irc\.//;
+        $network =~ s/:\d+$//;
+        push @ignore, "type = 2 AND nick LIKE '%.$network'";
+
+        # ignore our own messages
+        push @ignore, 'nick = ' . $dbh->quote($config->{irc}->{nick});
+
+        my $where = 'channel = ' . $dbh->quote($channel) . ' AND NOT ((' . join(') OR (', @ignore) . '))';
+
+        # empty channels
+        my $count = $dbh->selectrow_array('SELECT COUNT(*) FROM logs WHERE ' . $where);
+        if ($count < $EMPTY_THRESHOLD) {
+            my $first_time = $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? ORDER BY time LIMIT 1');
+            next if $first_time && $now - $first_time <= $DELETE_TIME;
+            my $msg = $config->{name} . ": channel $channel is empty ($count) and stale, deleting";
+            $log->info($msg);
+            say $msg if $ENV{DEBUG};
+
+            $config = reload_config($config);
+            delete $config->{channels}->{$channel};
+            save_config($config);
+            next;
+        }
+
+        # stale channels
+        my $last_time = $dbh->selectrow_array('SELECT time FROM logs WHERE ' . $where . ' ORDER BY time DESC LIMIT 1');
         next unless $last_time;
-        next unless $now - $last_time > $ARCHIVE_TIME;
+        if ($now - $last_time > $ARCHIVE_TIME) {
+            my $msg = $config->{name} . ": $channel is stale, archiving";
+            $log->info($msg);
+            say $msg if $ENV{DEBUG};
 
-        say $config->{name}, ': archiving ', $channel if $ENV{DEBUG};
-
-        $config = reload_config($config);
-        $config->{channels}->{$channel}->{archived} = 1;
-        save_config($config);
+            $config = reload_config($config);
+            $config->{channels}->{$channel}->{archived} = 1;
+            save_config($config);
+            next;
+        }
     }
 
     if ($reload) {
