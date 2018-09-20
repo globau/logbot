@@ -19,6 +19,7 @@ use Perl::Tidy   ();
 
 $| = 1;
 chdir($RealBin);
+our @ARGV = ();
 
 # tabs
 
