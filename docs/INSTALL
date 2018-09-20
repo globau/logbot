@@ -66,11 +66,3 @@ Configure Services and cron
   process generates statistical data and archives stale channels.
 
   [1] http://mojolicious.org/perldoc/Mojolicious/Guides/Cookbook#DEPLOYMENT
-
-Backups
-
-  Should you want to backup logbot's data the safest way is to run the
-  `~/logbot/logbot-util backup --all ~/store/backups` command.  This will use
-  SQLite's `backup` command to create a copy of the databases.  From there use
-  your normal off-system backup mechanisms.
-

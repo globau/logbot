@@ -10,24 +10,15 @@ use lib "$RealBin/lib";
 BEGIN {
     $ENV{TZ} = 'UTC';
 }
-
-END {
-    ReadMode(0);
-}
 $| = 1;
 
-use File::Path qw( make_path );
-use List::Util qw( any );
+use List::Util qw( first );
 use LogBot::Config qw( find_config load_all_configs load_config );
-use LogBot::Database qw( dbh execute_with_retry like_value replace_sql_placeholders );
-use LogBot::Util qw( event_to_string file_for plural pretty_size slurp timestamp touch );
+use Module::Load qw( load );
 use Mojo::Util qw( trim );
-use Term::ReadKey qw( ReadKey ReadMode );
-use Text::ParseWords qw( quotewords );
-use Try::Tiny qw( finally try );
+use Try::Tiny qw( catch try );
 
 my @configs;
-
 if (@ARGV && $ARGV[0] eq '--all') {
     shift;
     @configs = values %{ load_all_configs(all => !!$ENV{DEBUG}) };
@@ -35,196 +26,30 @@ if (@ARGV && $ARGV[0] eq '--all') {
     push @configs, load_config(find_config(shift));
 }
 
+my @commands;
+foreach my $file (glob("$RealBin/lib/LogBot/CLI/*.pm")) {
+    (my $class = substr($file, length("$RealBin/lib/"), -3)) =~ s{/}{::}g;
+    load($file);
+    push @commands, $class->manifest();
+    $commands[-1]->{class} = $class;
+}
+@commands = sort { $a->{command} cmp $b->{command} } @commands;
+
 my ($command, @args) = (lc(shift // ''), @ARGV);
+$command = first { $_->{command} eq $command } @commands;
 
-(scalar(@configs) && $command) || die <<'EOF';
-syntax: logbot-util <config>|--all <command> [command args]
-
-commands:
-    backup <path>   create backup database(s) in <path>
-    delete <str>    delete log entries matching <str>
-    find-bots       find nicks ending in 'bot'
-    log-rotate      rotate log files (all irc and web daemons)
-    purge           delete orphaned data
-    reload          signal to bot to reload config
-EOF
-
-if ($command eq 'backup') {
-    my ($backup_path) = @args;
-    $backup_path || die "syntax: logbot-util <config file|--all> backup <backup path>\n";
-    $backup_path =~ s{/$}{};
-
-    foreach my $config (@configs) {
-        make_path($backup_path);
-        my $backup_file = $backup_path . '/' . $config->{name} . '.sqlite';
-
-        say timestamp(), ' backing up to ' . $backup_file if $ENV{DEBUG};
-        my $dbh = dbh($config);
-        $dbh->sqlite_backup_to_file($backup_file);
-
-        say timestamp(), " compressing $backup_file (" . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
-        unlink($backup_file . '.bz2');
-        system('bzip2', $backup_file);
-
-        $backup_file .= '.bz2';
-        say timestamp(), ' compressed (' . pretty_size(-s $backup_file) . ')' if $ENV{DEBUG};
+unless (@configs && $command) {
+    my $usage = "syntax: logbot-util <config>|--all <command> [command args]\ncommands:\n";
+    foreach my $c (@commands) {
+        $usage .= sprintf("  %-16s %s\n", $c->{command}, $c->{help});
     }
-
-} elsif ($command eq 'delete') {
-    my $query = join(' ', @ARGV);
-    my $nick = '';
-    if ($query =~ s/^<([^>]+)>\s*//) {
-        $nick = $1;
-    }
-    $query = trim($query);
-    $nick  = trim($nick);
-
-    foreach my $config (@configs) {
-        my $dbh = dbh($config, read_write => 1);
-
-        my (@where, @values);
-        if ($query) {
-            my @parts;
-            foreach my $word (quotewords('\s+', 0, $query)) {
-                my ($condition, $value) = like_value(text => $word);
-                push @parts,  $condition;
-                push @values, $value;
-            }
-            if (!@parts) {
-                my ($condition, $value) = like_value(text => $query);
-                push @parts,  $condition;
-                push @values, $value;
-            }
-            push @where, join(' AND ', @parts);
-        }
-        if ($nick) {
-            push @where,  'nick = ?';
-            push @values, $nick;
-        }
-        die "query not provided\n" unless @where;
-
-        my $sql_filter = 'FROM logs WHERE (' . join(') AND (', @where) . ') ORDER BY channel,time';
-        my $sql_select = "SELECT * $sql_filter";
-        my $sql_count  = "SELECT COUNT(*) $sql_filter";
-        say replace_sql_placeholders($dbh, $sql_select, \@values);
-
-        my ($count) = $dbh->selectrow_array($sql_count, undef, @values);
-        say 'found ', plural($count, 'match', 'es');
-        exit unless $count;
-
-        my $dirty = 0;
-        try {
-            my $all_y = my $all_n = 0;
-            my $sth = $dbh->prepare($sql_select);
-            $sth->execute(@values);
-            while (my $event = $sth->fetchrow_hashref) {
-                say event_to_string($event);
-
-                my $key;
-                if ($all_y) {
-                    $key = 'y';
-                } elsif ($all_n) {
-                    $key = 'n';
-                } else {
-                    print '(y)es (n)o (Y)es to all (N)o to all (q)uit ? ';
-                    $key = confirm();
-                }
-
-                if ($key eq 'Y') {
-                    $all_y = 1;
-                    $key   = 'y';
-                } elsif ($key eq 'N') {
-                    $all_n = 1;
-                    $key   = 'n';
-                }
-
-                if ($key eq 'y') {
-                    execute_with_retry(
-                        $config,
-                        sub {
-                            my ($_dbh) = @_;
-                            $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
-                            return 1;
-                        }
-                    ) // die;
-                    say 'deleted';
-                    $dirty = 1;
-                } elsif ($key eq 'n') {
-                    print "\r\e[K";
-                } else {
-                    say '';
-                    exit;
-                }
-            }
-        }
-        finally {
-            touch($config->{_derived}->{file}) if $dirty;
-        };
-    }
-
-} elsif ($command eq 'log-rotate') {
-    foreach my $config (@configs) {
-        my $file = file_for($config, 'pid', 'logbot-irc');
-        next unless -e $file;
-        chomp(my $pid = slurp($file));
-        kill('USR2', $pid);
-    }
-
-} elsif ($command eq 'purge') {
-    $ENV{NO_META} = 1;
-    $ENV{DEBUG}   = 1;
-    foreach my $config (@configs) {
-        system($RealBin . '/logbot-nightly', $config->{_derived}->{file});
-    }
-
-} elsif ($command eq 'reload') {
-    foreach my $config (@configs) {
-        my $file = file_for($config, 'pid', 'logbot-irc');
-        if (-e $file) {
-            chomp(my $pid = slurp($file));
-            say 'sending HUP to ' . $pid;
-            kill('HUP', $pid);
-        } else {
-            say '"', $config->{name}, '" bot is not running';
-        }
-    }
-
-} elsif ($command eq 'find-bots') {
-    my $since = DateTime->now->subtract(months => 6)->epoch;
-
-    foreach my $config (@configs) {
-        say $config->{name};
-
-        my $dbh = dbh($config);
-        my @nicks =
-            sort
-            map {lc}
-            @{ $dbh->selectcol_arrayref("SELECT DISTINCT(nick) FROM logs WHERE time >= $since AND nick LIKE '%bot'") };
-
-        foreach my $nick (@nicks) {
-            if (any { $_ eq $nick } @{ $config->{bots} }) {
-                say "✓ $nick";
-            } else {
-                say "- $nick";
-            }
-        }
-    }
-
-} else {
-    die "unknown command '$command'\n";
+    die $usage;
 }
 
-sub confirm {
-    my $key = '';
-    ReadMode(4);
-    do {
-        $key = ReadKey();
-        if (ord($key) == 3 || ord($key) == 27) {
-            say '^C';
-            ReadMode(0);
-            exit;
-        }
-    } until $key =~ /^[ynYNq]$/;
-    ReadMode(0);
-    return $key;
+try {
+    $command->{class}->execute(\@configs, @args);
 }
+catch {
+    my $error = trim($_);
+    die $error eq 'syntax' ? 'syntax: logbot-util <config>|--all ' . $command->{usage} . "\n" : "$error\n";
+};
