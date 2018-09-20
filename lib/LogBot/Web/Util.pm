@@ -244,6 +244,7 @@ sub preprocess_event {
     my ($config, $event, $nick_hashes) = @_;
     $event->{hhss} = sprintf('%02d:%02d', (localtime($event->{time}))[2, 1]);
     $event->{text} = linkify(decode('UTF-8', $event->{text}));
+    $event->{text} =~ s/^\s+$/\xa0/;
     if (nick_is_bot($config, $event->{nick})) {
         $event->{bot}  = 1;
         $event->{hash} = '0';
