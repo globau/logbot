@@ -243,6 +243,11 @@ get '/#channel/:date/raw' => [date => qr/\d{8}/] => sub {
     LogBot::Web::Channel::render_raw($c);
 };
 
+get '/#channel/link/:time/:nick' => [time => qr /\d+/] => sub {
+    my ($c) = @_;
+    LogBot::Web::Channel::redirect_to($c);
+};
+
 get '/#channel/stats' => sub {
     my ($c) = @_;
     LogBot::Web::Stats::render($c, require_channel => 1);

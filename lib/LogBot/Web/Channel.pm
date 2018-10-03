@@ -8,7 +8,7 @@ use DateTime ();
 use Encode qw( decode );
 use LogBot::Database qw( dbh execute_with_timeout );
 use LogBot::Util qw( event_to_short_string );
-use LogBot::Web::Util qw( channel_from_param date_from_param munge_emails preprocess_event );
+use LogBot::Web::Util qw( channel_from_param date_from_param munge_emails preprocess_event url_for_channel );
 
 sub _get_logs {
     my ($c, $dbh, $channel, $date) = @_;
@@ -130,6 +130,53 @@ sub render_raw {
     }
 
     $c->render(text => join("\n", @lines) . "\n", format => 'txt', charset => 'utf-8');
+}
+
+sub _get_link {
+    my ($c) = @_;
+    my $config = $c->stash('config');
+    my $dbh = dbh($config, cached => 1);
+
+    my $channel = channel_from_param($c) // return (404, 'Channel not logged');
+    my $time    = $c->param('time')      // return (400, 'Bad or missing timestamp');
+    my $nick    = $c->param('nick')      // return (400, 'Bad or missing nick');
+
+    # search for entries +/- 5 seconds from the specified time
+    # returns closest match
+    ## no critic (ProhibitInterpolationOfLiterals)
+    #<<<
+    my $sql =
+        "SELECT COALESCE(old_id, id) AS id\n" .
+        "FROM logs\n" .
+        "WHERE (channel = ?) " .
+            "AND (time BETWEEN " . ($time - 5) . " AND " . ($time + 5) . ") ".
+            "AND (nick = ? COLLATE NOCASE)\n" .
+        "ORDER BY ABS(time - $time) ASC, time\n" .
+        "LIMIT 1";
+    #>>>
+    ## use critic
+
+    my $logs = execute_with_timeout($dbh, $sql, [$channel, $nick], 5);
+    return (408, 'Request took too long to process and has been cancelled.') unless defined $logs;
+    return (404, 'Entry not found') unless scalar @{$logs};
+    return (
+        302,
+        url_for_channel(
+            channel => $channel,
+            date    => DateTime->from_epoch(epoch => $time),
+            id      => $logs->[0]->{id},
+        )
+    );
+}
+
+sub redirect_to {
+    my ($c) = @_;
+    my ($status, $response) = _get_link($c);
+    if ($status == 302) {
+        $c->redirect_to($response);
+    } else {
+        $c->render(status => $status, text => $response, format => 'txt');
+    }
 }
 
 1;

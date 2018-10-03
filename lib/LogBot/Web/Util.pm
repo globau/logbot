@@ -121,7 +121,7 @@ sub url_for_channel {
     if ($params{date}) {
         push @path, ref($params{date}) ? $params{date}->ymd('') : $params{date};
     }
-    return '/' . join('/', @path);
+    return '/' . join('/', @path) . ($params{id} ? '#c' . $params{id} : '');
 }
 
 sub irc_host {
