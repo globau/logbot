@@ -40,7 +40,7 @@ sub render_init {
 
 sub rewrite_old_urls {
     my ($c) = @_;
-    my $network_channel = $c->req->query_params->param('c') // return;
+    my $network_channel = $c->req->query_params->param('c') || return;
 
     my ($network, $channel);
     if ($network_channel =~ /^([^#]+)(#.+)/) {
