@@ -3,6 +3,7 @@ use local::lib;
 use v5.10;
 use strict;
 use warnings;
+use utf8;
 
 use Date::Parse qw( str2time );
 use DateTime ();
@@ -23,7 +24,7 @@ our @EXPORT_OK = qw(
     rewrite_old_urls
     url_for_channel irc_host
     channel_from_param date_from_param
-    linkify
+    linkify munge_emails
     preprocess_event
     channel_topics
 );
@@ -185,7 +186,7 @@ sub linkify {
     $finder->find(\$value, \&xml_escape);
 
     # munge email addresses
-    $value =~ s{([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)}{$1&odot;$2}g;
+    $value = munge_emails($value);
 
     # linkify "bug NNN"
     $value =~ s{(\bbug\s+(\d+))}{<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2">$1</a>}gi;
@@ -193,6 +194,18 @@ sub linkify {
     # linkify "servo: merge #NNN"
     $value =~ s{(\bservo: Merge \#(\d+))}{<a href="https://github.com/servo/servo/pull/$2">$1</a>}gi;
 
+    return $value;
+}
+
+sub _munge_domain {
+    my ($domain) = @_;
+    $domain =~ s/(.)(?:[^.]+\.|.+$)/$1/g;
+    return $domain;
+}
+
+sub munge_emails {
+    my ($value) = @_;
+    $value =~ s{([a-zA-Z0-9\.-]+)\@(([a-zA-Z0-9\.-]+\.)+[a-zA-Z0-9\.-]+)}{$1 . '⊙' . _munge_domain($2)}ge;
     return $value;
 }
 

@@ -8,7 +8,7 @@ use DateTime ();
 use Encode qw( decode );
 use LogBot::Database qw( dbh execute_with_timeout );
 use LogBot::Util qw( event_to_short_string );
-use LogBot::Web::Util qw( channel_from_param date_from_param preprocess_event );
+use LogBot::Web::Util qw( channel_from_param date_from_param munge_emails preprocess_event );
 
 sub _get_logs {
     my ($c, $dbh, $channel, $date) = @_;
@@ -125,7 +125,7 @@ sub render_raw {
 
     my @lines;
     foreach my $event (@{$logs}) {
-        $event->{text} = decode('UTF-8', $event->{text});
+        $event->{text} = munge_emails(decode('UTF-8', $event->{text}));
         push @lines, event_to_short_string($event);
     }
 
