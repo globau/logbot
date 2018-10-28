@@ -610,7 +610,7 @@ while (1) {
             next if $config->{channels}->{$channel}->{disabled};
             next if $config->{channels}->{$channel}->{archived};
 
-            # update channels_in
+            # update channels_in (in)
             if ($state->{channels_reconcile}->{$channel}) {
                 $state->{channels_in}->{$channel} = 1;
                 next;
@@ -644,6 +644,13 @@ while (1) {
         while (my @part_channels = $iter->()) {
             irc_send('PART ' . join(',', @part_channels));
             $log->info('parting ' . join(' ', @part_channels));
+        }
+
+        # update channels_in (out)
+        foreach my $channel (sort keys %{ $state->{channels_in} }) {
+            next if $state->{channels_reconcile}->{$channel};
+            $log->info('unexpectedly no longer in ' . $channel);
+            delete $state->{channels_in}->{$channel};
         }
 
         delete $state->{channels_reconcile};
