@@ -434,7 +434,7 @@ while (1) {
     }
 
     # parted
-    if ($message =~ /^:(\S+) JOIN :(#.+)/) {
+    if ($message =~ /^:(\S+) PART :(#.+)/) {
         my ($who, $channel) = (source_to_nick($1), normalise_channel($2));
         next unless $who eq $config->{irc}->{nick};
 
