@@ -20,7 +20,7 @@ use LogBot::Util qw( logbot_init );
 # ./script-active-users <network> [minimum event count]
 # 'minimum event count' defaults to 1
 
-my $config = load_config(find_config(shift));
+my $config = load_config(find_config(shift) || die "script-active-users <network> [minimum event count]\n");
 logbot_init(
     $config,
     name  => 'script ',
