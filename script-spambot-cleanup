@@ -1,0 +1,110 @@
+#!/usr/bin/perl
+use local::lib;
+use strict;
+use v5.10;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+BEGIN {
+    $ENV{TZ} = 'UTC';
+}
+
+$| = 1;
+
+use LogBot::Config qw( find_config load_config );
+use LogBot::Database qw( dbh execute_with_retry );
+use LogBot::Util qw( event_to_string path_for plural touch );
+use Mojo::File qw( path );
+use Mojo::Util qw( trim );
+
+# remove greeting spambots from the mozilla network database
+
+my $start_time = 1_534_710_129;
+my $end_time   = time() - 60 * 60;
+my @greetings  = map { trim($_) } split(/\n/, <<'EOF');
+    eh!
+    hello
+    hello!
+    hey
+    hey!
+    hi
+    hi!
+    hola
+    hola!
+    holaa
+    holaaaaaaa
+    oye!
+    tiens
+    hé!
+    i'm here
+EOF
+
+my $config    = load_config(find_config('mozilla'));
+my $dbh       = dbh($config, read_write => 1);
+my $greetings = join(',', map { $dbh->quote($_) } @greetings);
+
+my $start_file = path_for($config, 'store') . '/spambot-cleanup';
+if (-e $start_file) {
+    $start_time = trim(path($start_file)->slurp);
+}
+
+my $sql = "
+    SELECT DISTINCT LOWER(nick)
+      FROM logs
+     WHERE (time BETWEEN $start_time AND $end_time)
+           AND (text COLLATE NOCASE IN ($greetings))
+     ORDER BY time";
+
+my %nicks = map { $_ => 1 } @{ $dbh->selectcol_arrayref($sql) };
+say 'found ', plural(scalar(keys %nicks), 'suspect');
+exit unless scalar(keys %nicks);
+
+my $excluded = 0;
+foreach my $nick (sort keys %nicks) {
+    my ($count) = $dbh->selectrow_array(
+        "SELECT COUNT(*)
+           FROM logs
+          WHERE (time BETWEEN $start_time AND $end_time)
+                AND (nick = ? COLLATE NOCASE)
+                AND (text COLLATE NOCASE NOT IN ($greetings))",
+        undef,
+        $nick
+    );
+    if ($count) {
+        delete $nicks{$nick};
+        $excluded++;
+    }
+}
+
+say 'excluded ', plural($excluded, 'account'), ', leaving ', plural(scalar(keys %nicks), 'spammer');
+
+my $sth = $dbh->prepare(
+    "SELECT *
+       FROM logs
+      WHERE (time BETWEEN $start_time and $end_time)
+            AND (nick COLLATE NOCASE IN (" . join(',', map { $dbh->quote($_) } sort keys %nicks) . "))
+            AND (text COLLATE NOCASE IN ($greetings))
+      ORDER BY time"
+);
+$sth->execute();
+my $dirty = 0;
+while (my $event = $sth->fetchrow_hashref) {
+    say event_to_string($event);
+    $dirty = 1;
+    execute_with_retry(
+        $config,
+        sub {
+            my ($_dbh) = @_;
+            $_dbh->do('DELETE FROM logs WHERE id = ?', undef, $event->{id});
+            return 1;
+        }
+    ) // die;
+}
+
+if ($dirty) {
+    touch($config->{_derived}->{file});
+}
+
+path($start_file)->spurt("$end_time\n");
