@@ -1,0 +1,98 @@
+#!/usr/bin/perl
+use local::lib;
+use v5.10;
+use strict;
+use warnings;
+
+use FindBin qw( $RealBin );
+use lib "$RealBin/lib";
+
+BEGIN {
+    $ENV{TZ} = 'UTC';
+}
+
+use DateTime qw ();
+use LogBot::Config qw( find_config load_config );
+use LogBot::Database qw( dbh replace_sql_placeholders );
+use LogBot::Util qw( logbot_init );
+
+# dump a csv with a tallys of active users by channel
+# ./script-active-users <network> [minimum event count]
+# 'minimum event count' defaults to 1
+
+my $config = load_config(find_config(shift));
+logbot_init(
+    $config,
+    name  => 'script ',
+    quiet => 1,
+);
+my $min_event_count = shift // 1;
+
+my $dbh   = dbh($config);
+my $now   = DateTime->now->truncate(to => 'month');
+my $start = $now->clone->subtract(months => 12);
+
+print 'channel,';
+each_date(
+    sub {
+        my ($date) = @_;
+        print $date->format_cldr('MMM yyyy');
+        print ',' unless $date == $now;
+    }
+);
+print "\n";
+
+my @channels = @{
+    $dbh->selectcol_arrayref('SELECT DISTINCT channel FROM logs WHERE time >= ? ORDER BY channel',
+        undef, $start->epoch,)
+};
+unshift @channels, 'all';
+foreach my $channel (@channels) {
+    print qq{"$channel",};
+    each_date(
+        sub {
+            my ($date) = @_;
+
+            my $sql = "
+                SELECT COUNT(*)
+                  FROM (
+                    SELECT nick, count(*) AS events
+                      FROM logs
+                     WHERE {where}
+                     GROUP BY nick COLLATE NOCASE
+                        ) t
+                 WHERE events >= $min_event_count
+            ";
+            my @where;
+            my @values;
+
+            if ($channel ne 'all') {
+                push @where,  'channel = ?';
+                push @values, $channel;
+            }
+            push @where,  'time >= ?';
+            push @values, $date->epoch;
+            push @where,  'time < ?';
+            push @values, $date->clone->add(months => 1)->epoch;
+
+            my $where = '(' . join(') AND (', @where) . ')';
+            $sql =~ s/\{where\}/$where/;
+
+            say '  ', replace_sql_placeholders($dbh, $sql, \@values) if $ENV{DEBUG};
+
+            my $count = $dbh->selectrow_array($sql, undef, @values,);
+            print $count;
+            print ',' unless $date == $now;
+        }
+    );
+    print "\n";
+}
+
+sub each_date {
+    my ($callback) = @_;
+    my $date_iter = $start->clone;
+    while ($date_iter <= $now) {
+        $callback->($date_iter);
+        $date_iter->add(months => 1);
+    }
+}
