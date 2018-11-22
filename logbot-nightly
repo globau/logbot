@@ -26,10 +26,10 @@ use Readonly;
 # channels with activity are archived after 6 months.
 Readonly::Scalar my $ARCHIVE_TIME => 60 * 60 * 24 * (365 / 2);
 
-# newly logged channels have 21 days for activity before they are deleted.
+# newly logged channels have 5 days for activity before they are deleted.
 # a channel is considered empty if there's fewer than EMPTY_THRESHOLD messages.
 Readonly::Scalar my $EMPTY_THRESHOLD => 5;
-Readonly::Scalar my $DELETE_TIME     => 60 * 60 * 24 * 21;
+Readonly::Scalar my $DELETE_TIME     => 60 * 60 * 24 * 5;
 
 my @configs;
 if (@ARGV && $ARGV[0] eq '--all') {
@@ -228,7 +228,8 @@ sub archive_stale_channels {
         # empty channels
         my $count = $dbh->selectrow_array('SELECT COUNT(*) FROM logs WHERE ' . $where);
         if ($count < $EMPTY_THRESHOLD) {
-            my $first_time = $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? ORDER BY time LIMIT 1');
+            my $first_time =
+                $dbh->selectrow_array('SELECT time FROM logs WHERE channel = ? ORDER BY time LIMIT 1', undef, $channel);
             next if $first_time && $now - $first_time <= $DELETE_TIME;
             my $msg = $config->{name} . ": channel $channel is empty ($count) and stale, deleting";
             $log->info($msg);
