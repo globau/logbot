@@ -283,7 +283,7 @@ sub render {
         limit       => $SEARCH_LIMIT,
         limited     => $limited,
         log_count   => scalar(@{$logs}),
-        nick_hashes => [keys $nick_hashes],
+        nick_hashes => [keys %{$nick_hashes}],
         searched    => 1,
     );
 
