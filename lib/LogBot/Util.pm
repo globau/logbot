@@ -230,7 +230,7 @@ sub event_to_string {
 sub event_to_short_string {
     my ($event) = @_;
 
-    my $time = DateTime->from_epoch(epoch => $event->{time})->format_cldr('hh:mm:ss');
+    my $time = DateTime->from_epoch(epoch => $event->{time})->format_cldr('HH:mm:ss');
     if ($event->{type} == 0) {
         return $time . ' <' . $event->{nick} . '> ' . $event->{text};
     } elsif ($event->{type} == 1) {
