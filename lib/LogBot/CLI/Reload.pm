@@ -4,7 +4,7 @@ use v5.10;
 use strict;
 use warnings;
 
-use LogBot::Util qw( file_for );
+use LogBot::Util qw( file_for slurp );
 
 sub manifest {
     return {
