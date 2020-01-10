@@ -89,8 +89,8 @@ sub render_meta {
         $event_count //= '0';
     }
 
-    my $channels_in = scalar(grep { !($_->{archived} || $_->{blocked} || $_->{disabled}) } values $config->{channels});
-    my $archived = scalar(grep { $_->{archived} && !($_->{blocked} || $_->{disabled}) } values $config->{channels});
+    my $channels_in = scalar(grep { !($_->{archived} || $_->{blocked} || $_->{disabled}) } values %{$config->{channels}});
+    my $archived = scalar(grep { $_->{archived} && !($_->{blocked} || $_->{disabled}) } values %{$config->{channels}});
 
     $c->render(
         json => {
